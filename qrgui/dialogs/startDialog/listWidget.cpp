@@ -12,7 +12,7 @@ ListWidget::ListWidget(QWidget *parent)
 
 	setLayout(mainLayout);
 
-	connect(mListWidget, SIGNAL(itemDoubleClicked(QListWidgetItem*))
+	connect(mListWidget, SIGNAL(itemClicked(QListWidgetItem*))
 			, this, SLOT(doubleClickHandler(QListWidgetItem*)));
 }
 

@@ -3,7 +3,7 @@
 
 using namespace qReal;
 
-SuggestToCreateDiagramWidget::SuggestToCreateDiagramWidget(MainWindow *mainWindow, QDialog *parent)
+SuggestToCreateDiagramWidget::SuggestToCreateDiagramWidget(MainWindow *mainWindow, QWidget *parent)
 		: ListWidget(parent)
 		, mMainWindow(mainWindow)
 {

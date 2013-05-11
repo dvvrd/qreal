@@ -303,6 +303,8 @@ private:
 
 	void setVersion(QString const &version);
 
+	void openStartTab();
+
 	Ui::MainWindowUi *mUi;
 
 	/// elements & theirs ids

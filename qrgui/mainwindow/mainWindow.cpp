@@ -131,7 +131,7 @@ MainWindow::MainWindow(QString const &fileToOpen)
 	initExplorers();
 
 	if (fileToOpen.isEmpty() || !mProjectManager->open(fileToOpen)) {
-		mStartDialog->exec();
+		openStartTab();
 	}
 }
 
@@ -152,7 +152,7 @@ void MainWindow::connectActions()
 	connect(mUi->actionMakeSvg, SIGNAL(triggered()), this, SLOT(makeSvg()));
 
 	connect(mUi->actionNew_Diagram, SIGNAL(triggered()), mProjectManager, SLOT(suggestToCreateDiagram()));
-	connect(mUi->actionNewProject, SIGNAL(triggered()), mStartDialog, SLOT(exec()));
+	//connect(mUi->actionNewProject, SIGNAL(triggered()), mStartDialog, SLOT(exec()));
 
 	connect(mUi->actionImport, SIGNAL(triggered()), mProjectManager, SLOT(suggestToImport()));
 	connect(mUi->actionDeleteFromDiagram, SIGNAL(triggered()), this, SLOT(deleteFromDiagram()));
@@ -1905,4 +1905,10 @@ void MainWindow::setVersion(QString const &version)
 {
 	// TODO: update title
 	SettingsManager::setValue("version", version);
+}
+
+void MainWindow::openStartTab()
+{
+	mUi->tabs->addTab(mStartDialog, tr("GettingStarted"));
+	mUi->tabs->setCurrentWidget(mStartDialog);
 }

@@ -15,9 +15,9 @@ using namespace qReal;
 const QSize StartDialog::mMinimumSize = QSize(350, 200);
 
 StartDialog::StartDialog(MainWindow *mainWindow, ProjectManager *projectManager)
-		: ManagedClosableDialog(mainWindow, false)
-		, mMainWindow(mainWindow)
-		, mProjectManager(projectManager)
+	: QWidget()
+	, mMainWindow(mainWindow)
+	, mProjectManager(projectManager)
 {
 	setMinimumSize(mMinimumSize);
 
@@ -33,8 +33,8 @@ StartDialog::StartDialog(MainWindow *mainWindow, ProjectManager *projectManager)
 	QLabel* createLink = new QLabel(creatLinkText, this);
 
 	QGridLayout *mainLayout = new QGridLayout;
-	mainLayout->addWidget(recentProjects, 0, 0);
-	mainLayout->addWidget(openLink, 1, 0);
+	mainLayout->addWidget(recentProjects, 0, 0, 2, 1);
+	mainLayout->addWidget(openLink, 0, 1);
 	mainLayout->addWidget(createLink, 1, 1);
 
 	setLayout(mainLayout);
@@ -54,14 +54,14 @@ StartDialog::StartDialog(MainWindow *mainWindow, ProjectManager *projectManager)
 void StartDialog::openRecentProject(QString const &fileName)
 {
 	if (mProjectManager->open(fileName)) {
-		forceClose();
+		this->close();
 	}
 }
 
 void StartDialog::openExistingProject()
 {
 	if (mProjectManager->suggestToOpenExisting()) {
-		forceClose();
+		this->close();
 	}
 }
 
@@ -70,10 +70,10 @@ void StartDialog::createProjectWithDiagram(QString const &idString)
 	mProjectManager->clearAutosaveFile();
 	mProjectManager->openEmptyWithSuggestToSaveChanges();
 	mMainWindow->createDiagram(idString);
-	forceClose();
+	this->close();
 }
 
 void StartDialog::exitApp()
 {
-	forceClose();
+	this->close();
 }

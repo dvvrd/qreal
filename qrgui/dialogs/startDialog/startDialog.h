@@ -14,7 +14,7 @@ class MainWindow;
  * projects or not), or create a new one and did not appear in the main window of application,
  * where there is no single project.
  */
-class StartDialog : public ManagedClosableDialog
+class StartDialog : public QWidget
 {
 	Q_OBJECT
 
