@@ -1,5 +1,9 @@
 #include <QtWidgets/QTabWidget>
 #include <QtWidgets/QCommandLinkButton>
+#include <QtWidgets/QGridLayout>
+#include <QtWidgets/QLabel>
+#include <QtCore>
+
 
 #include "startDialog.h"
 #include "suggestToCreateDiagramWidget.h"
@@ -16,38 +20,33 @@ StartDialog::StartDialog(MainWindow *mainWindow, ProjectManager *projectManager)
 		, mProjectManager(projectManager)
 {
 	setMinimumSize(mMinimumSize);
-	QTabWidget *tabWidget = new QTabWidget;
 
-	RecentProjectsListWidget *recentProjects = new RecentProjectsListWidget(this);
-	tabWidget->addTab(recentProjects, tr("&Recent projects"));
-	SuggestToCreateDiagramWidget *diagrams = new SuggestToCreateDiagramWidget(mMainWindow, this);
-	tabWidget->addTab(diagrams, tr("&New project with diagram"));
+	RecentProjectsListWidget *recentProjects = new RecentProjectsListWidget();
+	SuggestToCreateDiagramWidget *diagrams = new SuggestToCreateDiagramWidget(mMainWindow);
 
-	if (recentProjects->count() == 0) {
-		tabWidget->setCurrentWidget(diagrams);
-	}
+	//QString userData=diagrams->itemAt(0);
 
-	QCommandLinkButton *quitLink = new QCommandLinkButton(tr("&Quit QReal"));
-	QCommandLinkButton *openLink = new QCommandLinkButton(tr("&Open existing project"));
+	QString openLinkText = QString("<a href=\"Open project...\">%1</a>").arg(tr("<font color='black'>Open project...</font>"));
+	QLabel* openLink = new QLabel(openLinkText, this);
 
-	QHBoxLayout *commandLinksLayout = new QHBoxLayout;
-	commandLinksLayout->addWidget(openLink);
-	commandLinksLayout->addWidget(quitLink);
+	QString creatLinkText = QString("<a href=\'Create project\'>%1</a>").arg(tr("<font color='black'>Create new project</font>"));
+	QLabel* createLink = new QLabel(creatLinkText, this);
 
-	QVBoxLayout *mainLayout = new QVBoxLayout;
-	mainLayout->addWidget(tabWidget);
-	mainLayout->addLayout(commandLinksLayout);
+	QGridLayout *mainLayout = new QGridLayout;
+	mainLayout->addWidget(recentProjects, 0, 0);
+	mainLayout->addWidget(openLink, 1, 0);
+	mainLayout->addWidget(createLink, 1, 1);
 
 	setLayout(mainLayout);
 	setWindowTitle(tr("Start page"));
 
-	connect(openLink, SIGNAL(clicked()), this, SLOT(openExistingProject()));
-	connect(quitLink, SIGNAL(clicked()), this, SLOT(exitApp()));
+	//connect(createLink, SIGNAL(linkActivated(const QString)), diagrams, SLOT(createProjectWithDiagram(QString)));
+	connect(openLink, SIGNAL(linkActivated(const QString)), this, SLOT(openExistingProject()));
 	connect(recentProjects, SIGNAL(userDataSelected(QString)), this, SLOT(openRecentProject(QString)));
 	connect(diagrams, SIGNAL(userDataSelected(QString)), this, SLOT(createProjectWithDiagram(QString)));
 
-	if (mainWindow) {
-		// Centering dialog inside main window
+	if (mainWindow)
+	{
 		move(mainWindow->geometry().center() - rect().center());
 	}
 }
@@ -77,5 +76,4 @@ void StartDialog::createProjectWithDiagram(QString const &idString)
 void StartDialog::exitApp()
 {
 	forceClose();
-	qApp->closeAllWindows();
 }
