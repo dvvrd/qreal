@@ -15,6 +15,8 @@
 #include <QtSvg/QSvgGenerator>
 #include <QtCore/QDebug>
 #include <QtWidgets/QAbstractButton>
+#include <QtWidgets/QAction>
+#include <QtGui/QKeySequence>
 
 #include "mainWindow.h"
 #include "ui_mainWindow.h"
@@ -46,6 +48,8 @@
 #include "qscintillaTextEdit.h"
 
 #include "dotRunner.h"
+
+#include "hotKeyManager/hotKeyManager.h"
 
 using namespace qReal;
 
@@ -447,8 +451,9 @@ void MainWindow::openRecentProjectsMenu()
 void MainWindow::closeAllTabs()
 {
 	int const tabCount = mUi->tabs->count();
+
 	for (int i = 0; i < tabCount; i++) {
-		closeTab(i);
+		closeTab(0);
 	}
 	disconnectWindowTitle();
 }
