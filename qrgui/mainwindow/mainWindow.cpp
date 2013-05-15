@@ -1063,7 +1063,6 @@ void MainWindow::openNewTab(QModelIndex const &arg)
 	while (index.parent() != QModelIndex()) {
 		index = index.parent();
 	}
-
 	int tabNumber = -1;
 	for (int i = 0; i < mUi->tabs->count(); i++) {
 		EditorView *tab = (dynamic_cast<EditorView *>(mUi->tabs->widget(i)));

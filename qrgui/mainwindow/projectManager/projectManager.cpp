@@ -107,6 +107,7 @@ bool ProjectManager::open(QString const &fileName)
 	mMainWindow->models()->reinit();
 	saveTemp();
 
+
 	if (!pluginsEnough()) {
 		// restoring the session
 		open(mSaveFilePath);

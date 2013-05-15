@@ -9,8 +9,8 @@ ColorListEditor::ColorListEditor(QWidget *widget) : QComboBox(widget)
 
 void ColorListEditor::setColorList(QStringList const &colorList)
 {
-    mColorList = colorList;
-    populateList();
+	mColorList = colorList;
+	populateList();
 }
 
 QColor ColorListEditor::color() const
@@ -25,7 +25,7 @@ void ColorListEditor::setColor(QColor color)
 
 void ColorListEditor::populateList()
 {
-        QStringList colorNames = mColorList;
+	QStringList colorNames = mColorList;
 	for (int i = 0; i < colorNames.size(); ++i) {
 		QColor color(colorNames[i]);
 		insertItem(i, colorNames[i]);

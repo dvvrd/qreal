@@ -11,11 +11,11 @@ using namespace graphicsUtils;
 
 LineItem::LineItem(QPointF const &begin, QPointF const &end, int cornerRadius)
 	: mLineImpl()
-	, mCornerRadius(cornerRadius)
 	, mCellNumbX1(0)
 	, mCellNumbY1(0)
 	, mCellNumbX2(0)
 	, mCellNumbY2(0)
+	, mCornerRadius(cornerRadius)
 {
 	mX1 = begin.x();
 	mY1 = begin.y();
