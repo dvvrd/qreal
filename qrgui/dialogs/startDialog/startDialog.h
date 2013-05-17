@@ -1,6 +1,7 @@
 #pragma once
-#include "../managedClosableDialog.h"
+#include <QtWidgets/QVBoxLayout>
 
+#include "../managedClosableDialog.h"
 #include "../../mainwindow/projectManager/projectManager.h"
 
 namespace qReal {
@@ -28,10 +29,14 @@ private slots:
 	void exitApp();
 
 private:
+	void initRecentProjects();
+
 	static const QSize mMinimumSize;
+	int mProjectListSize;
 
 	MainWindow *mMainWindow;
 	ProjectManager *mProjectManager;
+	QVBoxLayout *mProjectsLayout;
 };
 
 }
