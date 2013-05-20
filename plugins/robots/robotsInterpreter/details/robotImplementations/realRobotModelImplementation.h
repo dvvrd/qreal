@@ -5,8 +5,10 @@
 #include "brickImplementations/realBrickImplementation.h"
 #include "motorImplementations/realMotorImplementation.h"
 #include "sensorImplementations/bluetoothTouchSensorImplementation.h"
+#include "displayImplementations/realDisplayImplementation.h"
 #include "sensorImplementations/bluetoothSonarSensorImplementation.h"
 #include "sensorImplementations/bluetoothColorSensorImplementation.h"
+#include "sensorImplementations/bluetoothLightSensorImplementation.h"
 #include "sensorImplementations/bluetoothEncoderImplementation.h"
 
 namespace qReal {
@@ -26,9 +28,11 @@ public:
 	virtual void disconnectFromRobot();
 
 	virtual brickImplementations::RealBrickImplementation &brick();
+	virtual displayImplementations::RealDisplayImplementation &display();
 	virtual sensorImplementations::BluetoothTouchSensorImplementation *touchSensor(inputPort::InputPortEnum const &port) const;
 	virtual sensorImplementations::BluetoothSonarSensorImplementation *sonarSensor(inputPort::InputPortEnum const &port) const;
 	virtual sensorImplementations::BluetoothColorSensorImplementation *colorSensor(inputPort::InputPortEnum const &port) const;
+	virtual sensorImplementations::BluetoothLightSensorImplementation *lightSensor(inputPort::InputPortEnum const &port) const;
 
 	virtual motorImplementations::RealMotorImplementation &motorA();
 	virtual motorImplementations::RealMotorImplementation &motorB();
@@ -37,6 +41,8 @@ public:
 	virtual sensorImplementations::BluetoothEncoderImplementation &encoderA();
 	virtual sensorImplementations::BluetoothEncoderImplementation &encoderB();
 	virtual sensorImplementations::BluetoothEncoderImplementation &encoderC();
+
+	virtual AbstractTimer *produceTimer();
 
 	bool needsConnection() const;
 
@@ -48,6 +54,7 @@ private slots:
 private:
 	RobotCommunicator * const mRobotCommunicator;
 	brickImplementations::RealBrickImplementation mBrick;
+	displayImplementations::RealDisplayImplementation mDisplay;
 	motorImplementations::RealMotorImplementation mMotorA;
 	motorImplementations::RealMotorImplementation mMotorB;
 	motorImplementations::RealMotorImplementation mMotorC;
@@ -59,6 +66,7 @@ private:
 	virtual void addTouchSensor(inputPort::InputPortEnum const &port);
 	virtual void addSonarSensor(inputPort::InputPortEnum const &port);
 	virtual void addColorSensor(inputPort::InputPortEnum const &port, lowLevelSensorType::SensorTypeEnum mode, sensorType::SensorTypeEnum const &sensorType);
+	virtual void addLightSensor(inputPort::InputPortEnum const &port);
 
 	void configureSensorImpl(inputPort::InputPortEnum const &port);
 };

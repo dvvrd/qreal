@@ -1,26 +1,47 @@
 #include "d2RobotModel.h"
 #include "../tracer.h"
+#include "../../../qrkernel/settingsManager.h"
+#include "../../../../../qrutils/mathUtils/gaussNoise.h"
 
 using namespace qReal::interpreters::robots;
 using namespace details;
 using namespace d2Model;
+using namespace mathUtils;
 
-const unsigned long black   = 0xFF000000;
-const unsigned long white   = 0xFFFFFFFF;
-const unsigned long red     = 0xFFFF0000;
-const unsigned long green   = 0xFF008000;
-const unsigned long blue    = 0xFF0000FF;
-const unsigned long yellow  = 0xFFFFFF00;
-const unsigned long cyan    = 0xFF00FFFF;
-const unsigned long magenta = 0xFFFF00FF;
+unsigned long const black   = 0xFF000000;
+unsigned long const white   = 0xFFFFFFFF;
+unsigned long const red     = 0xFFFF0000;
+unsigned long const green   = 0xFF008000;
+unsigned long const blue    = 0xFF0000FF;
+unsigned long const yellow  = 0xFFFFFF00;
+unsigned long const cyan    = 0xFF00FFFF;
+unsigned long const magenta = 0xFFFF00FF;
+
+unsigned const touchSensorPressedSignal = 1;
+unsigned const touchSensorNotPressedSignal = 0;
+
+qreal const spoilColorDispersion = 2.0;
+qreal const spoilLightDispersion = 1.0;
+qreal const spoilSonarDispersion = 1.5;
+qreal const varySpeedDispersion = 0.0125;
+qreal const percentSaltPepperNoise = 20.0;
 
 D2RobotModel::D2RobotModel(QObject *parent)
 		: QObject(parent)
 		, mD2ModelWidget(NULL)
+		, mMotorA(NULL)
+		, mMotorB(NULL)
+		, mMotorC(NULL)
+		, mTimeline(new Timeline(this))
+		, mNoiseGen()
+		, mNeedSync(false)
+		, mNeedSensorNoise(SettingsManager::value("enableNoiseOfSensors").toBool())
+		, mNeedMotorNoise(SettingsManager::value("enableNoiseOfMotors").toBool())
 {
 	mAngle = 0;
-	mTimer = new QTimer(this);
-	connect(mTimer, SIGNAL(timeout()), this, SLOT(nextFragment()));
+	mNoiseGen.setApproximationLevel(SettingsManager::value("approximationLevel").toUInt());
+	connect(mTimeline, SIGNAL(tick()), this, SLOT(recalculateParams()), Qt::UniqueConnection);
+	connect(mTimeline, SIGNAL(nextFrame()), this, SLOT(nextFragment()), Qt::UniqueConnection);
 	initPosition();
 }
 
@@ -30,12 +51,20 @@ D2RobotModel::~D2RobotModel()
 
 void D2RobotModel::initPosition()
 {
-	mMotorA = initMotor(5, 0, 0, 0);
-	mMotorB = initMotor(5, 0, 0, 1);
-	mMotorC = initMotor(5, 0, 0, 2);
+	if (mMotorA) {
+		delete mMotorA;
+	}
+	if (mMotorB) {
+		delete mMotorB;
+	}
+	if (mMotorC) {
+		delete mMotorC;
+	}
+	mMotorA = initMotor(robotWheelDiameterInPx / 2, 0, 0, 0, false);
+	mMotorB = initMotor(robotWheelDiameterInPx / 2, 0, 0, 1, false);
+	mMotorC = initMotor(robotWheelDiameterInPx / 2, 0, 0, 2, false);
 	setBeep(0, 0);
 	mPos = mD2ModelWidget ? mD2ModelWidget->robotPos() : QPointF(0, 0);
-	mRotatePoint = QPointF(0, 0);  // TODO: not rotatePoint? why?
 }
 
 void D2RobotModel::clear()
@@ -45,18 +74,17 @@ void D2RobotModel::clear()
 	mPos = QPointF(0,0);
 }
 
-D2RobotModel::Motor* D2RobotModel::initMotor(int radius, int speed, long unsigned int degrees, int port)
+D2RobotModel::Motor* D2RobotModel::initMotor(int radius, int speed, long unsigned int degrees, int port, bool isUsed)
 {
 	Motor *motor = new Motor();
 	motor->radius = radius;
 	motor->speed = speed;
 	motor->degrees = degrees;
+	motor->isUsed = isUsed;
 	if (degrees == 0) {
-		motor->activeTime = QPair<ATime, qreal>(DoInf , 0);
-	}
-	else {
-		qreal activeTime = degrees / speed ;
-		motor->activeTime = QPair<ATime, qreal>(Do , activeTime);
+		motor->activeTimeType = DoInf;
+	} else {
+		motor->activeTimeType = DoByLimit;
 	}
 	mMotors[port] = motor;
 	mTurnoverMotors[port] = 0;
@@ -73,46 +101,41 @@ void D2RobotModel::setNewMotor(int speed, unsigned long degrees, const int port)
 {
 	mMotors[port]->speed = speed;
 	mMotors[port]->degrees = degrees;
+	mMotors[port]->isUsed = true;
 	if (degrees == 0) {
-		mMotors[port]->activeTime = QPair<ATime, qreal>(DoInf , 0);
-	}
-	else {
-		qreal activeTime = degrees * 1.0 / 1.0 * speed ;
-		mMotors[port]->activeTime = QPair<ATime, qreal>(Do , activeTime);
-	}
-	mTurnoverMotors[port] = 0;
-}
-
-void D2RobotModel::countOneMotorTime(D2RobotModel::Motor &motor)
-{
-	if (motor.activeTime.first == Do) {
-		motor.activeTime.second -= timeInterval;
-		if (motor.activeTime.second <= 0) {
-			motor.activeTime.first = End;
-			motor.speed = 0;
-		}
+		mMotors[port]->activeTimeType = DoInf;
+	} else {
+		mMotors[port]->activeTimeType = DoByLimit;
 	}
 }
 
-void D2RobotModel::countMotorTime()
+int D2RobotModel::varySpeed(int const speed) const
 {
-	countOneMotorTime(*mMotorA);
-	countOneMotorTime(*mMotorB);
-	countOneMotorTime(*mMotorC);
+	qreal const ran = mNoiseGen.generate(
+					mNoiseGen.approximationLevel()
+					, varySpeedDispersion
+				);
+
+	return truncateToInterval(-100, 100, round(speed * (1 + ran)));
 }
 
 void D2RobotModel::countMotorTurnover()
 {
-	foreach (Motor *motor, mMotors) {
-		int port = mMotors.key(motor);
-		qreal degrees = timeInterval * 1.0 * motor->speed ;
+	foreach (Motor * const motor, mMotors) {
+		int const port = mMotors.key(motor);
+		qreal const degrees = Timeline::timeInterval * motor->speed * onePercentAngularVelocity;
 		mTurnoverMotors[port] += degrees;
+		if (motor->isUsed && (motor->activeTimeType == DoByLimit) && (mTurnoverMotors[port] >= motor->degrees)) {
+			motor->speed = 0;
+			motor->activeTimeType = End;
+			emit d2MotorTimeout();
+		}
 	}
 }
 
 int D2RobotModel::readEncoder(int/*inputPort::InputPortEnum*/ const port) const
 {
-	return mTurnoverMotors[port] / 360;  // divide the number of degrees by complete revolutions count
+	return mTurnoverMotors[port];
 }
 
 void D2RobotModel::resetEncoder(int/*inputPort::InputPortEnum*/ const port)
@@ -131,46 +154,65 @@ D2ModelWidget *D2RobotModel::createModelWidget()
 	return mD2ModelWidget;
 }
 
-QPair<QPoint, qreal> D2RobotModel::countPositionAndDirection(QPointF localPosition, qreal localDirection) const
+QPair<QPointF, qreal> D2RobotModel::countPositionAndDirection(inputPort::InputPortEnum const port) const
 {
-	QPointF point = localPosition - rotatePoint;
-	QPointF localPoint = QTransform().translate(-point.x(), -point.y()).rotate(mAngle)
-			.translate(point.x(), point.y()).rotate(-mAngle)
-			.map(localPosition);
-
-	QPoint resPoint = localPoint.toPoint() + mPos.toPoint();
-	qreal direction = localDirection + mAngle;
-	return QPair<QPoint, qreal>(resPoint, direction);
+	QVector<SensorItem *> items = mD2ModelWidget->sensorItems();
+	SensorItem *sensor = items[port];
+	QPointF const position = sensor ? sensor->scenePos() : QPointF();
+	qreal const direction = sensor ? items[port]->rotation() + mAngle : 0;
+	return QPair<QPointF, qreal>(position, direction);
 }
 
-QPair<QPoint, qreal> D2RobotModel::countPositionAndDirection(inputPort::InputPortEnum const port) const
+int D2RobotModel::readTouchSensor(inputPort::InputPortEnum const port)
 {
-	return countPositionAndDirection(mSensorsConfiguration.position(port), mSensorsConfiguration.direction(port));
-}
+	if (mSensorsConfiguration.type(port) != sensorType::touchBoolean
+			&& mSensorsConfiguration.type(port) != sensorType::touchRaw)
+	{
+		return touchSensorNotPressedSignal;
+	}
+	QPair<QPointF, qreal> neededPosDir = countPositionAndDirection(port);
+	QPointF sensorPosition(neededPosDir.first);
+	qreal const width = sensorWidth / 2.0;
+	QRectF const scanningRect = QRectF(
+			  sensorPosition.x() - width - touchSensorStrokeIncrement / 2.0
+			, sensorPosition.y() - width - touchSensorStrokeIncrement / 2.0
+			, 2 * width + touchSensorStrokeIncrement
+			, 2 * width + touchSensorStrokeIncrement);
 
-bool D2RobotModel::readTouchSensor(inputPort::InputPortEnum const port)
-{
-	QPair<QPoint, qreal> neededPosDir = countPositionAndDirection(port);
-	bool res = mWorldModel.touchSensorReading(neededPosDir.first, neededPosDir.second, port);
-	// TODO: Add checks of sensor type.
-	return res;
+	QPainterPath sensorPath;
+	sensorPath.addRect(scanningRect);
+	bool const res = mWorldModel.checkCollision(sensorPath, touchSensorWallStrokeIncrement);
+
+	return res ? touchSensorPressedSignal : touchSensorNotPressedSignal;
 }
 
 int D2RobotModel::readSonarSensor(inputPort::InputPortEnum const port) const
 {
-	QPair<QPoint, qreal> neededPosDir = countPositionAndDirection(port);
-	return mWorldModel.sonarReading(neededPosDir.first, neededPosDir.second);
+	QPair<QPointF, qreal> neededPosDir = countPositionAndDirection(port);
+	int const res = mWorldModel.sonarReading(neededPosDir.first, neededPosDir.second);
+
+	return mNeedSensorNoise ? spoilSonarReading(res) : res;
+}
+
+int D2RobotModel::spoilSonarReading(int const distance) const
+{
+	qreal const ran = mNoiseGen.generate(
+					mNoiseGen.approximationLevel()
+					, spoilSonarDispersion
+				);
+
+	return truncateToInterval(0, 255, round(distance + ran));
 }
 
 int D2RobotModel::readColorSensor(inputPort::InputPortEnum const port) const
 {
-	QImage image = printColorSensor(port);
+	QImage const image = printColorSensor(port);
 	QHash<unsigned long, int> countsColor;
 
-	unsigned long* data = (unsigned long*) image.bits();
-	int n = image.numBytes() / 4;
+	unsigned long *data = (unsigned long *) image.bits();
+	int const n = image.byteCount() / 4;
 	for (int i = 0; i < n; ++i) {
-		unsigned long color = data[i];
+		unsigned long color = mNeedSensorNoise ? spoilColor(data[i]) : data[i];
 		countsColor[color] ++;
 	}
 
@@ -190,12 +232,33 @@ int D2RobotModel::readColorSensor(inputPort::InputPortEnum const port) const
 	}
 }
 
+unsigned long D2RobotModel::spoilColor(unsigned long const color) const
+{
+	qreal const ran = mNoiseGen.generate(
+					mNoiseGen.approximationLevel()
+					, spoilColorDispersion
+				);
+	int r = round(((color >> 16) & 0xFF) + ran);
+	int g = round(((color >> 8) & 0xFF) + ran);
+	int b = round(((color >> 0) & 0xFF) + ran);
+	int const a = (color >> 24) & 0xFF;
+
+	r = truncateToInterval(0, 255, r);
+	g = truncateToInterval(0, 255, g);
+	b = truncateToInterval(0, 255, b);
+
+	return ((r & 0xFF) << 16) + ((g & 0xFF) << 8) + (b & 0xFF) + ((a & 0xFF) << 24);
+}
+
 QImage D2RobotModel::printColorSensor(inputPort::InputPortEnum const port) const
 {
-	QPair<QPoint, qreal> neededPosDir = countPositionAndDirection(port);
-	QPointF position = neededPosDir.first;
-	qreal width = colorSensorWidth / 2.0;
-	QRectF scanningRect = QRectF(position.x() -  width, position.y() - width
+	if (mSensorsConfiguration.type(port) == sensorType::unused) {
+		return QImage();
+	}
+	QPair<QPointF, qreal> const neededPosDir = countPositionAndDirection(port);
+	QPointF const position = neededPosDir.first;
+	qreal const width = sensorWidth / 2.0;
+	QRectF const scanningRect = QRectF(position.x() -  width, position.y() - width
 			, 2 * width, 2 * width);
 
 	QImage image(scanningRect.size().toSize(), QImage::Format_RGB32);
@@ -252,56 +315,115 @@ int D2RobotModel::readColorFullSensor(QHash<unsigned long, int> countsColor) con
 	}
 }
 
-int D2RobotModel::readSingleColorSensor(unsigned long color, QHash<unsigned long, int> countsColor, int n) const
+int D2RobotModel::readSingleColorSensor(unsigned long color, QHash<unsigned long, int> const &countsColor, int n) const
 {
 	return (static_cast<double>(countsColor[color]) / static_cast<double>(n)) * 100.0;
 }
 
-int D2RobotModel::readColorNoneSensor(QHash<unsigned long, int> countsColor, int n) const
+int D2RobotModel::readColorNoneSensor(QHash<unsigned long, int> const &countsColor, int n) const
 {
 	double allWhite = static_cast<double>(countsColor[white]);
 
 	QHashIterator<unsigned long, int> i(countsColor);
 	while(i.hasNext()) {
 		i.next();
-		unsigned long color = i.key();
-		if (color != white) {
-			int b = (color >> 0) & 0xFF;
-			int g = (color >> 8) & 0xFF;
-			int r = (color >> 16) & 0xFF;
-			qreal k = qSqrt(static_cast<qreal>(b * b + g * g + r * r)) / 500.0;
-			allWhite += static_cast<qreal>(i.value()) * k;
-		}
+        unsigned long color = i.key();
+        if (color != white) {
+            int b = (color >> 0) & 0xFF;
+            int g = (color >> 8) & 0xFF;
+            int r = (color >> 16) & 0xFF;
+            qreal k = qSqrt(static_cast<qreal>(b * b + g * g + r * r)) / 500.0;
+            allWhite += static_cast<qreal>(i.value()) * k;
+        }
 	}
 
 	return (allWhite / static_cast<qreal>(n)) * 100.0;
 }
 
+int D2RobotModel::readLightSensor(inputPort::InputPortEnum const port) const
+{
+	// Must return 1023 on white and 0 on black normalized to percents
+	// http://stackoverflow.com/questions/596216/formula-to-determine-brightness-of-rgb-color
+
+	QImage const image = printColorSensor(port);
+
+	unsigned long sum = 0;
+	unsigned long *data = (unsigned long *) image.bits();
+	int const n = image.byteCount() / 4;
+
+	for (int i = 0; i < n; ++i) {
+		int const color = mNeedSensorNoise ? spoilLight(data[i]) : data[i];
+		int const b = (color >> 0) & 0xFF;
+		int const g = (color >> 8) & 0xFF;
+		int const r = (color >> 16) & 0xFF;
+		// brightness in [0..256]
+		int const brightness = 0.2126 * r + 0.7152 * g + 0.0722 * b;
+
+		sum += 4 * brightness; // 4 = max sensor value / max brightness value
+	}
+	qreal const rawValue = sum / n; // Average by whole region
+	return rawValue * 100 / maxLightSensorValur; // Normalizing to percents
+}
+
+unsigned long D2RobotModel::spoilLight(unsigned long const color) const
+{
+	qreal const ran = mNoiseGen.generate(
+					mNoiseGen.approximationLevel()
+					, spoilLightDispersion
+				);
+	if (ran > (1.0 - percentSaltPepperNoise / 100.0)) {
+		return white;
+	} else if (ran < (-1.0 + percentSaltPepperNoise / 100.0)) {
+		return black;
+	}
+
+	return color;
+}
+
+
 void D2RobotModel::startInit()
 {
 	initPosition();
-	mTimer->start(timeInterval);
+	mTimeline->start();
 }
 
 void D2RobotModel::stopRobot()
 {
 	mMotorA->speed = 0;
 	mMotorB->speed = 0;
+	mMotorC->speed = 0;
 }
 
 void D2RobotModel::countBeep()
 {
 	if (mBeep.time > 0) {
-		mD2ModelWidget->drawBeep(QColor(Qt::red));
-		mBeep.time -= timeInterval;
-	} else
-		mD2ModelWidget->drawBeep(QColor(Qt::green));
+		mD2ModelWidget->drawBeep(true);
+		mBeep.time -= Timeline::frameLength;
+	} else {
+		mD2ModelWidget->drawBeep(false);
+	}
 }
 
 void D2RobotModel::countNewCoord()
 {
-	qreal const vSpeed = mMotorA->speed * 2 * M_PI * mMotorA->radius * 1.0 / 120000;
-	qreal const uSpeed = mMotorB->speed * 2 * M_PI * mMotorB->radius * 1.0 / 120000;
+
+	Motor *motor1 = mMotorA;
+	Motor *motor2 = mMotorB;
+
+	if (mMotorC->isUsed) {
+		if (!mMotorA->isUsed) {
+			motor1 = mMotorC;
+		} else if (!mMotorB->isUsed) {
+			motor2 = mMotorC;
+		}
+	}
+
+	int const sspeed1 = mNeedMotorNoise ? varySpeed(motor1->speed) : motor1->speed;
+	int const sspeed2 = mNeedMotorNoise ? varySpeed(motor2->speed) : motor2->speed;
+
+	qreal const vSpeed = sspeed1 * 2 * M_PI * motor1->radius * onePercentAngularVelocity / 360;
+	qreal const uSpeed = sspeed2 * 2 * M_PI * motor2->radius * onePercentAngularVelocity / 360;
+
 	qreal deltaY = 0;
 	qreal deltaX = 0;
 	qreal const averageSpeed = (vSpeed + uSpeed) / 2;
@@ -309,7 +431,7 @@ void D2RobotModel::countNewCoord()
 	qreal const oldAngle = mAngle;
 	QPointF const oldPosition = mPos;
 
-	if (vSpeed != uSpeed) {
+	if (sspeed1 != sspeed2) {
 		qreal const vRadius = vSpeed * robotHeight / (vSpeed - uSpeed);
 		qreal const averageRadius = vRadius - robotHeight / 2;
 		qreal angularSpeed = 0;
@@ -321,7 +443,7 @@ void D2RobotModel::countNewCoord()
 			angularSpeed = averageSpeed / averageRadius;
 			actualRadius = averageRadius;
 		}
-		qreal const gammaRadians = timeInterval * angularSpeed;
+		qreal const gammaRadians = Timeline::timeInterval * angularSpeed;
 		qreal const gammaDegrees = gammaRadians * 180 / M_PI;
 
 		QTransform map;
@@ -338,37 +460,53 @@ void D2RobotModel::countNewCoord()
 
 		mAngle += gammaDegrees;
 	} else {
-		deltaY = averageSpeed * timeInterval * sin(mAngle * M_PI / 180);
-		deltaX = averageSpeed * timeInterval * cos(mAngle * M_PI / 180);
+		deltaY = averageSpeed * Timeline::timeInterval * sin(mAngle * M_PI / 180);
+		deltaX = averageSpeed * Timeline::timeInterval * cos(mAngle * M_PI / 180);
 	}
 
-	mPos.setX(mPos.x() + deltaX);
-	mPos.setY(mPos.y() + deltaY);
+	QPointF const delta(deltaX, deltaY);
+	mPos += delta;
 
 	if(mAngle > 360) {
 		mAngle -= 360;
 	}
 
-	QPolygonF const boundingRegion = mD2ModelWidget->robotBoundingPolygon(mPos, mAngle);
+	QPainterPath const boundingRegion = mD2ModelWidget->robotBoundingPolygon(mPos, mAngle);
 	if (mWorldModel.checkCollision(boundingRegion)) {
 		mPos = oldPosition;
 		mAngle = oldAngle;
 	}
 }
 
-void D2RobotModel::nextFragment()
+void D2RobotModel::recalculateParams()
 {
 	// do nothing until robot gets back on the ground
-	if (!mD2ModelWidget->isRobotOnTheGround())
+	if (!mD2ModelWidget->isRobotOnTheGround()) {
+		mNeedSync = true;
 		return;
-
-	mPos = mD2ModelWidget->robotPos();
+	}
+	synchronizePositions();
 	countNewCoord();
-	mRotatePoint = rotatePoint;
-	mD2ModelWidget->draw(mPos, mAngle, mRotatePoint);
-	countBeep();
-	countMotorTime();
 	countMotorTurnover();
+}
+
+void D2RobotModel::nextFragment()
+{
+	if (!mD2ModelWidget->isRobotOnTheGround()) {
+		return;
+	}
+	synchronizePositions();
+	countBeep();
+	mD2ModelWidget->draw(mPos, mAngle);
+	mNeedSync = true;
+}
+
+void D2RobotModel::synchronizePositions()
+{
+	if (mNeedSync) {
+		mPos = mD2ModelWidget->robotPos();
+		mNeedSync = false;
+	}
 }
 
 void D2RobotModel::showModelWidget()
@@ -376,17 +514,77 @@ void D2RobotModel::showModelWidget()
 	mD2ModelWidget->init(true);
 }
 
-void D2RobotModel::rotateOn(double angle)
+void D2RobotModel::setRotation(qreal angle)
 {
 	mPos = mD2ModelWidget ? mD2ModelWidget->robotPos() : QPointF(0, 0);
-	mRotatePoint = rotatePoint;
-	if(angle > 360)
-		angle -= 360;
-	mAngle += angle;
-	mD2ModelWidget->draw(mPos, mAngle, mRotatePoint);
+	mAngle = fmod(angle, 360);
+	mD2ModelWidget->draw(mPos, mAngle);
 }
 
 double D2RobotModel::rotateAngle() const
 {
 	return mAngle;
+}
+
+void D2RobotModel::setSpeedFactor(qreal speedMul)
+{
+	mSpeedFactor = speedMul;
+	mTimeline->setSpeedFactor(speedMul);
+}
+
+QPointF D2RobotModel::robotPos()
+{
+	return mPos;
+}
+
+void D2RobotModel::serialize(QDomDocument &target)
+{
+	QDomElement robot = target.createElement("robot");
+	robot.setAttribute("position", QString::number(mPos.x()) + ":" + QString::number(mPos.y()));
+	robot.setAttribute("direction", mAngle);
+	configuration().serialize(robot, target);
+	target.firstChildElement("root").appendChild(robot);
+}
+
+void D2RobotModel::deserialize(QDomElement const &robotElement)
+{
+	QString const positionStr = robotElement.attribute("position", "0:0");
+	QStringList const splittedStr = positionStr.split(":");
+	qreal const x = static_cast<qreal>(splittedStr[0].toDouble());
+	qreal const y = static_cast<qreal>(splittedStr[1].toDouble());
+	mPos = QPointF(x, y);
+
+	mAngle = robotElement.attribute("direction", "0").toDouble();
+
+	configuration().deserialize(robotElement);
+
+	nextFragment();
+}
+
+Timeline *D2RobotModel::timeline() const
+{
+	return mTimeline;
+}
+
+void D2RobotModel::setDisplay(details::NxtDisplay *display)
+{
+	mDisplay = display;
+}
+
+details::NxtDisplay *D2RobotModel::display()
+{
+	return mDisplay;
+}
+
+void D2RobotModel::setNoiseSettings()
+{
+	mNeedSensorNoise = SettingsManager::value("enableNoiseOfSensors").toBool();
+	mNeedMotorNoise = SettingsManager::value("enableNoiseOfMotors").toBool();
+	mNoiseGen.setApproximationLevel(SettingsManager::value("approximationLevel").toUInt());
+}
+
+int D2RobotModel::truncateToInterval(int const a, int const b, int const res) const
+{
+	return (res >= a && res <= b) ? res : (res < a ? a : b);
+
 }

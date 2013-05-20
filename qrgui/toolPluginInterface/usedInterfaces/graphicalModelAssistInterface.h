@@ -17,10 +17,14 @@ public:
 	virtual IdList children(Id const &element) const = 0;
 	virtual void changeParent(Id const &element, Id const &parent, QPointF const &position) = 0;
 	virtual void copyProperties(Id const &dest, Id const &src) = 0;
+	virtual QMap<QString, QVariant> properties(Id const &id) = 0;
 	virtual IdList temporaryRemovedLinksFrom(Id const &elem) const = 0;
 	virtual IdList temporaryRemovedLinksTo(Id const &elem) const = 0;
 	virtual IdList temporaryRemovedLinksNone(Id const &elem) const = 0;
 	virtual void removeTemporaryRemovedLinks(Id const &elem) = 0;
+
+	virtual QVariant property(Id const &id, QString const &name) const = 0;
+	virtual void setProperty(Id const &id, QString const &name, QVariant const &value) = 0;
 
 	virtual void setConfiguration(Id const &elem, QPolygon const &newValue) = 0;
 	virtual QPolygon configuration(Id const &elem) const = 0;

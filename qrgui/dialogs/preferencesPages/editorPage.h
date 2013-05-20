@@ -18,6 +18,7 @@ public:
 	/// Sets value to palette combo box and spin box respectively/
 	void changePaletteParameters();
 	void save();
+	virtual void restoreSettings();
 
 protected:
 	void changeEvent(QEvent *e);
@@ -36,6 +37,9 @@ private slots:
 
 	void showGrid(bool);
 	void showAlignment(bool);
+	void activateGrid(bool);
+	void activateAlignment(bool);
+
 private:
 	Ui::PreferencesEditorPage *mUi;
 	bool mFontWasChanged;

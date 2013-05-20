@@ -1,6 +1,6 @@
 #include "unrealRobotModelImplementation.h"
-
 #include "../tracer.h"
+#include "../d2RobotModel/d2ModelTimer.h"
 
 using namespace qReal::interpreters::robots;
 using namespace details;
@@ -14,6 +14,7 @@ UnrealRobotModelImplementation::UnrealRobotModelImplementation(D2RobotModel *d2R
 	, mMotorA(0, d2RobotModel)
 	, mMotorB(1, d2RobotModel)
 	, mMotorC(2, d2RobotModel)
+	, mDisplay(d2RobotModel)
 	, mEncoderA(outputPort::port1, d2RobotModel)
 	, mEncoderB(outputPort::port2, d2RobotModel)
 	, mEncoderC(outputPort::port3, d2RobotModel)
@@ -34,6 +35,11 @@ brickImplementations::UnrealBrickImplementation &UnrealRobotModelImplementation:
 	return mBrick;
 }
 
+displayImplementations::UnrealDisplayImplementation &UnrealRobotModelImplementation::display()
+{
+	return mDisplay;
+}
+
 sensorImplementations::UnrealTouchSensorImplementation *UnrealRobotModelImplementation::touchSensor(inputPort::InputPortEnum const &port) const
 {
 	return dynamic_cast<sensorImplementations::UnrealTouchSensorImplementation *>(mSensorsConfigurer.sensor(port));
@@ -47,6 +53,11 @@ sensorImplementations::UnrealSonarSensorImplementation *UnrealRobotModelImplemen
 sensorImplementations::UnrealColorSensorImplementation *UnrealRobotModelImplementation::colorSensor(inputPort::InputPortEnum const &port) const
 {
 	return dynamic_cast<sensorImplementations::UnrealColorSensorImplementation *>(mSensorsConfigurer.sensor(port));
+}
+
+sensorImplementations::UnrealLightSensorImplementation *UnrealRobotModelImplementation::lightSensor(inputPort::InputPortEnum const &port) const
+{
+	return dynamic_cast<sensorImplementations::UnrealLightSensorImplementation *>(mSensorsConfigurer.sensor(port));
 }
 
 void UnrealRobotModelImplementation::addTouchSensor(inputPort::InputPortEnum const &port)
@@ -68,6 +79,13 @@ void UnrealRobotModelImplementation::addColorSensor(inputPort::InputPortEnum con
 	Q_UNUSED(mode)
 	Tracer::debug(tracer::initialization, "UnrealRobotModelImplementation::addColorSensor", "Configuring color sensor on port " + QString::number(port));
 	sensorImplementations::UnrealColorSensorImplementation *sensor = new sensorImplementations::UnrealColorSensorImplementation(port, mD2Model, sensorType);
+	mSensorsConfigurer.configureSensor(sensor, port);
+}
+
+void UnrealRobotModelImplementation::addLightSensor(inputPort::InputPortEnum const &port)
+{
+	Tracer::debug(tracer::initialization, "UnrealRobotModelImplementation::addLightSensor", "Configuring light sensor on port " + QString::number(port));
+	sensorImplementations::UnrealLightSensorImplementation *sensor = new sensorImplementations::UnrealLightSensorImplementation(port, mD2Model);
 	mSensorsConfigurer.configureSensor(sensor, port);
 }
 
@@ -96,6 +114,7 @@ void UnrealRobotModelImplementation::stopRobot()
 	mMotorA.off();
 	mMotorB.off();
 	mMotorC.off();
+	mDisplay.clearScreen();
 	mD2Model->stopRobot();
 }
 
@@ -133,4 +152,9 @@ void UnrealRobotModelImplementation::startInterpretation()
 {
 	mD2Model->showModelWidget();
 	mD2Model->startInit();
+}
+
+AbstractTimer *UnrealRobotModelImplementation::produceTimer()
+{
+	return new d2Model::D2ModelTimer(mD2Model->timeline());
 }

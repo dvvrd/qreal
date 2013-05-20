@@ -9,6 +9,7 @@ using namespace robotImplementations;
 RobotModel::RobotModel()
 	: mRobotImpl(new NullRobotModelImplementation)
 	, mBrick(&mRobotImpl->brick())
+	, mDisplay(&mRobotImpl->display())
 	, mMotorA(0, &mRobotImpl->motorA())
 	, mMotorB(1, &mRobotImpl->motorA())
 	, mMotorC(2, &mRobotImpl->motorA())
@@ -24,13 +25,19 @@ RobotModel::RobotModel()
 RobotModel::~RobotModel()
 {
 	delete mRobotImpl;
-	for (int i = 0; i < 4; ++i)
+	for (int i = 0; i < 4; ++i) {
 		delete mSensors[i];
+	}
 }
 
 robotParts::Brick &RobotModel::brick()
 {
 	return mBrick;
+}
+
+robotParts::Display &RobotModel::display()
+{
+	return mDisplay;
 }
 
 robotParts::TouchSensor *RobotModel::touchSensor(inputPort::InputPortEnum const &port) const
@@ -48,6 +55,10 @@ robotParts::ColorSensor *RobotModel::colorSensor(inputPort::InputPortEnum const 
 	return dynamic_cast<robotParts::ColorSensor *>(mSensors[port]);
 }
 
+robotParts::LightSensor *RobotModel::lightSensor(inputPort::InputPortEnum const &port) const
+{
+	return dynamic_cast<robotParts::LightSensor *>(mSensors[port]);
+}
 
 robotParts::Sensor *RobotModel::sensor(const inputPort::InputPortEnum &port) const
 {
@@ -117,6 +128,9 @@ void RobotModel::sensorsConfiguredSlot()
 		case sensorType::colorNone:
 			mSensors[port] = new robotParts::ColorSensor(mRobotImpl->sensor(port), port);
 			break;
+		case sensorType::light:
+			mSensors[port] = new robotParts::LightSensor(mRobotImpl->sensor(port), port);
+			break;
 		default:
 			// TODO: Throw an exception
 			break;
@@ -133,6 +147,15 @@ bool RobotModel::needsConnection() const
 void RobotModel::startInterpretation()
 {
 	return mRobotImpl->startInterpretation();
+}
+
+void RobotModel::nullifySensors()
+{
+	for (int port = 0; port < 4; ++port) {
+		if (mSensors[port]) {
+			mSensors[port]->nullify();
+		}
+	}
 }
 
 void RobotModel::connectedSlot(bool success)
@@ -209,6 +232,7 @@ void RobotModel::setRobotImplementation(robotImplementations::AbstractRobotModel
 	mEncoderC.setImplementation(&mRobotImpl->encoderC());
 
 	mBrick.setImplementation(&mRobotImpl->brick());
+	mDisplay.setImplementation(&mRobotImpl->display());
 
 	for (int i = 0; i < 4; ++i) {
 		if (mSensors[i] != NULL) {
@@ -225,4 +249,14 @@ void RobotModel::setRobotImplementation(robotImplementations::AbstractRobotModel
 			}
 		}
 	}
+}
+
+void RobotModel::nextBlockAfterInitial(bool success)
+{
+	emit goToNextBlock(success);
+}
+
+AbstractTimer *RobotModel::produceTimer()
+{
+	return mRobotImpl->produceTimer();
 }

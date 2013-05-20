@@ -3,16 +3,19 @@
 #include <QtCore/QVector>
 
 #include "brick.h"
+#include "display.h"
 #include "motor.h"
 #include "sensor.h"
 #include "touchSensor.h"
 #include "sonarSensor.h"
 #include "colorSensor.h"
 #include "encoderSensor.h"
+#include "lightSensor.h"
 #include "../../sensorConstants.h"
 #include "../robotImplementations/abstractRobotModelImplementation.h"
 
 #include "../robotImplementations/brickImplementations/abstractBrickImplementation.h"
+#include "../robotImplementations/displayImplementations/abstractDisplayImplementation.h"
 #include "../robotImplementations/motorImplementations/abstractMotorImplementation.h"
 #include "../robotImplementations/sensorImplementations/bluetoothTouchSensorImplementation.h"
 #include "../robotImplementations/sensorImplementations/bluetoothSonarSensorImplementation.h"
@@ -41,8 +44,10 @@ public:
 			, sensorType::SensorTypeEnum const &port4);
 
 	robotParts::Brick &brick();
+	robotParts::Display &display();
 	robotParts::TouchSensor *touchSensor(inputPort::InputPortEnum const &port) const;
 	robotParts::SonarSensor *sonarSensor(inputPort::InputPortEnum const &port) const;
+	robotParts::LightSensor *lightSensor(inputPort::InputPortEnum const &port) const;
 	robotParts::Sensor *sensor(inputPort::InputPortEnum const &port) const;
 	robotParts::ColorSensor *colorSensor(inputPort::InputPortEnum const &port) const;
 
@@ -58,12 +63,21 @@ public:
 	bool needsConnection() const;
 	void startInterpretation();
 
+	void nullifySensors();
+
+	void nextBlockAfterInitial(bool success);
+
+	/// Creates new timer for specific implementation. Doesn`t take ownership
+	AbstractTimer *produceTimer();
+
 signals:
 	void sensorsConfigured();
 	void connected(bool success);
 
 	/// Is emitted if robot is disconnected
 	void disconnected();
+
+	void goToNextBlock(bool success);
 
 private slots:
 	void sensorsConfiguredSlot();
@@ -72,6 +86,7 @@ private slots:
 private:
 	robotImplementations::AbstractRobotModelImplementation *mRobotImpl;  // Has ownership.
 	robotParts::Brick mBrick;
+	robotParts::Display mDisplay;
 	robotParts::Motor mMotorA;
 	robotParts::Motor mMotorB;
 	robotParts::Motor mMotorC;

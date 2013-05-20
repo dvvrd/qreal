@@ -7,6 +7,9 @@
 #include "d2ModelWidget.h"
 #include "robotModelInterface.h"
 #include "worldModel.h"
+#include "timeline.h"
+#include "../details/nxtDisplay.h"
+#include "../../../../../qrutils/mathUtils/gaussNoise.h"
 
 namespace qReal {
 namespace interpreters {
@@ -14,9 +17,13 @@ namespace robots {
 namespace details {
 namespace d2Model {
 
-const int timeInterval = 5;
+qreal const onePercentAngularVelocity = 0.0055;
+int const touchSensorWallStrokeIncrement = 10;
+int const touchSensorStrokeIncrement = 5;
+int const maxLightSensorValur = 1023;
 
-class D2RobotModel : public QObject, public RobotModelInterface {
+class D2RobotModel : public QObject, public RobotModelInterface
+{
 	Q_OBJECT
 
 public:
@@ -29,27 +36,42 @@ public:
 	void setNewMotor(int speed, long unsigned int degrees, int const port);
 	virtual SensorsConfiguration &configuration();
 	D2ModelWidget *createModelWidget();
+	int readEncoder(int const port) const;
+	void resetEncoder(int const port);
 
-	int readEncoder(int/*inputPort::InputPortEnum*/  const port) const;
-	void resetEncoder(int/*inputPort::InputPortEnum*/  const port);
+	void setDisplay(details::NxtDisplay *display);
+	details::NxtDisplay *display();
 
-	bool readTouchSensor(inputPort::InputPortEnum const port);
+	int readTouchSensor(inputPort::InputPortEnum const port);
 	int readSonarSensor(inputPort::InputPortEnum const port) const;
 	int readColorSensor(inputPort::InputPortEnum const port) const;
+	int readLightSensor(inputPort::InputPortEnum const port) const;
 
 	void showModelWidget();
 
-	virtual void rotateOn(double angle);
+	virtual void setRotation(qreal angle);
 	virtual double rotateAngle() const;
+
+	QPointF robotPos();
+
+	virtual void serialize(QDomDocument &target);
+	virtual void deserialize(const QDomElement &robotElement);
+
+	Timeline *timeline() const;
+
+	void setNoiseSettings();
 
 	enum ATime {
 		DoInf,
-		Do,
+		DoByLimit,
 		End
 	};
 
+signals:
+	void d2MotorTimeout();
 
 private slots:
+	void recalculateParams();
 	void nextFragment();
 
 private:
@@ -57,20 +79,41 @@ private:
 		int radius;
 		int speed;
 		int degrees;
-		QPair<ATime, qreal> activeTime;
+		ATime activeTimeType;
+		bool isUsed;
 	};
 
 	struct Beep {
 		unsigned freq;
-		unsigned time;
+		int time;
 	};
 
+	void setSpeedFactor(qreal speedMul);
+	void initPosition();
+	Motor* initMotor(int radius, int speed, long unsigned int degrees, int port, bool isUsed);
+	void countNewCoord();
+	void countBeep();
+	QPair<QPointF, qreal> countPositionAndDirection(inputPort::InputPortEnum const port) const;
+	void countMotorTurnover();
+
+	QImage printColorSensor(inputPort::InputPortEnum const port) const;
+	int readColorFullSensor(QHash<unsigned long, int> countsColor) const;
+	int readColorNoneSensor(QHash<unsigned long, int> const &countsColor, int n) const;
+	int readSingleColorSensor(unsigned long color, QHash<unsigned long, int> const &countsColor, int n) const;
+
+	void synchronizePositions();
+	unsigned long spoilColor(unsigned long const color) const;
+	unsigned long spoilLight(unsigned long const color) const;
+	int varySpeed(int const speed) const;
+	int spoilSonarReading(int const distance) const;
+	int truncateToInterval(int const a, int const b, int const res) const;
+
 	D2ModelWidget *mD2ModelWidget;
-	QTimer *mTimer;
 	Motor *mMotorA;
 	Motor *mMotorB;
 	Motor *mMotorC;
 	Beep mBeep;
+	details::NxtDisplay *mDisplay;
 	qreal mAngle;
 	QPointF mPos;
 	QPointF mRotatePoint;
@@ -78,23 +121,12 @@ private:
 	QHash<int, qreal> mTurnoverMotors;  // stores how many degrees the motor rotated on
 	SensorsConfiguration mSensorsConfiguration;
 	WorldModel mWorldModel;
-
-	void initPosition();
-	Motor* initMotor(int radius, int speed, long unsigned int degrees, int port);
-	void countNewCoord();
-	void countBeep();
-	QPair<QPoint, qreal> countPositionAndDirection(inputPort::InputPortEnum const port) const;
-	QPair<QPoint, qreal> countPositionAndDirection(QPointF localPosition, qreal localDirection) const;
-
-	void countOneMotorTime(Motor &motor);
-	void countMotorTime();
-
-	void countMotorTurnover();
-
-	QImage printColorSensor(inputPort::InputPortEnum const port) const;
-	int readColorFullSensor(QHash<unsigned long, int> countsColor) const;
-	int readColorNoneSensor(QHash<unsigned long, int> countsColor, int n) const;
-	int readSingleColorSensor(unsigned long color, QHash<unsigned long, int> countsColor, int n) const;
+	Timeline *mTimeline;
+	qreal mSpeedFactor;
+	mathUtils::GaussNoise mNoiseGen;
+	bool mNeedSync;
+	bool mNeedSensorNoise;
+	bool mNeedMotorNoise;
 };
 
 }

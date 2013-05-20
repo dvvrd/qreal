@@ -33,6 +33,12 @@ public:
 	void changeParent(Id const &element, Id const &parent, QPointF const &position);
 
 	void copyProperties(Id const &dest, Id const &src);
+	QMap<QString, QVariant> properties(Id const &id);
+	void setProperties(Id const &id, QMap<QString, QVariant> const &properties);
+
+	virtual QVariant property(Id const &id, QString const &name) const;
+	virtual void setProperty(Id const &id, QString const &name, QVariant const &value);
+
 	virtual void stackBefore(Id const &element, Id const &sibling);
 
 	IdList temporaryRemovedLinksFrom(Id const &elem) const;

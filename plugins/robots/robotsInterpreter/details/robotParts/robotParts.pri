@@ -7,6 +7,8 @@ HEADERS += \
 	details/robotParts/sonarSensor.h \
 	details/robotParts/colorSensor.h \
 	details/robotParts/encoderSensor.h \
+	details/robotParts/lightSensor.h \
+        details/robotParts/display.h \
 
 SOURCES += \
 	details/robotParts/robotModel.cpp \
@@ -17,3 +19,5 @@ SOURCES += \
 	details/robotParts/sensor.cpp \
 	details/robotParts/motor.cpp \
 	details/robotParts/brick.cpp \
+	details/robotParts/lightSensor.cpp \
+        details/robotParts/display.cpp \

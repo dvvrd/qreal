@@ -1,10 +1,13 @@
 #include "nullRobotModelImplementation.h"
+#include "../nullTimer.h"
+
 using namespace qReal::interpreters::robots;
 using namespace details::robotImplementations;
 
 NullRobotModelImplementation::NullRobotModelImplementation()
 	: AbstractRobotModelImplementation()
 	, mBrick()
+	, mDisplay()
 	, mMotorA(0)
 	, mMotorB(1)
 	, mMotorC(2)
@@ -23,6 +26,11 @@ brickImplementations::NullBrickImplementation &NullRobotModelImplementation::bri
 	return mBrick;
 }
 
+displayImplementations::RealDisplayImplementation &NullRobotModelImplementation::display()
+{
+	return mDisplay;
+}
+
 sensorImplementations::NullTouchSensorImplementation *NullRobotModelImplementation::touchSensor(inputPort::InputPortEnum const &port) const
 {
 	return dynamic_cast<sensorImplementations::NullTouchSensorImplementation *>(mSensorsConfigurer.sensor(port));
@@ -38,15 +46,20 @@ sensorImplementations::NullColorSensorImplementation *NullRobotModelImplementati
 	return dynamic_cast<sensorImplementations::NullColorSensorImplementation *>(mSensorsConfigurer.sensor(port));
 }
 
+sensorImplementations::NullLightSensorImplementation *NullRobotModelImplementation::lightSensor(inputPort::InputPortEnum const &port) const
+{
+	return dynamic_cast<sensorImplementations::NullLightSensorImplementation *>(mSensorsConfigurer.sensor(port));
+}
+
 void NullRobotModelImplementation::addTouchSensor(inputPort::InputPortEnum const &port)
 {
 	sensorImplementations::NullTouchSensorImplementation *sensor = new sensorImplementations::NullTouchSensorImplementation(port);
 	mSensorsConfigurer.configureSensor(sensor, port);
 }
 
-void NullRobotModelImplementation::addSonarSensor(inputPort::InputPortEnum const &port)
+void NullRobotModelImplementation::addLightSensor(inputPort::InputPortEnum const &port)
 {
-	sensorImplementations::NullSonarSensorImplementation *sensor = new sensorImplementations::NullSonarSensorImplementation(port);
+	sensorImplementations::NullLightSensorImplementation *sensor = new sensorImplementations::NullLightSensorImplementation(port);
 	mSensorsConfigurer.configureSensor(sensor, port);
 }
 
@@ -54,6 +67,12 @@ void NullRobotModelImplementation::addColorSensor(inputPort::InputPortEnum const
 {
 	Q_UNUSED(mode);
 	sensorImplementations::NullColorSensorImplementation *sensor = new sensorImplementations::NullColorSensorImplementation(port, sensorType);
+	mSensorsConfigurer.configureSensor(sensor, port);
+}
+
+void NullRobotModelImplementation::addSonarSensor(inputPort::InputPortEnum const &port)
+{
+	sensorImplementations::NullSonarSensorImplementation *sensor = new sensorImplementations::NullSonarSensorImplementation(port);
 	mSensorsConfigurer.configureSensor(sensor, port);
 }
 
@@ -108,4 +127,9 @@ sensorImplementations::NullEncoderImplementation &NullRobotModelImplementation::
 sensorImplementations::NullEncoderImplementation &NullRobotModelImplementation::encoderC()
 {
 	return mEncoderC;
+}
+
+details::AbstractTimer *NullRobotModelImplementation::produceTimer()
+{
+	return new details::NullTimer;
 }

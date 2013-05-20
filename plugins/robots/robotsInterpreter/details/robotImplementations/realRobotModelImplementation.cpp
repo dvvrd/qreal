@@ -1,6 +1,6 @@
 #include "realRobotModelImplementation.h"
-
 #include "../tracer.h"
+#include "../realTimer.h"
 
 using namespace qReal::interpreters::robots;
 using namespace details;
@@ -10,6 +10,7 @@ RealRobotModelImplementation::RealRobotModelImplementation(RobotCommunicator * c
 	:  AbstractRobotModelImplementation()
 	, mRobotCommunicator(robotCommunicationInterface)
 	, mBrick(robotCommunicationInterface)
+	, mDisplay()
 	, mMotorA(0, robotCommunicationInterface), mMotorB(1, robotCommunicationInterface), mMotorC(2, robotCommunicationInterface)
 	, mEncoderA(robotCommunicationInterface, outputPort::port1), mEncoderB(robotCommunicationInterface, outputPort::port2), mEncoderC(robotCommunicationInterface, outputPort::port3)
 {
@@ -28,6 +29,11 @@ brickImplementations::RealBrickImplementation &RealRobotModelImplementation::bri
 	return mBrick;
 }
 
+displayImplementations::RealDisplayImplementation &RealRobotModelImplementation::display()
+{
+	return mDisplay;
+}
+
 sensorImplementations::BluetoothTouchSensorImplementation *RealRobotModelImplementation::touchSensor(inputPort::InputPortEnum const &port) const
 {
 	return dynamic_cast<sensorImplementations::BluetoothTouchSensorImplementation *>(mSensorsConfigurer.sensor(port));
@@ -41,6 +47,11 @@ sensorImplementations::BluetoothSonarSensorImplementation *RealRobotModelImpleme
 sensorImplementations::BluetoothColorSensorImplementation *RealRobotModelImplementation::colorSensor(inputPort::InputPortEnum const &port) const
 {
 	return dynamic_cast<sensorImplementations::BluetoothColorSensorImplementation *>(mSensorsConfigurer.sensor(port));
+}
+
+sensorImplementations::BluetoothLightSensorImplementation *RealRobotModelImplementation::lightSensor(inputPort::InputPortEnum const &port) const
+{
+	return dynamic_cast<sensorImplementations::BluetoothLightSensorImplementation *>(mSensorsConfigurer.sensor(port));
 }
 
 void RealRobotModelImplementation::addTouchSensor(inputPort::InputPortEnum const &port)
@@ -58,6 +69,13 @@ void RealRobotModelImplementation::addSonarSensor(inputPort::InputPortEnum const
 void RealRobotModelImplementation::addColorSensor(inputPort::InputPortEnum const &port, lowLevelSensorType::SensorTypeEnum mode, sensorType::SensorTypeEnum const &sensorType)
 {
 	sensorImplementations::BluetoothColorSensorImplementation *sensor = new sensorImplementations::BluetoothColorSensorImplementation(mRobotCommunicator, port, mode, sensorType);
+	mSensorsConfigurer.configureSensor(sensor, port);
+}
+
+void RealRobotModelImplementation::addLightSensor(inputPort::InputPortEnum const &port)
+{
+	Q_UNUSED(port)
+	sensorImplementations::BluetoothLightSensorImplementation *sensor = new sensorImplementations::BluetoothLightSensorImplementation(mRobotCommunicator, port);
 	mSensorsConfigurer.configureSensor(sensor, port);
 }
 
@@ -142,4 +160,9 @@ void RealRobotModelImplementation::disconnectedSlot()
 	mSensorsConfigurer.lockConfiguring();
 	mIsConnected = false;
 	emit disconnected();
+}
+
+AbstractTimer *RealRobotModelImplementation::produceTimer()
+{
+	return new RealTimer;
 }
