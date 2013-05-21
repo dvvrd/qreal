@@ -4,17 +4,23 @@ namespace qReal {
 namespace interpreters {
 namespace robots {
 
+int const sensorWidth = 15;
+
 namespace sensorType {
 enum SensorTypeEnum {
 	unused
 	, touchBoolean
 	, touchRaw
 	, sonar
+	, light
 	, colorFull
 	, colorRed
 	, colorGreen
 	, colorBlue
 	, colorNone
+	, sound
+	, gyroscope
+	, accelerometer
 	, encoder
 };
 }

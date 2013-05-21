@@ -9,6 +9,10 @@
 #include "sonarSensor.h"
 #include "colorSensor.h"
 #include "encoderSensor.h"
+#include "lightSensor.h"
+#include "soundSensor.h"
+#include "gyroscopeSensor.h"
+#include "accelerometerSensor.h"
 #include "../../sensorConstants.h"
 #include "../robotImplementations/abstractRobotModelImplementation.h"
 
@@ -41,10 +45,14 @@ public:
 			, sensorType::SensorTypeEnum const &port4);
 
 	robotParts::Brick &brick();
-	robotParts::TouchSensor *touchSensor(inputPort::InputPortEnum const &port) const;
-	robotParts::SonarSensor *sonarSensor(inputPort::InputPortEnum const &port) const;
-	robotParts::Sensor *sensor(inputPort::InputPortEnum const &port) const;
-	robotParts::ColorSensor *colorSensor(inputPort::InputPortEnum const &port) const;
+	robotParts::TouchSensor *touchSensor(inputPort::InputPortEnum const port) const;
+	robotParts::SonarSensor *sonarSensor(inputPort::InputPortEnum const port) const;
+	robotParts::LightSensor *lightSensor(inputPort::InputPortEnum const port) const;
+	robotParts::Sensor *sensor(inputPort::InputPortEnum const port) const;
+	robotParts::ColorSensor *colorSensor(inputPort::InputPortEnum const port) const;
+	robotParts::SoundSensor *soundSensor(inputPort::InputPortEnum const port) const;
+	robotParts::GyroscopeSensor *gyroscopeSensor(inputPort::InputPortEnum const port) const;
+	robotParts::AccelerometerSensor *accelerometerSensor(inputPort::InputPortEnum const port) const;
 
 	robotParts::Motor &motorA();
 	robotParts::Motor &motorB();
@@ -58,12 +66,19 @@ public:
 	bool needsConnection() const;
 	void startInterpretation();
 
+	void nextBlockAfterInitial(bool success);
+
+	/// Creates new timer for specific implementation. Doesn`t take ownership
+	AbstractTimer *produceTimer();
+
 signals:
 	void sensorsConfigured();
 	void connected(bool success);
 
 	/// Is emitted if robot is disconnected
 	void disconnected();
+
+	void goToNextBlock(bool success);
 
 private slots:
 	void sensorsConfiguredSlot();
@@ -82,7 +97,7 @@ private:
 	QVector<robotParts::Sensor *> mSensors;  // Has ownership.
 
 	void configureSensor(sensorType::SensorTypeEnum const &sensorType
-			, inputPort::InputPortEnum const &port);
+			, inputPort::InputPortEnum const port);
 };
 
 }

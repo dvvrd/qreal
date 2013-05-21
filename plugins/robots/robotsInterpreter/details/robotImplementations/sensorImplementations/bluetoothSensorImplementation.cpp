@@ -1,6 +1,5 @@
 #include "bluetoothSensorImplementation.h"
 #include "../../robotParts/robotModel.h"
-
 #include "../../tracer.h"
 
 using namespace qReal::interpreters::robots;
@@ -11,7 +10,7 @@ BluetoothSensorImplementation::BluetoothSensorImplementation(RobotCommunicator *
 		, sensorType::SensorTypeEnum const &sensorType
 		, lowLevelSensorType::SensorTypeEnum const &lowLevelSensorType
 		, sensorMode::SensorModeEnum const &sensorMode
-		, inputPort::InputPortEnum const &port)
+		, inputPort::InputPortEnum const port)
 	: AbstractSensorImplementation(port, sensorType)
 	, mRobotCommunicationInterface(robotCommunicationInterface)
 	, mLowLevelSensorType(lowLevelSensorType)
