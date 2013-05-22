@@ -66,7 +66,7 @@ MainWindow::MainWindow(QString const &fileToOpen)
 		, mRecentProjectsLimit(5)
 		, mRecentProjectsMapper(new QSignalMapper())
 		, mProjectManager(new ProjectManager(this))
-		, mStartDialog(new StartDialog(this, mProjectManager))
+		, mStartDialog(new StartWidget(this, mProjectManager))
 		, mSceneCustomizer(new SceneCustomizer(this))
 {
 	mUi->setupUi(this);

@@ -15,12 +15,12 @@ class MainWindow;
  * projects or not), or create a new one and did not appear in the main window of application,
  * where there is no single project.
  */
-class StartDialog : public QWidget
+class StartWidget : public QWidget
 {
 	Q_OBJECT
 
 public:
-	explicit StartDialog(MainWindow *mainWindow, ProjectManager *projectManager);
+	explicit StartWidget(MainWindow *mainWindow, ProjectManager *projectManager);
 
 private slots:
 	void openRecentProject(QString const &fileName);
@@ -31,12 +31,12 @@ private slots:
 private:
 	void initRecentProjects();
 
-	static const QSize mMinimumSize;
 	int mProjectListSize;
 
 	MainWindow *mMainWindow;
 	ProjectManager *mProjectManager;
 	QVBoxLayout *mProjectsLayout;
+	QHBoxLayout *mSessionsLayout;
 };
 
 }

@@ -346,7 +346,7 @@ private:
 
 	FindManager *mFindHelper;
 	ProjectManager *mProjectManager;
-	StartDialog *mStartDialog;
+	StartWidget *mStartDialog;
 
 	SceneCustomizer *mSceneCustomizer;
 	QList<QDockWidget *> mAdditionalDocks;
