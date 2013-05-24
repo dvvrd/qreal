@@ -18,7 +18,7 @@ RecentProjectItem::RecentProjectItem(QWidget *parent, QString const &projectName
 	recentProject->addWidget(fullName);
 	setLayout(recentProject);
 
-	connect(name, SIGNAL(linkActivated(const QString)), parent, SLOT(createProjectWithDiagram(QString)));
+	connect(name, SIGNAL(linkActivated(const QString)), parent, SLOT(openRecentProject(QString)));
 }
 
 QString RecentProjectItem::getData()

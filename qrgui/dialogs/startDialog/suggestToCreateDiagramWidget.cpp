@@ -30,3 +30,10 @@ void SuggestToCreateDiagramWidget::addItem(Id const &editor, Id const &diagram)
 			, "qrm:/" + editor.editor() + "/" + diagram.diagram() + "/" + diagramNodeName
 			, tr("editor: ") + editor.editor() + tr(", diagram: ") + diagram.diagram());
 }
+
+QString SuggestToCreateDiagramWidget::itemAt(int row)
+{
+	QString diagram = mListWidget->item(row)->data(Qt::UserRole).toString();
+	qDebug()<<diagram;
+	return diagram;
+}

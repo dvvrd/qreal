@@ -25,8 +25,8 @@ public:
 private slots:
 	void openRecentProject(QString const &fileName);
 	void openExistingProject();
-	void createProjectWithDiagram(QString const &idString);
-	void exitApp();
+	void createProjectWithDiagram();
+//	void exitApp();
 
 private:
 	void initRecentProjects();

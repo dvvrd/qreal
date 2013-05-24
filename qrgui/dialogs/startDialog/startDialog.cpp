@@ -11,6 +11,7 @@
 #include "suggestToCreateDiagramWidget.h"
 #include "recentProjectsListWidget.h"
 #include "recentProjectItem.h"
+#include "../suggestToCreateDiagramDialog.h"
 
 using namespace qReal;
 
@@ -22,15 +23,10 @@ StartWidget::StartWidget(MainWindow *mainWindow, ProjectManager *projectManager)
 	, mProjectsLayout(new QVBoxLayout())
 	, mSessionsLayout(new QHBoxLayout())
 {
-	//RecentProjectsListWidget *recentProjects = new RecentProjectsListWidget();
-	SuggestToCreateDiagramWidget *diagrams = new SuggestToCreateDiagramWidget(mMainWindow);
-
-	//QString userData=diagrams->itemAt(0);
-
-	QString openLinkText = QString("<a href=\"Open project...\">%1</a>").arg(tr("<font color='black'>Open project...</font>"));
+	QString openLinkText = QString("<a href='Open project...'>%1</a>").arg(tr("<font color='black'>Open project...</font>"));
 	QLabel *openLink = new QLabel(openLinkText, this);
 
-	QString creatLinkText = QString("<a href=\'Create project\'>%1</a>").arg(tr("<font color='black' >Create new project</font>"));
+	QString creatLinkText = QString("<a href='Create new project'>%1</a>").arg(tr("<font color='black'>Create new project</font>"));
 	QLabel *createLink = new QLabel(creatLinkText, this);
 
 	QLabel *sessions = new QLabel(tr("<font size = 14>Sessions</font>"));
@@ -52,7 +48,6 @@ StartWidget::StartWidget(MainWindow *mainWindow, ProjectManager *projectManager)
 
 	recentProjectsLayout->addWidget(recentProjects);
 	recentProjectsLayout->addLayout(mProjectsLayout);
-	//recentProjectsLayout->addItem(new QSpacerItem(1, 400));
 	recentProjectsLayout->addStretch(0);
 
 	mainLayout->addLayout(sessionsLayout);
@@ -71,42 +66,25 @@ StartWidget::StartWidget(MainWindow *mainWindow, ProjectManager *projectManager)
 	this->setPalette(Pal);
 	setWindowTitle(tr("Start page"));
 
-	connect(createLink, SIGNAL(linkActivated(const QString)), diagrams, SLOT(createProjectWithDiagram(QString)));
-	connect(openLink, SIGNAL(linkActivated(const QString)), this, SLOT(openExistingProject()));
-	//connect(recentProjects, SIGNAL(userDataSelected(QString)), this, SLOT(openRecentProject(QString)));
-	//connect(diagrams, SIGNAL(userDataSelected(QString)), this, SLOT(createProjectWithDiagram(QString)));
-
-	if (mainWindow)
-	{
-		move(mainWindow->geometry().center() - rect().center());
-	}
+	connect(createLink, SIGNAL(linkActivated(QString)), this, SLOT(createProjectWithDiagram()));
+	connect(openLink, SIGNAL(linkActivated(QString)), this, SLOT(openExistingProject()));
 }
 
 void StartWidget::openRecentProject(QString const &fileName)
 {
-	if (mProjectManager->open(fileName)) {
-		this->close();
-	}
+	mProjectManager->open(fileName);
 }
 
 void StartWidget::openExistingProject()
 {
-	if (mProjectManager->suggestToOpenExisting()) {
-		this->close();
-	}
+	mProjectManager->suggestToOpenExisting();
 }
 
-void StartWidget::createProjectWithDiagram(QString const &idString)
+void StartWidget::createProjectWithDiagram()
 {
 	mProjectManager->clearAutosaveFile();
 	mProjectManager->openEmptyWithSuggestToSaveChanges();
-	mMainWindow->createDiagram(idString);
-	this->close();
-}
-
-void StartWidget::exitApp()
-{
-	this->close();
+	mProjectManager->suggestToCreateDiagram();
 }
 
 void StartWidget::initRecentProjects()

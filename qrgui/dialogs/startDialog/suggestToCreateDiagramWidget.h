@@ -20,6 +20,7 @@ class SuggestToCreateDiagramWidget : public ListWidget
 
 public:
 	explicit SuggestToCreateDiagramWidget(MainWindow *mainWindow, QWidget *parent = 0);
+	QString itemAt(int row);
 
 private:
 	void addItem(Id const &editor, Id const &diagram);
