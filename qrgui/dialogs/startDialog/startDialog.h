@@ -22,19 +22,20 @@ class StartWidget : public QWidget
 public:
 	explicit StartWidget(MainWindow *mainWindow, ProjectManager *projectManager);
 
+signals:
+	void closeStartTab(int index);
+
 private slots:
 	void openRecentProject(QString const &fileName);
 	void openExistingProject();
 	void createProjectWithDiagram();
-//	void exitApp();
 
 private:
 	void initRecentProjects();
 
-	int mProjectListSize;
-
 	MainWindow *mMainWindow;
 	ProjectManager *mProjectManager;
+	int mProjectListSize;
 	QVBoxLayout *mProjectsLayout;
 	QHBoxLayout *mSessionsLayout;
 };

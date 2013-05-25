@@ -72,19 +72,28 @@ StartWidget::StartWidget(MainWindow *mainWindow, ProjectManager *projectManager)
 
 void StartWidget::openRecentProject(QString const &fileName)
 {
-	mProjectManager->open(fileName);
+	if(mProjectManager->open(fileName)){
+		emit closeStartTab(0);
+	}
 }
 
 void StartWidget::openExistingProject()
 {
-	mProjectManager->suggestToOpenExisting();
+	if(mProjectManager->suggestToOpenExisting()){
+		emit closeStartTab(0);
+	}
 }
 
 void StartWidget::createProjectWithDiagram()
 {
-	mProjectManager->clearAutosaveFile();
-	mProjectManager->openEmptyWithSuggestToSaveChanges();
-	mProjectManager->suggestToCreateDiagram();
+	SuggestToCreateDiagramWidget *diagrams = new SuggestToCreateDiagramWidget(mMainWindow, this);
+	if (diagrams->count()==1){
+		mMainWindow->createDiagram(diagrams->itemAt(0));
+	} else {
+		mProjectManager->clearAutosaveFile();
+		mProjectManager->suggestToCreateDiagram();
+	}
+	emit closeStartTab(0);
 }
 
 void StartWidget::initRecentProjects()

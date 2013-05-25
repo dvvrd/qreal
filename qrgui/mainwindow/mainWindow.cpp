@@ -152,7 +152,6 @@ void MainWindow::connectActions()
 	connect(mUi->actionMakeSvg, SIGNAL(triggered()), this, SLOT(makeSvg()));
 
 	connect(mUi->actionNew_Diagram, SIGNAL(triggered()), mProjectManager, SLOT(suggestToCreateDiagram()));
-	//connect(mUi->actionNewProject, SIGNAL(triggered()), mStartDialog, SLOT(exec()));
 
 	connect(mUi->actionImport, SIGNAL(triggered()), mProjectManager, SLOT(suggestToImport()));
 	connect(mUi->actionDeleteFromDiagram, SIGNAL(triggered()), this, SLOT(deleteFromDiagram()));
@@ -1909,5 +1908,5 @@ void MainWindow::setVersion(QString const &version)
 void MainWindow::openStartTab()
 {
 	mUi->tabs->addTab(mStartDialog, tr("GettingStarted"));
-	mUi->tabs->setCurrentWidget(mStartDialog);
+	connect(mStartDialog, SIGNAL(closeStartTab(int)), this, SLOT(closeTab(int)));
 }

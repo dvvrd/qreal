@@ -1,4 +1,5 @@
 #include <QtGui/QtEvents>
+#include <QDebug>
 
 #include "managedClosableDialog.h"
 
