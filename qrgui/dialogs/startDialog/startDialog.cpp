@@ -64,7 +64,6 @@ StartWidget::StartWidget(MainWindow *mainWindow, ProjectManager *projectManager)
 	Pal.setColor(QPalette::Background, color);
 	this->setAutoFillBackground(true);
 	this->setPalette(Pal);
-	setWindowTitle(tr("Start page"));
 
 	connect(createLink, SIGNAL(linkActivated(QString)), this, SLOT(createProjectWithDiagram()));
 	connect(openLink, SIGNAL(linkActivated(QString)), this, SLOT(openExistingProject()));
