@@ -34,6 +34,5 @@ void SuggestToCreateDiagramWidget::addItem(Id const &editor, Id const &diagram)
 QString SuggestToCreateDiagramWidget::itemAt(int row)
 {
 	QString diagram = mListWidget->item(row)->data(Qt::UserRole).toString();
-	qDebug()<<diagram;
 	return diagram;
 }
