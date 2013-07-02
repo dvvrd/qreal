@@ -3,7 +3,7 @@
 
 using namespace qReal;
 
-RecentProjectsListWidget::RecentProjectsListWidget(QDialog *parent)
+RecentProjectsListWidget::RecentProjectsListWidget(QWidget *parent)
 		: ListWidget(parent)
 {
 	QString recentProjects = SettingsManager::value("recentProjects").toString();

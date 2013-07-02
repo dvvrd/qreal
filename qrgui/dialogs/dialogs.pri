@@ -13,7 +13,6 @@ HEADERS += \
 	dialogs/preferencesPages/preferencesPage.h \
 	dialogs/progressDialog/progressBar.h \
 	dialogs/progressDialog/progressDialog.h \
-	dialogs/startDialog/startDialog.h \
 	dialogs/startDialog/suggestToCreateDiagramWidget.h \
 	dialogs/startDialog/recentProjectsListWidget.h \
 	dialogs/startDialog/listWidget.h \
@@ -22,6 +21,8 @@ HEADERS += \
 	dialogs/preferencesDialog.h \
 	dialogs/suggestToCreateDiagramDialog.h \
 	dialogs/suggestToCreateProjectDialog.h \
+    dialogs/startDialog/startWidget.h \
+    dialogs/startDialog/recentProjectItem.h
 
 SOURCES += \
 	dialogs/gesturesShow/gesturesWidget.cpp \
@@ -37,7 +38,6 @@ SOURCES += \
 	dialogs/preferencesPages/featuresPage.cpp \
 	dialogs/progressDialog/progressBar.cpp \
 	dialogs/progressDialog/progressDialog.cpp \
-	dialogs/startDialog/startDialog.cpp \
 	dialogs/startDialog/suggestToCreateDiagramWidget.cpp \
 	dialogs/startDialog/recentProjectsListWidget.cpp \
 	dialogs/startDialog/listWidget.cpp \
@@ -46,6 +46,8 @@ SOURCES += \
 	dialogs/preferencesDialog.cpp \
 	dialogs/suggestToCreateDiagramDialog.cpp \
 	dialogs/suggestToCreateProjectDialog.cpp \
+    dialogs/startDialog/startWidget.cpp \
+    dialogs/startDialog/recentProjectItem.cpp
 
 FORMS += \
 	dialogs/gesturesShow/gesturesWidget.ui \

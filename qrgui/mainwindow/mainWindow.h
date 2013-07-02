@@ -29,7 +29,7 @@
 
 #include "../../qrgui/dialogs/preferencesDialog.h"
 #include "../../qrgui/dialogs/findReplaceDialog.h"
-#include "../dialogs/startDialog/startDialog.h"
+#include "../dialogs/StartDialog/startWidget.h"
 #include "propertyEditorProxyModel.h"
 #include "gesturesPainterInterface.h"
 #include "../dialogs/gesturesShow/gesturesWidget.h"
@@ -187,7 +187,7 @@ private slots:
 	void createProject();
 
 	/// Diagram opening must happen after plugins initialization
-	void initPluginsAndStartDialog();
+	void initPluginsAndStartWidget();
 	void initToolPlugins();
 
 	/// handler for menu 'button find' pressed
@@ -343,6 +343,8 @@ private:
 
 	void setVersion(QString const &version);
 
+	void openStartTab();
+
 	Ui::MainWindowUi *mUi;
 
 	/// elements & theirs ids
@@ -384,7 +386,7 @@ private:
 
 	FindManager *mFindHelper;
 	ProjectManager *mProjectManager;
-	StartDialog *mStartDialog;
+	StartWidget *mStartWidget;
 
 	SceneCustomizer *mSceneCustomizer;
 	QList<QDockWidget *> mAdditionalDocks;

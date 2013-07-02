@@ -19,7 +19,8 @@ class SuggestToCreateDiagramWidget : public ListWidget
 	Q_OBJECT
 
 public:
-	explicit SuggestToCreateDiagramWidget(MainWindow *mainWindow, QDialog *parent = 0);
+	explicit SuggestToCreateDiagramWidget(MainWindow *mainWindow, QWidget *parent = 0);
+	QString itemAt(int row);
 
 private:
 	void addItem(Id const &editor, Id const &diagram);
@@ -28,4 +29,3 @@ private:
 };
 
 }
-

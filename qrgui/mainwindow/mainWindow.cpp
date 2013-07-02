@@ -44,7 +44,7 @@
 #include "referenceList.h"
 
 #include "splashScreen.h"
-#include "../dialogs/startDialog/startDialog.h"
+#include "../dialogs/StartDialog/startWidget.h"
 #include "../dialogs/suggestToCreateProjectDialog.h"
 #include "../dialogs/progressDialog/progressDialog.h"
 
@@ -77,7 +77,7 @@ MainWindow::MainWindow(QString const &fileToOpen)
 		, mRecentProjectsLimit(5)
 		, mRecentProjectsMapper(new QSignalMapper())
 		, mProjectManager(new ProjectManager(this))
-		, mStartDialog(new StartDialog(*this, *mProjectManager))
+		, mStartWidget(new StartWidget(*this, *mProjectManager))
 		, mSceneCustomizer(new SceneCustomizer(this))
 		, mInitialFileToOpen(fileToOpen)
 {
@@ -146,7 +146,7 @@ MainWindow::MainWindow(QString const &fileToOpen)
 	// here then we have some problems with correct main window initialization
 	// beacuse of total event loop blocking by plugins. So waiting for main
 	// window initialization complete and then loading plugins.
-	QTimer::singleShot(50, this, SLOT(initPluginsAndStartDialog()));}
+	QTimer::singleShot(50, this, SLOT(initPluginsAndStartWidget()));}
 
 void MainWindow::connectActions()
 {
@@ -267,7 +267,7 @@ MainWindow::~MainWindow()
 	delete mFindReplaceDialog;
 	delete mFindHelper;
 	delete mProjectManager;
-	delete mStartDialog;
+	delete mStartWidget;
 	delete mSceneCustomizer;
 }
 
@@ -1764,14 +1764,11 @@ Id MainWindow::activeDiagram()
 	return getCurrentTab() && getCurrentTab()->mvIface() ? getCurrentTab()->mvIface()->rootId() : Id();
 }
 
-void MainWindow::initPluginsAndStartDialog()
+void MainWindow::initPluginsAndStartWidget()
 {
 	initToolPlugins();
 	if (mInitialFileToOpen.isEmpty() || !mProjectManager->open(mInitialFileToOpen)) {
-		mStartDialog->setVisibleForInterpreterButton(mToolManager.customizer()->showInterpeterButton());
-		// Centering dialog inside main window
-		mStartDialog->move(geometry().center() - mStartDialog->rect().center());
-		mStartDialog->exec();
+		openStartTab();
 	}
 }
 
@@ -2084,4 +2081,10 @@ void MainWindow::setVersion(QString const &version)
 {
 	// TODO: update title
 	SettingsManager::setValue("version", version);
+}
+
+void MainWindow::openStartTab()
+{
+	mUi->tabs->addTab(mStartWidget, tr("GettingStarted"));
+	connect(mStartWidget, SIGNAL(closeStartTab(int)), this, SLOT(closeTab(int)));
 }
