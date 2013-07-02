@@ -1,5 +1,4 @@
 #include <QtWidgets/QVBoxLayout>
-
 #include "listWidget.h"
 
 using namespace qReal;
@@ -7,20 +6,13 @@ using namespace qReal;
 ListWidget::ListWidget(QWidget *parent)
 		: QWidget(parent)
 		, mListWidget(new QListWidget())
-		, mOkButton(new QPushButton(tr("&OK")))
 {
-	mOkButton->setMinimumHeight(mOkButtonMinimumHeight);
-	mOkButton->setDisabled(true);
-
 	QVBoxLayout *mainLayout = new QVBoxLayout;
 	mainLayout->addWidget(mListWidget);
-	mainLayout->addWidget(mOkButton);
 
 	setLayout(mainLayout);
 
-	connect(mListWidget, SIGNAL(itemSelectionChanged()), this, SLOT(okActivate()));
-	connect(mOkButton, SIGNAL(clicked()), this, SLOT(okButtonHandler()));
-	connect(mListWidget, SIGNAL(itemDoubleClicked(QListWidgetItem*))
+	connect(mListWidget, SIGNAL(itemClicked(QListWidgetItem*))
 			, this, SLOT(doubleClickHandler(QListWidgetItem*)));
 }
 
@@ -45,11 +37,6 @@ void ListWidget::highlightFirstItem()
 	mListWidget->setCurrentRow(0);
 }
 
-void ListWidget::okButtonHandler()
-{
-	emit userDataSelected(userData(mListWidget->currentItem()));
-}
-
 void ListWidget::doubleClickHandler(QListWidgetItem *item)
 {
 	emit userDataSelected(userData(item));
@@ -58,10 +45,4 @@ void ListWidget::doubleClickHandler(QListWidgetItem *item)
 QString ListWidget::userData(QListWidgetItem *item)
 {
 	return item->data(Qt::UserRole).toString();
-}
-
-void ListWidget::okActivate()
-{
-	mOkButton->setEnabled(true);
-	mOkButton->setDefault(true);
 }

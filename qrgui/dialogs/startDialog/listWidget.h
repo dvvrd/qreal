@@ -27,17 +27,15 @@ signals:
 	void userDataSelected(QString const &userData);
 
 private slots:
-	void okActivate();
-	void okButtonHandler();
 	void doubleClickHandler(QListWidgetItem *item);
 
 private:
+
 	QString userData(QListWidgetItem *item);
 
-	static int const mOkButtonMinimumHeight = 32;
+protected:
 
 	QListWidget *mListWidget;
-	QPushButton *mOkButton;
 };
 
 }

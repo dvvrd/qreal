@@ -3,11 +3,11 @@
 
 using namespace qReal;
 
-SuggestToCreateDiagramWidget::SuggestToCreateDiagramWidget(MainWindow *mainWindow, QDialog *parent)
+SuggestToCreateDiagramWidget::SuggestToCreateDiagramWidget(MainWindow *mainWindow, QWidget *parent)
 		: ListWidget(parent)
 		, mMainWindow(mainWindow)
 {
-	foreach (Id const &editor, mMainWindow->editorManager().editors()) {
+	foreach(Id const &editor, mMainWindow->editorManager().editors()) {
 		Id editorTmpId = Id::loadFromString("qrm:/" + editor.editor());
 		foreach(Id const &diagram, mMainWindow->editorManager().diagrams(editorTmpId)) {
 			addItem(editor, diagram);
@@ -26,8 +26,13 @@ void SuggestToCreateDiagramWidget::addItem(Id const &editor, Id const &diagram)
 	if (diagramNodeName.isEmpty()) {
 		return;
 	}
-
 	ListWidget::addItem(diagramName
 			, "qrm:/" + editor.editor() + "/" + diagram.diagram() + "/" + diagramNodeName
 			, tr("editor: ") + editor.editor() + tr(", diagram: ") + diagram.diagram());
+}
+
+QString SuggestToCreateDiagramWidget::itemAt(int row)
+{
+	QString diagram = mListWidget->item(row)->data(Qt::UserRole).toString();
+	return diagram;
 }

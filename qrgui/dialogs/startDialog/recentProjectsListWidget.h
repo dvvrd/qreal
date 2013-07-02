@@ -16,7 +16,7 @@ class RecentProjectsListWidget : public ListWidget
 	Q_OBJECT
 
 public:
-	explicit RecentProjectsListWidget(QDialog *parent = 0);
+	explicit RecentProjectsListWidget(QWidget *parent = 0);
 };
 
 }
