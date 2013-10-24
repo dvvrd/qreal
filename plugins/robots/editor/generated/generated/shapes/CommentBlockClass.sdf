@@ -1,0 +1,9 @@
+ <picture sizex="200" sizey="100">
+  <line stroke="#000000" fill-style="none" fill="#ffffff" y1="0" y2="100" x1="0" x2="0" stroke-style="solid" stroke-width="0"/>
+  <line stroke="#000000" fill-style="none" fill="#ffffff" y1="100" y2="100" x1="0" x2="200" stroke-style="solid" stroke-width="0"/>
+  <line stroke="#000000" fill-style="none" fill="#ffffff" y1="20" y2="100" x1="200" x2="200" stroke-style="solid" stroke-width="0"/>
+  <line stroke="#000000" fill-style="none" fill="#ffffff" y1="0" y2="20" x1="180" x2="200" stroke-style="solid" stroke-width="0"/>
+  <line stroke="#000000" fill-style="none" fill="#ffffff" y1="0" y2="0" x1="0" x2="178" stroke-style="solid" stroke-width="0"/>
+  <line stroke="#000000" fill-style="none" fill="#ffffff" y1="0" y2="20" x1="180" x2="180" stroke-style="solid" stroke-width="0"/>
+  <line stroke="#000000" fill-style="none" fill="#ffffff" y1="20" y2="20" x1="180" x2="200" stroke-style="solid" stroke-width="0"/>
+ </picture>
