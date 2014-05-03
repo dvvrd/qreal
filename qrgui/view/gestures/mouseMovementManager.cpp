@@ -1,20 +1,27 @@
 #include "mouseMovementManager.h"
-#include "pathCorrector.h"
-#include "levenshteinDistance.h"
-#include "GeometricForms.h"
-#include "mixedgesturesmanager.h"
 
-const QString comma = ", ";
-const QString pointDelimeter = " : ";
-const QString pathDelimeter = " | ";
+#include "view/gestures/pathCorrector.h"
+#include "view/gestures/levenshteinDistance.h"
+#include "view/gestures/geometricForms.h"
+#include "view/gestures/mixedgesturesmanager.h"
 
+QString const comma = ", ";
+QString const pointDelimeter = " : ";
+QString const pathDelimeter = " | ";
 
-MouseMovementManager::MouseMovementManager(QList<qReal::Id> elements, qReal::EditorManager *editorManager
+QString const deletionGestureKey = "<deletionMetaGesture>";
+/// @todo: specify it in metamodel?
+QString const deletionGesture = "0, 200 : 200, 0 : ";
+
+using namespace qReal::gestures;
+
+MouseMovementManager::MouseMovementManager(QList<qReal::Id> elements
+		, qReal::EditorManagerInterface * editorManagerInterface
 		, GesturesPainterInterface *gesturesPaintManager)
 {
 	mGesturesManager = new MixedGesturesManager();
 	mKeyManager = &mKeyStringManager;
-	mEditorManager = editorManager;
+	mEditorManagerInterface = editorManagerInterface;
 	mGesturesPaintMan = gesturesPaintManager;
 	setElements(elements);
 }
@@ -31,20 +38,19 @@ void MouseMovementManager::setGesturesPainter(GesturesPainterInterface *gestures
 
 void MouseMovementManager::drawIdealPath()
 {
-	QString currentElement = mGesturesPaintMan->currentElement();
-	foreach (qReal::Id element, mElements) {
-		if (element.element() == currentElement) {
-			QString path = mEditorManager->mouseGesture(element);
-			//mGesturesPaintMan->draw(stringToPath(path));
-		}
+	Id const currentElement = mGesturesPaintMan->currentElement();
+	if (mElements.contains(currentElement)) {
+		QString const paths = mEditorManagerInterface->mouseGesture(currentElement);
+		mGesturesPaintMan->draw(stringToPath(paths));
 	}
 }
 
 void MouseMovementManager::printElements()
 {
-	QList<QString> elements;
-	foreach (qReal::Id element, mElements)
-		elements.push_back(element.element());
+	QList<QPair<QString, Id> > elements;
+	foreach (Id const &element, mElements) {
+		elements << qMakePair(mEditorManagerInterface->friendlyName(element), element);
+	}
 	mGesturesPaintMan->setElements(elements);
 }
 
@@ -63,27 +69,30 @@ QLineF MouseMovementManager::newLine()
 	return line;
 }
 
-void MouseMovementManager::setElements(const QList<qReal::Id> &elements)
+void MouseMovementManager::setElements(IdList const &elements)
 {
 	QMap<QString, PathVector> gestures;
-	foreach (qReal::Id element, elements) {
-		QString pathStr = mEditorManager->mouseGesture(element);
+	gestures.insert(deletionGestureKey, stringToPath(deletionGesture));
+	for (Id const &element : elements) {
+		QString const pathStr = mEditorManagerInterface->mouseGesture(element);
 		if (!pathStr.isEmpty()) {
-			PathVector path = stringToPath(pathStr);
-			gestures.insert(element.toString(), path);
-			mElements.push_back(element);
+			gestures.insert(element.toString(), stringToPath(pathStr));
+			mElements << element;
 		}
 	}
+
 	mGesturesManager->initIdealGestures(gestures);
 }
 
 void MouseMovementManager::recountCentre()
 {
-	if (mPath.empty() || mPath.back().empty())
+	if (mPath.empty() || mPath.back().empty()) {
 		return;
+	}
 	int count = 0;
-	foreach (PointVector path, mPath)
+	foreach (PointVector const &path, mPath) {
 		count += path.size();
+	}
 	mCentre = ((count - 1) * mCentre + mPath.back().back()) / count;
 }
 
@@ -133,34 +142,46 @@ QPoint MouseMovementManager::parsePoint(QString const &str)
 	return QPoint(x, y);
 }
 
-qReal::Id MouseMovementManager::getObject()
+MouseMovementManager::GestureResult MouseMovementManager::result()
 {
-	qReal::Id recognizedObject;
+	GestureResult result;
 	mGesturesManager->setKey(mPath);
 	mPath.clear();
-	double minDist = mGesturesManager->getMaxDistance(mElements.at(0).toString());
-	foreach (qReal::Id object, mElements) {
-		minDist = std::min(minDist, mGesturesManager->getMaxDistance(object.toString()));
-		double dist = mGesturesManager->getDistance(object.toString());
+	qreal minDist = INT_MAX;
+
+	QMap<QString, Id> gestures;
+	gestures[deletionGestureKey] = Id();
+	for (Id const &element : mElements) {
+		gestures[element.toString()] = element;
+	}
+
+
+	for (QString const &key: gestures.keys()) {
+		minDist = qMin(minDist, mGesturesManager->getMaxDistance(key));
+		qreal const dist = mGesturesManager->getDistance(key);
 		if (dist < minDist) {
 			minDist = dist;
-			recognizedObject = object;
+			result.setType(key == deletionGestureKey ? deleteGesture : createElementGesture);
+			result.setElementType(gestures[key]);
 		}
 	}
-	return recognizedObject;
+
+	return result;
 }
 
 QPointF MouseMovementManager::firstPoint()
 {
-	if (!mPath.isEmpty() && !mPath.at(0).empty())
+	if (!mPath.isEmpty() && !mPath.at(0).empty()) {
 		return QPointF(mPath.at(0).at(0));
+	}
 	return QPointF(0, 0);
 }
 
 QPointF MouseMovementManager::lastPoint()
 {
-	if (!mPath.isEmpty() && !mPath.back().empty())
+	if (!mPath.isEmpty() && !mPath.back().empty()) {
 		return QPointF(mPath.back().back());
+	}
 	return QPointF(0, 0);
 }
 
@@ -178,4 +199,35 @@ bool MouseMovementManager::isEdgeCandidate()
 bool MouseMovementManager::pathIsEmpty()
 {
 	return mPath.isEmpty();
+}
+
+MouseMovementManager::GestureResult::GestureResult()
+	: mType(invalidGesture)
+{
+}
+
+MouseMovementManager::GestureResult::GestureResult(MouseMovementManager::GestureResultType type, qReal::Id const &id)
+	: mType(type)
+	, mId(id)
+{
+}
+
+MouseMovementManager::GestureResultType MouseMovementManager::GestureResult::type() const
+{
+	return mType;
+}
+
+qReal::Id MouseMovementManager::GestureResult::elementType() const
+{
+	return mId;
+}
+
+void MouseMovementManager::GestureResult::setType(MouseMovementManager::GestureResultType type)
+{
+	mType = type;
+}
+
+void MouseMovementManager::GestureResult::setElementType(qReal::Id const &id)
+{
+	mId = id;
 }

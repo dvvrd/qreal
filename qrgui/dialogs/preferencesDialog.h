@@ -1,22 +1,25 @@
 #pragma once
 
-#include <QDialog>
-#include <QModelIndex>
+#include <QtCore/QModelIndex>
+#include <QtWidgets/QDialog>
+#include <QtCore/QSettings>
 
-#include "preferencesPages/preferencesPage.h"
+#include <qrkernel/settingsManager.h>
+#include <qrutils/qRealDialog.h>
 
-#include "../../qrkernel/settingsManager.h"
+#include "dialogs/preferencesPages/preferencesPage.h"
 
 namespace Ui {
 	class PreferencesDialog;
 }
 
-class PreferencesDialog : public QDialog {
+class PreferencesDialog : public utils::QRealDialog
+{
 	Q_OBJECT
 
 public:
 
-	PreferencesDialog(QWidget *parent = 0);
+	explicit PreferencesDialog(QWidget *parent = 0);
 	~PreferencesDialog();
 
 	void init(QAction * const showGridAction, QAction * const showAlignmentAction
@@ -27,6 +30,7 @@ public:
 
 protected:
 	void changeEvent(QEvent *e);
+	void showEvent(QShowEvent *e);
 
 signals:
 	void gridChanged();
@@ -34,14 +38,20 @@ signals:
 	void settingsApplied();
 	void fontChanged();
 	void paletteRepresentationChanged();
+	void usabilityTestingModeChanged(bool on);
+	void transparentVersioningModeChanged(bool turn);
 
 public slots:
 	void changePaletteParameters();
+
 private slots:
 	void cancel();
 	void applyChanges();
+	void restoreSettings();
 	void saveAndClose();
 	void chooseTab(const QModelIndex &);
+	void exportSettings();
+	void importSettings();
 
 private:
 	Ui::PreferencesDialog *ui;

@@ -1,17 +1,16 @@
 #include "abstractItem.h"
 
 #include <QtGui/QPainter>
-#include <QtGui/QStyle>
-#include <QtGui/QGraphicsScene>
-#include <QtGui/QStyleOptionGraphicsItem>
-#include <QtGui/QGraphicsSceneMouseEvent>
-#include <QDebug>
+#include <QtWidgets/QStyle>
+#include <QtWidgets/QGraphicsScene>
+#include <QtWidgets/QStyleOptionGraphicsItem>
+#include <QtWidgets/QGraphicsSceneMouseEvent>
 
 using namespace graphicsUtils;
 
 AbstractItem::AbstractItem(QGraphicsItem* parent)
 	: QGraphicsItem(parent), mDragState(None)
-	, mX1(0), mY1(0), mX2(0), mY2(0), mView(NULL)
+	, mX1(0), mY1(0), mX2(0), mY2(0), mView(nullptr)
 {
 	setFlag(QGraphicsItem::ItemIsSelectable, true);
 	setFlag(QGraphicsItem::ItemIsMovable, true);
@@ -26,6 +25,11 @@ QRectF AbstractItem::calcNecessaryBoundingRect() const
 QRectF AbstractItem::realBoundingRect() const
 {
 	return mapToScene(calcNecessaryBoundingRect()).boundingRect();
+}
+
+QPainterPath AbstractItem::realShape() const
+{
+	return mapToScene(shape());
 }
 
 void AbstractItem::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
@@ -54,10 +58,10 @@ void AbstractItem::drawExtractionForItem(QPainter* painter)
 void AbstractItem::drawFieldForResizeItem(QPainter* painter)
 {
 	QRectF itemBoundingRect = calcNecessaryBoundingRect();
-	qreal x1 = itemBoundingRect.left();
-	qreal x2 = itemBoundingRect.right();
-	qreal y1 = itemBoundingRect.top();
-	qreal y2 = itemBoundingRect.bottom();
+	qreal const x1 = itemBoundingRect.left();
+	qreal const x2 = itemBoundingRect.right();
+	qreal const y1 = itemBoundingRect.top();
+	qreal const y2 = itemBoundingRect.bottom();
 
 	setPenBrushDriftRect(painter);
 	painter->drawRect(x1, y1, resizeDrift, resizeDrift);
@@ -66,7 +70,7 @@ void AbstractItem::drawFieldForResizeItem(QPainter* painter)
 	painter->drawRect(x2 - resizeDrift, y1, resizeDrift, resizeDrift);
 }
 
-void AbstractItem::setPenBrushForExtraxtion(QPainter* painter, const QStyleOptionGraphicsItem* option)
+void AbstractItem::setPenBrushForExtraxtion(QPainter *painter, QStyleOptionGraphicsItem const *option)
 {
 	Q_UNUSED(option);
 	QPen pen(Qt::red);
@@ -74,7 +78,7 @@ void AbstractItem::setPenBrushForExtraxtion(QPainter* painter, const QStyleOptio
 	painter->setPen(pen);
 }
 
-void AbstractItem::setPenBrushDriftRect(QPainter* painter)
+void AbstractItem::setPenBrushDriftRect(QPainter *painter)
 {
 	QPen pen(QColor("whitesmoke"));
 	pen.setStyle(Qt::SolidLine);
@@ -104,6 +108,16 @@ void AbstractItem::setBrush(QBrush const &brush)
 void AbstractItem::setPen(QPen const &pen)
 {
 	mPen = pen;
+}
+
+QPointF AbstractItem::getX1andY1()
+{
+	return QPointF(mX1, mY1);
+}
+
+QPointF AbstractItem::getX2andY2()
+{
+	return QPointF(mX2, mY2);
 }
 
 void AbstractItem::setX1andY1(qreal x, qreal y)
@@ -136,32 +150,35 @@ void AbstractItem::setX2andY2(qreal x, qreal y)
 
 void AbstractItem::reshapeRectWithShift()
 {
-	qreal size = qMax(abs(mX2 - mX1), abs(mY2 - mY1));
+	qreal const size = qMax(abs(mX2 - mX1), abs(mY2 - mY1));
 	if(mX2 > mX1) {
-		if (mY2 > mY1)
+		if (mY2 > mY1) {
 			setX2andY2(mX1 + size, mY1 + size);
-		else
+		} else {
 			setX2andY2(mX1 + size, mY1 - size);
+		}
 	} else {
-		if (mY2 > mY1)
+		if (mY2 > mY1) {
 			setX2andY2(mX1 - size, mY1 + size);
-		else
+		} else {
 			setX2andY2(mX1 - size, mY1 - size);
+		}
 	}
 }
 
 void AbstractItem::changeDragState(qreal x, qreal y)
 {
-	if (QRectF(QPointF(mX1 + scenePos().x(), mY1 + scenePos().y()), QSizeF(0, 0)).adjusted(-resizeDrift, -resizeDrift, resizeDrift, resizeDrift).contains(QPointF(x, y)))
+	if (QRectF(mapToScene(mX1, mY1), QSizeF(0, 0)).adjusted(-resizeDrift, -resizeDrift, resizeDrift, resizeDrift).contains(QPointF(x, y))) {
 		mDragState = TopLeft;
-	else if (QRectF(QPointF(mX2 + scenePos().x(), mY2 + scenePos().y()), QSizeF(0, 0)).adjusted(-resizeDrift, -resizeDrift, resizeDrift, resizeDrift).contains(QPointF(x, y)))
+	} else if (QRectF(mapToScene(mX2, mY2), QSizeF(0, 0)).adjusted(-resizeDrift, -resizeDrift, resizeDrift, resizeDrift).contains(QPointF(x, y))) {
 		mDragState = BottomRight;
-	else if (QRectF(QPointF(mX2 + scenePos().x(), mY1 + scenePos().y()), QSizeF(0, 0)).adjusted(-resizeDrift, -resizeDrift, resizeDrift, resizeDrift).contains(QPointF(x, y)))
+	} else if (QRectF(mapToScene(mX2, mY1), QSizeF(0, 0)).adjusted(-resizeDrift, -resizeDrift, resizeDrift, resizeDrift).contains(QPointF(x, y))) {
 		mDragState = TopRight;
-	else if (QRectF(QPointF(mX1 + scenePos().x(), mY2 + scenePos().y()), QSizeF(0, 0)).adjusted(-resizeDrift, -resizeDrift, resizeDrift, resizeDrift).contains(QPointF(x, y)))
+	} else if (QRectF(mapToScene(mX1, mY2), QSizeF(0, 0)).adjusted(-resizeDrift, -resizeDrift, resizeDrift, resizeDrift).contains(QPointF(x, y))) {
 		mDragState = BottomLeft;
-	else
+	} else {
 		mDragState = None;
+	}
 }
 
 AbstractItem::DragState AbstractItem::getDragState() const
@@ -171,35 +188,46 @@ AbstractItem::DragState AbstractItem::getDragState() const
 
 void AbstractItem::calcResizeItem(QGraphicsSceneMouseEvent *event)
 {
-	qreal x = mapFromScene(event->scenePos()).x();
-	qreal y = mapFromScene(event->scenePos()).y();
-	if (mDragState != None)
+	qreal const x = mapFromScene(event->scenePos()).x();
+	qreal const y = mapFromScene(event->scenePos()).y();
+	if (mDragState != None) {
 		setFlag(QGraphicsItem::ItemIsMovable, false);
-	if (mDragState == TopLeft)
+	}
+
+	if (mDragState == TopLeft) {
 		setX1andY1(x, y);
-	else if (mDragState == TopRight)
+	} else if (mDragState == TopRight) {
 		setX2andY1(x, y);
-	else if (mDragState == BottomLeft)
+	} else if (mDragState == BottomLeft) {
 		setX1andY2(x, y);
-	else if (mDragState == BottomRight)
+	} else if (mDragState == BottomRight) {
 		setX2andY2(x, y);
+	}
 }
 
 void AbstractItem::resizeItem(QGraphicsSceneMouseEvent *event)
 {
-	if (mDragState != None)
+	if (mDragState != None) {
 		calcResizeItem(event);
-	else {
+	} else {
 		setFlag(QGraphicsItem::ItemIsMovable, true);
 	}
 }
 
-void AbstractItem::mousePressEvent(QGraphicsSceneMouseEvent *event)
+void AbstractItem::reverseOldResizingItem(QPointF begin, QPointF end)
 {
-	QGraphicsItem::mousePressEvent(event);
+	if (mDragState == TopLeft) {
+		setX1andY1(begin.x(), begin.y());
+	} else if (mDragState == TopRight) {
+		setX2andY1(end.x(), begin.y());
+	} else if (mDragState == BottomLeft) {
+		setX1andY2(begin.x(), end.y());
+	} else if (mDragState == BottomRight) {
+		setX2andY2(end.x(), end.y());
+	}
 }
 
-void AbstractItem::setPenStyle(const QString& text)
+void AbstractItem::setPenStyle(QString const &text)
 {
 	if (text == "Solid")
 		mPen.setStyle(Qt::SolidLine);
@@ -220,31 +248,43 @@ void AbstractItem::setPenWidth(int width)
 	mPen.setWidth(width);
 }
 
-void AbstractItem::setPenColor(const QString& text)
+void AbstractItem::setPenColor(QString const &text)
 {
 	mPen.setColor(QColor(text));
 }
 
-void AbstractItem::setBrushStyle(const QString& text)
+void AbstractItem::setBrushStyle(QString const &text)
 {
-	if (text == "Solid")
+	if (text == "Solid") {
 		mBrush.setStyle(Qt::SolidPattern);
-	else if (text == "None")
+	} else if (text == "None") {
 		mBrush.setStyle(Qt::NoBrush);
+	}
 }
 
-void AbstractItem::setBrushColor(const QString& text)
+void AbstractItem::setBrushColor(QString const &text)
 {
 	mBrush.setColor(QColor(text));
 }
 
-void AbstractItem::setPenBrush(const QString& penStyle, int width, const QString& penColor, const QString& brushStyle, const QString& brushColor)
+void AbstractItem::setPen(QString const &penStyle, int width, QString const &penColor)
 {
 	setPenStyle(penStyle);
 	setPenWidth(width);
 	setPenColor(penColor);
+}
+
+void AbstractItem::setBrush(QString const &brushStyle, QString const &brushColor)
+{
 	setBrushStyle(brushStyle);
 	setBrushColor(brushColor);
+}
+
+void AbstractItem::setPenBrush(QString const &penStyle, int width, QString const &penColor
+		, QString const &brushStyle, QString const &brushColor)
+{
+	setPen(penStyle, width, penColor);
+	setBrush(brushStyle, brushColor);
 }
 
 void AbstractItem::setXandY(QDomElement& dom, QRectF const &rect)
@@ -260,13 +300,15 @@ QDomElement AbstractItem::setPenBrushToDoc(QDomDocument &document, QString const
 	QDomElement dom = document.createElement(domName);
 	dom.setAttribute("fill", mBrush.color().name());
 
-	if (mBrush.style() == Qt::NoBrush)
+	if (mBrush.style() == Qt::NoBrush) {
 		dom.setAttribute("fill-style", "none");
-	if (mBrush.style() == Qt::SolidPattern)
+	}
+
+	if (mBrush.style() == Qt::SolidPattern) {
 		dom.setAttribute("fill-style", "solid");
+	}
 
 	dom.setAttribute("stroke", mPen.color().name());
-
 	dom.setAttribute("stroke-width", mPen.width());
 
 	QString penStyle;
@@ -292,6 +334,7 @@ QDomElement AbstractItem::setPenBrushToDoc(QDomDocument &document, QString const
 	default:
 		break;
 	}
+
 	dom.setAttribute("stroke-style", penStyle);
 
 	return dom;
@@ -308,46 +351,44 @@ QRectF AbstractItem::sceneBoundingRectCoord(QPoint const &topLeftPicture)
 void AbstractItem::readPenBrush(QDomElement const &docItem)
 {
 	QString brushStyle = docItem.attribute("fill-style", "");
-	if (brushStyle == "solid")
+	if (brushStyle == "solid") {
 		mBrush.setStyle(Qt::SolidPattern);
-	else if (brushStyle == "none")
+	} else if (brushStyle == "none") {
 		mBrush.setStyle(Qt::NoBrush);
+	}
 
 	mBrush.setColor(QColor(docItem.attribute("fill", "")));
 	mPen.setColor(QColor(docItem.attribute("stroke", "")));
 	mPen.setWidth((docItem.attribute("stroke-width", "")).toDouble());
 
 	QString penStyle = docItem.attribute("stroke-style", "");
-	if (penStyle == "solid")
+	if (penStyle == "solid") {
 		mPen.setStyle(Qt::SolidLine);
-	else if (penStyle == "dot")
+	} else if (penStyle == "dot") {
 		mPen.setStyle(Qt::DotLine);
-	else if (penStyle == "dash")
+	} else if (penStyle == "dash") {
 		mPen.setStyle(Qt::DashLine);
-	else if (penStyle == "dashdot")
+	} else if (penStyle == "dashdot") {
 		mPen.setStyle(Qt::DashDotLine);
-	else if (penStyle == "dashdotdot")
+	} else if (penStyle == "dashdotdot") {
 		mPen.setStyle(Qt::DashDotDotLine);
-	else if (penStyle == "none")
+	} else if (penStyle == "none") {
 		mPen.setStyle(Qt::NoPen);
+	}
 }
 
 QStringList AbstractItem::getPenStyleList()
 {
-	QStringList penStyleList;
-	penStyleList.push_back("Solid");
-	penStyleList.push_back("Dot");
-	penStyleList.push_back("Dash");
-	penStyleList.push_back("DashDot");
-	penStyleList.push_back("DashDotDot");
-	penStyleList.push_back("None");
-	return penStyleList;
+	return QStringList()
+			<<"Solid"
+			<<"Dot"
+			<<"Dash"
+			<<"DashDot"
+			<<"DashDotDot"
+			<<"None";
 }
 
 QStringList AbstractItem::getBrushStyleList()
 {
-	QStringList brushStyleList;
-	brushStyleList.push_back("None");
-	brushStyleList.push_back("Solid");
-	return brushStyleList;
+	return QStringList() << "None" << "Solid";
 }

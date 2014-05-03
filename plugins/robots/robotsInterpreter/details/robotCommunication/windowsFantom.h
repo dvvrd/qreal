@@ -2,8 +2,10 @@
 
 #include <QtCore/QLibrary>
 
-namespace robotsInterpreter {
-namespace robotCommunication {
+namespace qReal {
+namespace interpreters {
+namespace robots {
+namespace details {
 
 /// Proxy for Fantom driver DLL for Windows. Responsible for loading DLL and
 /// dispatching all calls to corresponding driver functions.
@@ -28,11 +30,16 @@ public:
 	void nFANTOM100_destroyNXTIterator(unsigned long nxtIteratorHandle, int &status);
 	void nFANTOM100_iNXTIterator_advance(unsigned long NXTIterHandle, int &status);
 	void nFANTOM100_iNXT_findDeviceInFirmwareDownloadMode(char resString[], int &status);
+	void nFANTOM100_destroyNXT(unsigned long nxtHandle, int &status);
 
 private:
+	unsigned long onDriverUnavailable();
+
 	/// Instance of the Fantom library, if it is present.
 	QLibrary mFantomLibrary;
 };
 
+}
+}
 }
 }

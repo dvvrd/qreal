@@ -1,13 +1,13 @@
 #pragma once
 
-#include <QtGui/QGraphicsItem>
+#include <QtWidgets/QGraphicsItem>
 #include <QtGui/QPainter>
 
 #include "sensorItem.h"
 #include "rotater.h"
 #include "../../../../../qrutils/graphicsUtils/abstractItem.h"
 #include "../../../../../qrutils/graphicsUtils/rectangleImpl.h"
-#include "../../../../../qrutils/graphicsUtils/rotateInterface.h"
+#include "../../../../../qrutils/graphicsUtils/rotateItem.h"
 #include "robotModelInterface.h"
 
 namespace qReal {
@@ -16,12 +16,19 @@ namespace robots {
 namespace details {
 namespace d2Model {
 
-const qreal robotWidth = 50;
-const qreal robotHeight = 50;
-const QPointF rotatePoint = QPointF(robotWidth / 2, robotHeight / 2);
+class BeepItem : public QGraphicsItem
+{
+protected:
+	void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
+	QRectF boundingRect() const;
+
+private:
+	void drawBeep(QPainter *painter);
+	void drawBeepArcs(QPainter *painter, QPointF const &center, qreal radius);
+};
 
 /** @brief Class that represents a robot in 2D model */
-class RobotItem : public QObject, public graphicsUtils::AbstractItem, public graphicsUtils::RotateInterface
+class RobotItem : public QObject, public graphicsUtils::RotateItem
 {
 	Q_OBJECT
 public:
@@ -29,11 +36,13 @@ public:
 
 	virtual void rotate(qreal angle);
 	virtual QRectF rect() const;
-	virtual double rotateAngle() const;
+	virtual qreal rotateAngle() const;
+	void setRotateAngle(double const &angle);
 	virtual void setSelected(bool isSelected);
 	void setRotater(Rotater *rotater);
 	virtual void checkSelection();
-	QPointF basePoint();
+	void setRobotPos(QPointF const &newPos);
+	QPointF robotPos(void);
 
 	virtual QRectF boundingRect() const;
 	virtual QRectF calcNecessaryBoundingRect() const;
@@ -56,24 +65,35 @@ public:
 	bool isOnTheGround() const;
 
 	void setRobotModel(RobotModelInterface *robotModel);
+	void setNeededBeep(bool isNeededBeep);
+
+	void addSensorsShapes(QPainterPath &target);
+
+	void recoverDragStartPosition();
+
+	void processPositionChange();
+	void processPositionAndAngleChange();
+
+protected:
+	QVariant itemChange(GraphicsItemChange change, const QVariant &value);
 
 signals:
+	void mousePressed();
 	void changedPosition();
 
 private:
+	void onLanded();
+
 	/** @brief Image of a robot drawn on scene */
 	QImage mImage;
+	// Takes ownership
+	BeepItem *mBeepItem;
 
 	/** @brief List of sensors added to robot */
 	QList<SensorItem *> mSensors;  // Does not have ownership
 
-	/** @brief Previous position of robot (used while dragging to update sensors positions)*/
-	qreal mPreviousAngle;
-	QPointF mPreviousPos;
-
-	QPointF mBasePoint;
-
 	bool mIsOnTheGround;
+	QPointF mDragStart;
 	Rotater *mRotater;
 	graphicsUtils::RectangleImpl mRectangleImpl;
 

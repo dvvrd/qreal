@@ -1,5 +1,6 @@
 #pragma once
-#include "text.h"
+
+#include "mainwindow/shapeEdit/text.h"
 
 class TextPicture : public Text
 {
@@ -8,10 +9,10 @@ public:
 	TextPicture(int x, int y, QString const &text = "text");
 	TextPicture(TextPicture const &other);
 	virtual Item* clone();
-	void setTextName(const QString &name);
+	void setTextName(QString const &name);
 	void setFontFamily(const QFont& font);
 	void setFontPixelSize(int size);
-	void setFontColor(const QString & text);
+	void setFontColor(QString const &text);
 	void setFontItalic(bool isChecked);
 	void setFontBold(bool isChecked);
 	void setFontUnderline(bool isChecked);

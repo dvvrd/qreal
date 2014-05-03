@@ -13,16 +13,15 @@ EnginesForwardBlock::EnginesForwardBlock(robotParts::Motor &motor1, robotParts::
 
 void EnginesForwardBlock::run()
 {
-	Tracer::debug(tracer::blocks, "EnginesForwardBlock::run", "");
+	Tracer::debug(tracer::enums::blocks, "EnginesForwardBlock::run", "");
 	int const power = evaluate("Power").toInt();
-	int const tachoLimit = evaluate("TachoLimit").toInt();
-	QVector<bool> ports = parsePorts();
-	if (ports[0])
-		mMotor1.on(power, tachoLimit);
-	if (ports[1])
-		mMotor2.on(power, tachoLimit);
-	if (ports[2])
-		mMotor3.on(power, tachoLimit);
+	bool const breakMode = stringProperty("Mode") != QString::fromUtf8("скользить");
+	QVector<bool> ports(parseEnginePorts());
+	for (int i = 0; i < 3; ++i) {
+		if (ports[i]) {
+			mMotors[i]->on(power, breakMode);
+		}
+	}
 
 	emit done(mNextBlock);
 }

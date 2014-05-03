@@ -1,57 +1,73 @@
-#include "object.h"
-#include "../../../qrkernel/exception/exception.h"
-
 #include <QDebug>
+
+#include "object.h"
+
+#include <QtCore/QDebug>
+
+#include "../../../qrkernel/exception/exception.h"
+#include "../../../qrkernel/ids.h"
+#include "logicalObject.h"
+#include "graphicalObject.h"
+#include "../valuesSerializer.h"
 
 using namespace qrRepo::details;
 using namespace qReal;
 
-Object::Object(const Id &id, const Id &parent)
+Object::Object(const Id &id)
 	: mId(id)
 {
-	setParent(parent);
 }
 
-void Object::replaceProperties(QString const value, QString newValue)
+Object::Object(QDomElement const &element)
+	: mId(Id::loadFromString(element.attribute("id", "")))
 {
-	foreach (QVariant val, mProperties.values()) {
+	if (mId.isNull()) {
+		throw Exception("Id deserialization failed");
+	}
+
+	mParent = ValuesSerializer::deserializeId(element.attribute("parent", ""));
+
+	foreach (Id const &child, ValuesSerializer::deserializeIdList(element, "children")) {
+		mChildren.append(child);
+	}
+
+	QDomNodeList propertiesList = element.elementsByTagName("properties");
+	if (propertiesList.count() != 1) {
+		throw Exception("Incorrect element: children list must appear once");
+	}
+
+	QDomElement properties = propertiesList.at(0).toElement();
+	ValuesSerializer::deserializeNamedVariantsMap(mProperties, properties);
+}
+
+Object::~Object()
+{
+}
+
+void Object::replaceProperties(QString const value, QString const &newValue)
+{
+	foreach (QVariant const &val, mProperties.values()) {
 		if (val.toString().contains(value)) {
 			mProperties[mProperties.key(val)] = newValue;
 		}
 	}
 }
 
-Object::Object(const Id &id, const Id &parent, const qReal::Id &logicalId)
-	: mId(id), mLogicalId(logicalId)
-{
-	setParent(parent);
-}
-
-Object::Object(const Id &id) : mId(id)
-{
-}
-
 Object *Object::clone(QHash<Id, Object*> &objHash) const
 {
-	Id resultId = id().sameTypeId();
-	Object *result = new Object(resultId);
-	objHash.insert(resultId, result);
+	Object * const result = createClone();
+	objHash.insert(result->id(), result);
 
-	foreach (Id childId, mChildren) {
-		Object *child = objHash[childId]->clone(id(), objHash);
+	result->mParent = mParent;
+
+	foreach (Id const &childId, mChildren) {
+		Object * const child = objHash[childId]->clone(objHash);
+		child->setParent(mId);
 		result->addChild(child->id());
 	}
 
-	//using copy constructor
+	// Using copy constructor.
 	result->mProperties = mProperties;
-
-	return result;
-}
-
-Object *Object::clone(const Id &parent, QHash<Id, Object*> &objHash) const
-{
-	Object *result = clone(objHash);
-	result->setParent(parent);
 
 	return result;
 }
@@ -59,11 +75,6 @@ Object *Object::clone(const Id &parent, QHash<Id, Object*> &objHash) const
 void Object::setParent(const Id &parent)
 {
 	mParent = parent;
-}
-
-void Object::removeParent()
-{
-	mParent = qReal::Id();
 }
 
 void Object::addChild(const Id &child)
@@ -117,23 +128,54 @@ Id Object::parent() const
 	return mParent;
 }
 
-void Object::setProperty(const QString &name, const QVariant &value)
+void Object::setProperty(QString const &name, const QVariant &value)
 {
 	if (value == QVariant()) {
 		qDebug() << "Empty QVariant set as a property for " << id().toString();
 		qDebug() << ", property name " << name;
 		Q_ASSERT(!"Empty QVariant set as a property");
 	}
+
 	mProperties.insert(name,value);
 }
 
-QVariant Object::property(const QString &name) const
+void Object::setProperties(QMap<QString, QVariant> const &properties)
+{
+	mProperties = properties;
+}
+
+QVariant Object::property(QString const &name) const
 {
 	if (mProperties.contains(name)) {
 		return mProperties[name];
+	} else if (name == "backReferences") {
+		return QVariant();
 	} else {
-		throw Exception("Object " + mId.toString() + ": requesting nonexistent property " + name);
+		// TODO: replace with exception when there is some kind of model migration tool
+		return QVariant();
 	}
+}
+
+void Object::setBackReference(qReal::Id const &reference)
+{
+	IdList references = mProperties["backReferences"].value<IdList>();
+	references << reference;
+	mProperties.insert("backReferences", qReal::IdListHelper::toVariant(references));
+}
+
+void Object::removeBackReference(qReal::Id const &reference)
+{
+	if (!mProperties.contains("backReferences")) {
+		throw Exception("Object " + mId.toString() + ": removing nonexsistent reference " + reference.toString());
+	}
+
+	IdList references = mProperties["backReferences"].value<IdList>();
+	if (!references.contains(reference)) {
+		throw Exception("Object " + mId.toString() + ": removing nonexsistent reference " + reference.toString());
+	}
+
+	references.removeOne(reference);
+	mProperties.insert("backReferences", qReal::IdListHelper::toVariant(references));
 }
 
 void Object::setTemporaryRemovedLinks(QString const &direction, qReal::IdList const &listValue)
@@ -160,15 +202,14 @@ void Object::removeTemporaryRemovedLinksAt(QString const &direction)
 
 void Object::removeTemporaryRemovedLinks()
 {
-	temporaryRemovedLinksAt("from");
-	temporaryRemovedLinksAt("to");
-	temporaryRemovedLinksAt(QString());
+	removeTemporaryRemovedLinksAt("from");
+	removeTemporaryRemovedLinksAt("to");
+	removeTemporaryRemovedLinksAt(QString());
 }
 
-bool Object::hasProperty(const QString &name, bool sensitivity) const
+bool Object::hasProperty(QString const &name, bool sensitivity, bool regExpression) const
 {
 	QStringList properties = mProperties.keys();
-
 	Qt::CaseSensitivity caseSensitivity;
 
 	if (sensitivity) {
@@ -177,10 +218,16 @@ bool Object::hasProperty(const QString &name, bool sensitivity) const
 		caseSensitivity = Qt::CaseInsensitive;
 	}
 
-	return properties.contains(name, caseSensitivity);
+	QRegExp *regExp = new QRegExp(name, caseSensitivity);
+
+	if (regExpression) {
+		return !properties.filter(*regExp).isEmpty();
+	} else {
+		return properties.contains(name, caseSensitivity);
+	}
 }
 
-void Object::removeProperty(const QString &name)
+void Object::removeProperty(QString const &name)
 {
 	if (mProperties.contains(name)) {
 		mProperties.remove(name);
@@ -194,13 +241,22 @@ Id Object::id() const
 	return mId;
 }
 
-Id Object::logicalId() const
-{
-	return mLogicalId;
-}
-
-QMapIterator<QString, QVariant> Object::propertiesIterator()
+QMapIterator<QString, QVariant> Object::propertiesIterator() const
 {
 	return QMapIterator<QString, QVariant>(mProperties);
 }
 
+QMap<QString, QVariant> Object::properties() const
+{
+	return mProperties;
+}
+
+QDomElement Object::serialize(QDomDocument &document) const
+{
+	QDomElement result = document.createElement("object");
+	result.setAttribute("id", id().toString());
+	result.setAttribute("parent", parent().toString());
+	result.appendChild(ValuesSerializer::serializeIdList("children", children(), document));
+	result.appendChild(ValuesSerializer::serializeNamedVariantsMap("properties", mProperties, document));
+	return result;
+}

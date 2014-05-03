@@ -1,54 +1,63 @@
 #pragma once
 
-#include <QtGui/QGraphicsItem>
+#include <QtWidgets/QGraphicsItem>
 #include <QtGui/QPainter>
 
-#include "../../../../qrkernel/roles.h"
-#include "../../edgeElement.h"
+#include <qrkernel/roles.h>
+
+#include "umllib/edgeElement.h"
+#include "controller/commands/createElementCommand.h"
+
+namespace qReal {
 
 class NodeElement;
+
 class EmbeddedLinker : public QObject, public QGraphicsItem
 {
 	Q_OBJECT
 	Q_INTERFACES(QGraphicsItem)
 
-	public:
-		EmbeddedLinker();
-		EmbeddedLinker(QGraphicsItem *parent);
-		virtual ~EmbeddedLinker();
+public:
+	EmbeddedLinker();
+	EmbeddedLinker(QGraphicsItem *parent);
+	virtual ~EmbeddedLinker();
 
-		void initTitle();
-		void generateColor();
+	void initTitle();
+	void generateColor();
 
-		bool isDirected();
-		qReal::Id getEdgeType();
-		NodeElement* getMaster();
+	bool isDirected() const;
+	qReal::Id edgeType() const;
+	NodeElement* master() const;
 
-		void setDirected(const bool directed);
-		void setMaster(NodeElement* const master);
-		void setEdgeType(qReal::Id const & edgeType);
+	void setDirected(const bool directed);
+	void setMaster(NodeElement* const master);
+	void setEdgeType(qReal::Id const & edgeType);
 
-		void takePosition(int index, int maxIndex);
+	void takePosition(int index, int maxIndex);
 
-		virtual QRectF boundingRect() const;
-		virtual void paint(QPainter *p, const QStyleOptionGraphicsItem *opt, QWidget *w );
+	virtual QRectF boundingRect() const;
+	virtual void paint(QPainter *p, const QStyleOptionGraphicsItem *opt, QWidget *w);
 
-		virtual void mouseMoveEvent(QGraphicsSceneMouseEvent* event);
-		virtual void mouseReleaseEvent(QGraphicsSceneMouseEvent* event);
-		virtual void mousePressEvent(QGraphicsSceneMouseEvent* event);
+	virtual void mouseMoveEvent(QGraphicsSceneMouseEvent* event);
+	virtual void mouseReleaseEvent(QGraphicsSceneMouseEvent* event);
+	virtual void mousePressEvent(QGraphicsSceneMouseEvent* event);
 
-	private:
-		EdgeElement* mEdge;
-		NodeElement* master;
-		ElementTitle* title;
+private:
+	EdgeElement* mEdge;
+	NodeElement* mMaster;
+	Label* mTitle;
 
-		float size;
-		float indent;
-		QColor color;
-		QRectF mRectangle;
-		QRectF mInnerRectangle;
+	float mSize;
+	float mIndent;
+	QColor mColor;
+	QRectF mRectangle;
+	QRectF mInnerRectangle;
 
-		bool directed;
-		bool mPressed;
-		qReal::Id edgeType;
+	bool mDirected;
+	bool mPressed;
+	qReal::Id mEdgeType;
+
+	commands::CreateElementCommand *mCreateEdgeCommand;
 };
+
+}

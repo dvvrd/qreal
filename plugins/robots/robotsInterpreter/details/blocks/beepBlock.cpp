@@ -3,21 +3,21 @@
 using namespace qReal;
 using namespace interpreters::robots::details::blocks;
 
-BeepBlock::BeepBlock(robotParts::Brick &brick)
-	: mBrick(brick)
+BeepBlock::BeepBlock(robotParts::Brick &brick, details::AbstractTimer &timer)
+	: mBrick(brick), mTimer(timer)
 {
+	mTimer.setParent(this);
 }
 
 void BeepBlock::run()
 {
-	mBrick.beep(500);
+	int const duration = 500;
+	mBrick.beep(duration);
 	if (!boolProperty("WaitForCompletion"))
 		emit done(mNextBlock);
 	else {
-		mTimer.setInterval(500);
-		mTimer.setSingleShot(true);
 		connect(&mTimer, SIGNAL(timeout()), this, SLOT(timeout()));
-		mTimer.start();
+		mTimer.start(duration);
 	}
 }
 

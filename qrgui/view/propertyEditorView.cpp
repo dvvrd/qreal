@@ -1,6 +1,9 @@
 #include "propertyEditorView.h"
-#include "../mainwindow/mainWindow.h"
 
+#include <qrutils/qRealFileDialog.h>
+
+#include "mainwindow/mainWindow.h"
+#include "controller/commands/changePropertyCommand.h"
 
 PropertyEditorView::PropertyEditorView(QWidget *parent)
 		: QWidget(parent), mChangingPropertyValue(false)
@@ -10,6 +13,7 @@ PropertyEditorView::PropertyEditorView(QWidget *parent)
 		, mVariantFactory(NULL)
 		, mButtonManager(NULL)
 		, mButtonFactory(NULL)
+		, mController(NULL)
 {
 	mPropertyEditor->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 }
@@ -23,10 +27,12 @@ PropertyEditorView::~PropertyEditorView()
 	delete mButtonFactory;
 }
 
-void PropertyEditorView::init(qReal::MainWindow *mainWindow, qReal::models::LogicalModelAssistApi *const logicalModelAssistApi)
+void PropertyEditorView::init(qReal::MainWindow *mainWindow
+		, qReal::models::LogicalModelAssistApi *const logicalModelAssistApi)
 {
 	mMainWindow = mainWindow;
 	mLogicalModelAssistApi = logicalModelAssistApi; // unused
+	mController = mainWindow->controller();
 }
 
 /*
@@ -35,8 +41,7 @@ void PropertyEditorView::init(qReal::MainWindow *mainWindow, qReal::models::Logi
 void PropertyEditorView::setModel(PropertyEditorModel *model)
 {
 	mModel = model;
-	connect(mModel, SIGNAL(dataChanged(QModelIndex,QModelIndex)),
-		this, SLOT(dataChanged(QModelIndex,QModelIndex)));
+	connect(mModel, SIGNAL(dataChanged(QModelIndex,QModelIndex)), this, SLOT(dataChanged(QModelIndex,QModelIndex)));
 	connect(mModel, SIGNAL(modelReset()), this, SLOT(reset()));
 }
 
@@ -90,10 +95,12 @@ void PropertyEditorView::setRootIndex(const QModelIndex &index)
 			type = QVariant::Bool;
 		} else if (typeName == "string") {
 			type = QVariant::String;
+		} else if (typeName == "code" || typeName == "directorypath") {
+			isButton = true;
 		} else if (!values.isEmpty()) {
 			type = QtVariantPropertyManager::enumTypeId();
 		} else {
-			if (name == "shape") { // hack
+			if (name == "shape" || mModel->isReference(valueCell, name)) { // hack
 				isButton = true;
 			}
 		}
@@ -145,21 +152,44 @@ void PropertyEditorView::buttonClicked(QtProperty *property)
 {
 	int row = mPropertyEditor->properties().indexOf(property);
 	QModelIndex const &index = mModel->index(row, 1);
-
+	QString name = mModel->data(mModel->index(row, 0)).toString();
 	QString propertyValue = index.data(Qt::DisplayRole).toString();
-	QPersistentModelIndex const actualIndex = mModel->modelIndex(index.row());
 	int role = mModel->roleByIndex(index.row());
 
-	mMainWindow->openShapeEditor(actualIndex, role, propertyValue);
+	QPersistentModelIndex const actualIndex = mModel->modelIndex(index.row());
+
+	// there are only four types of buttons: shape, reference, text and directory path
+	if (name == "shape") {
+		mMainWindow->openShapeEditor(actualIndex, role, propertyValue, false);
+	} else {
+		QString const typeName = mModel->typeName(index).toLower();
+		if (typeName == "code") {
+			mMainWindow->openQscintillaTextEditor(actualIndex, role, propertyValue);
+		} else if (typeName == "directorypath") {
+			QString startPath;
+			if (propertyValue.isEmpty()) {
+				startPath = qApp->applicationDirPath();
+			} else {
+				startPath = propertyValue;
+			}
+			QString const location = utils::QRealFileDialog::getExistingDirectory("OpenDirectoryForPropertyEditor"
+					, this, tr("Specify directory:"), startPath);
+			mModel->setData(index, location);
+		} else {
+			mMainWindow->openReferenceList(actualIndex, typeName, propertyValue, role);
+		}
+	}
 }
 
 void PropertyEditorView::editorValueChanged(QtProperty *prop, QVariant value)
 {
-	if(mChangingPropertyValue) return;
+	if (mChangingPropertyValue) {
+		return;
+	}
 
 	QtVariantProperty *property = dynamic_cast<QtVariantProperty*>(prop);
-	int propertyType = property->propertyType(),
-		row = mPropertyEditor->properties().indexOf(property);
+	int propertyType = property->propertyType();
+	int row = mPropertyEditor->properties().indexOf(property);
 	QModelIndex const &index = mModel->index(row, 1);
 
 	if (propertyType == QtVariantPropertyManager::enumTypeId()) {
@@ -170,7 +200,13 @@ void PropertyEditorView::editorValueChanged(QtProperty *prop, QVariant value)
 		}
 	}
 	value = QVariant(value.toString());
-	mModel->setData(index, value);
+	QVariant const oldValue = mModel->data(index);
+
+	// TODO: edit included Qt Property Browser framework or inherit new browser
+	// from it and create propertyCommited() and propertyCancelled() signal
+	qReal::commands::ChangePropertyCommand *changeCommand =
+			new qReal::commands::ChangePropertyCommand(mModel, index, oldValue, value);
+	mController->execute(changeCommand);
 }
 
 void PropertyEditorView::setPropertyValue(QtVariantProperty *property, const QVariant &value)
@@ -192,4 +228,10 @@ int PropertyEditorView::enumPropertyIndexOf(QModelIndex const &index, QString co
 
 void PropertyEditorView::resizeEvent(QResizeEvent *event ) {
 	mPropertyEditor->resize(event->size());
+}
+
+void PropertyEditorView::installEventFilter(QObject *obj)
+{
+	QWidget::installEventFilter(obj);
+	mPropertyEditor->window()->installEventFilter(obj);
 }

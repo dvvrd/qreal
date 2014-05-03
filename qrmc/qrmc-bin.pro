@@ -1,9 +1,15 @@
 QT += xml
 
+CONFIG += c++11
+
+CONFIG += console
 TARGET = qrmc
 
 DEPENDPATH += . \
 	templates
+
+INCLUDEPATH += \
+	$$PWD/.. \
 
 DESTDIR = ../bin
 
@@ -19,13 +25,13 @@ HEADERS += \
 	../qrkernel/ids.h \
 	../qrrepo/repoApi.h \
 	diagram.h \
-	editor.h
+	editor.h \
 
 SOURCES += \
 	metaCompiler.cpp \
 	diagram.cpp \
 	editor.cpp \
-	main.cpp
+	main.cpp \
 
 LIBS += -L../bin -lqrrepo -lqrkernel -lqrutils
 

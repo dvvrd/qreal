@@ -1,10 +1,10 @@
 #pragma once
 
-#include <QObject>
-#include <QtGui>
-#include "mainWindowInterpretersInterface.h"
-#include "../models/logicalModelAssistApi.h"
-#include "../../qrgui/dialogs/findReplaceDialog.h"
+#include <QtCore/QObject>
+
+#include "mainwindow/mainWindowInterpretersInterface.h"
+#include "models/logicalModelAssistApi.h"
+#include "dialogs/findReplaceDialog.h"
 
 class MainWindowInterpretersInterface;
 
@@ -36,7 +36,7 @@ private:
 	/// Finds items by input name and search mode
 	/// @param key - name
 	/// @param currentMode - mode
-	qReal::IdList foundByMode(QString key, QString currentMode, bool sensitivity);
+	qReal::IdList foundByMode(QString key, QString currentMode, bool sensitivity, bool regExpression);
 
 	/// Finds items by input name and search modes - searchData
 	/// @param searchData - name and search modes

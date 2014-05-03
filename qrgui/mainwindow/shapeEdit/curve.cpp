@@ -1,8 +1,9 @@
 #include "curve.h"
-#include <QtGui/QGraphicsSceneMouseEvent>
+
+#include <QtWidgets/QGraphicsSceneMouseEvent>
 
 Curve::Curve(QPointF const &start, QPointF const &end, QPointF const &c1)
-	:Path(QPainterPath(start))
+		: Path(QPainterPath(start))
 {
 	mPen.setColor(Qt::gray);
 	mBrush.setStyle(Qt::NoBrush);
@@ -18,7 +19,7 @@ Curve::Curve(QPointF const &start, QPointF const &end, QPointF const &c1)
 }
 
 Curve::Curve(Curve const &other)
-	:Path(QPainterPath())
+		: Path(QPainterPath())
 {
 	mNeedScalingRect = other.mNeedScalingRect ;
 	mPen = other.mPen;
@@ -121,8 +122,11 @@ void Curve::setCXandCY(qreal x, qreal y)
 void Curve::changeDragState(qreal x, qreal y)
 {
 	Item::changeDragState(x, y);
-	if (QRectF(QPointF(mC1.x() + scenePos().x(), mC1.y() + scenePos().y()), QSizeF(0, 0)).adjusted(-resizeDrift, -resizeDrift, resizeDrift, resizeDrift).contains(QPointF(x, y)))
+	if (QRectF(QPointF(mC1.x() + scenePos().x(), mC1.y() + scenePos().y())
+			, QSizeF(0, 0)).adjusted(-resizeDrift, -resizeDrift, resizeDrift, resizeDrift).contains(QPointF(x, y)))
+	{
 		mDragState = Ctrl;
+	}
 }
 
 void  Curve::calcResizeItem(QGraphicsSceneMouseEvent *event)
@@ -131,12 +135,13 @@ void  Curve::calcResizeItem(QGraphicsSceneMouseEvent *event)
 	qreal y = mapFromScene(event->scenePos()).y();
 	if (mDragState != None)
 		setFlag(QGraphicsItem::ItemIsMovable, false);
-	if (mDragState == TopLeft)
+	if (mDragState == TopLeft) {
 		setX1andY1(x, y);
-	else if (mDragState == BottomRight)
+	} else if (mDragState == BottomRight) {
 		setX2andY2(x, y);
-	else if (mDragState == Ctrl)
+	} else if (mDragState == Ctrl) {
 		setCXandCY(x, y);
+	}
 }
 
 QPair<QDomElement, Item::DomElementTypes> Curve::generateItem(QDomDocument &document, QPoint const &topLeftPicture)

@@ -1,7 +1,8 @@
 #include "label.h"
-#include "../qrutils/outFile.h"
 
-#include <QDebug>
+#include <QtCore/QDebug>
+
+#include <qrutils/outFile.h>
 
 using namespace utils;
 
@@ -14,11 +15,15 @@ bool Label::init(QDomElement const &element, int index, bool nodeLabel, int widt
 	mText = element.attribute("text");
 	mTextBinded = element.attribute("textBinded");
 	mReadOnly = element.attribute("readOnly", "false");
+	mRotation = element.attribute("rotation", "0").toDouble();
+
 	if (mTextBinded.contains("##")) {
 		mReadOnly = "true";
 	}
 	mIndex = index;
 	mBackground = element.attribute("background", nodeLabel ? "transparent" : "white");
+	mIsHard = element.attribute("hard", "false").toLower().trimmed() == "true";
+	mIsPlainText = element.attribute("isPlainText", "false").toLower().trimmed() == "true";
 	if ((mText.isEmpty() && mTextBinded.isEmpty()) || (mReadOnly != "true" && mReadOnly != "false")) {
 		qDebug() << "ERROR: can't parse label";
 		return false;
@@ -34,44 +39,31 @@ QString Label::titleName() const
 void Label::generateCodeForConstructor(OutFile &out)
 {
 	if (mText.isEmpty()) {
-		// Это бинденный лейбл, текст для него будет браться из репозитория
-		out() << "			" + titleName() + " = factory.createTitle("
-				+ QString::number(mX.value()) + ", " + QString::number(mY.value()) + ", \"" + mTextBinded + "\", " + mReadOnly + ");\n";
+		// It is binded label, text for it will be fetched from repo.
+		out() << "			" + titleName() + " = factory.createLabel(" + QString::number(mIndex) + ", "
+				+ QString::number(mX.value()) + ", " + QString::number(mY.value())
+				+ ", \"" + mTextBinded + "\", " + mReadOnly + ", " + QString::number(mRotation) + ");\n";
 	} else {
-		// Это статический лейбл, репозиторий ему не нужен
-		out() << "			" + titleName() + " = factory.createTitle("
-				+ QString::number(mX.value()) + ", " + QString::number(mY.value()) + ", QString::fromUtf8(\"" + mText + "\"));\n";
+		// It is a static label, text for it is fixed.
+		out() << "			" + titleName() + " = factory.createLabel(" + QString::number(mIndex) + ", "
+				+ QString::number(mX.value()) + ", " + QString::number(mY.value())
+				+ ", QString::fromUtf8(\"" + mText + "\"), " + QString::number(mRotation) + ");\n";
 	}
 	out() << "			" + titleName() + "->setBackground(Qt::" + mBackground + ");\n";
 
-	const QString scalingX = mX.isScalable() ? "true" : "false";
-	const QString scalingY = mY.isScalable() ? "true" : "false";
+	QString const scalingX = mX.isScalable() ? "true" : "false";
+	QString const scalingY = mY.isScalable() ? "true" : "false";
 	out() << "			" + titleName() + "->setScaling(" + scalingX + ", " + scalingY + ");\n";
+	out() << "			" + titleName() + "->setHard(" + (mIsHard ? "true" : "false") + ");\n";
 
-	// TODO: вынести отсюда в родительский класс.
-	out() << "			" + titleName() + "->setFlags(0);\n"
+	out()
 		<< "			" + titleName() + "->setTextInteractionFlags(Qt::NoTextInteraction);\n"
 		<< "			titles.append(" + titleName() + ");\n";
 }
 
-QStringList Label::getReformedList(QStringList const &list) const
-{
-	QStringList result;
-	int counter = 1;
-	foreach (QString const &str, list){
-		if (counter % 2 == 0) {
-			result.append(str);
-		} else {
-			result.append("\"" + str + "\"");
-		}
-		counter++;
-	}
-	return result;
-}
-
 QStringList Label::getListOfStr(QString const &strToParse) const
 {
-	return getReformedList(strToParse.split("##"));
+	return strToParse.split("##");
 }
 
 void Label::generateCodeForUpdateData(OutFile &out)
@@ -86,23 +78,23 @@ void Label::generateCodeForUpdateData(OutFile &out)
 
 	QString resultStr;
 	if (list.count() == 1) {
-		if (list.first() == "\"name\"") {
+		if (list.first() == "name") {
 			resultStr = "repo->name()";
 		} else {
-			resultStr = "repo->logicalProperty(" + list.first() + ")";
+			resultStr = "repo->logicalProperty(\"" + list.first() + "\")";
 		}
 	} else {
 		int counter = 1;
 		foreach (QString const &listElement, list) {
 			QString field;
 			if (counter % 2 == 0) {
-				if (listElement == "\"name\"") {
+				if (listElement == "name") {
 					field = "repo->name()";
 				} else {
 					field = "repo->logicalProperty(\"" + listElement + "\")";
 				}
 			} else {
-				field = "QString::fromUtf8(" + listElement + ")";
+				field = "QString::fromUtf8(\"" + listElement + "\")";
 			}
 
 			resultStr += " + " +  field;
@@ -110,13 +102,18 @@ void Label::generateCodeForUpdateData(OutFile &out)
 		}
 		resultStr = resultStr.mid(3);
 	}
-	out() << "\t\t\t" + titleName() + "->setHtml(QString(\""
-		+ (mCenter == "true" ? "<center>%1</center>" : "<b>%1</b>") + "\").arg(" + resultStr + ").replace(\"\\n\", \"<br>\"));\n";
+	if (mIsPlainText) {
+		out() << QString("\t\t\t%1->setPlainText(%2);\n")
+				.arg(titleName(), resultStr);
+	} else {
+		out() << "\t\t\t" + titleName() + "->setTextFromRepo("
+			 + resultStr + ");\n";
+	}
 }
 
 void Label::generateCodeForFields(OutFile &out)
 {
-	out() << "		ElementTitleInterface *" + titleName() + ";\n";
+	out() << "		qReal::LabelInterface *" + titleName() + ";\n";
 }
 
 

@@ -1,6 +1,6 @@
 #include "property.h"
 
-#include <QDebug>
+#include <QtCore/QDebug>
 
 bool Property::init(QDomElement const &element)
 {
@@ -21,10 +21,11 @@ bool Property::init(QDomElement const &element)
 		else
 			return false;
 	} else if (mType == "reference") {
-		if (initReferenceType("reference", element))
+		if (initReferenceType("reference", element)) {
 			mIsReference = true;  // TODO: Lookup reference
-		else
+		} else {
 			return false;
+		}
 	}
 
 	mDisplayedName = element.attribute("displayedName");
@@ -35,7 +36,7 @@ bool Property::init(QDomElement const &element)
 
 bool Property::initReferenceType(QString typeName, QDomElement const &element)
 {
-	mType = element.firstChildElement(typeName).attribute("nameReference");
+	mType = element.firstChildElement(typeName).attribute("type");
 	if (mType.isEmpty()) {
 		qDebug() << "ERROR: anonymous property reference type for" << name() << "found";
 		return false;
@@ -56,6 +57,11 @@ QString Property::displayedName() const
 QString Property::type() const
 {
 	return mType;
+}
+
+bool Property::isReferenceProperty() const
+{
+	return mIsReference;
 }
 
 QString Property::defaultValue() const

@@ -1,7 +1,7 @@
 #pragma once
 
 #include "../../../qrkernel/ids.h"
-#include "../../../qrutils/graphTransformation/baseGraphTransformationUnit.h"
+#include "../../../qrutils/graphUtils/baseGraphTransformationUnit.h"
 #include "../../../qrgui/mainwindow/errorReporter.h"
 #include "../../../qrgui/mainwindow/mainWindowInterpretersInterface.h"
 
@@ -14,8 +14,8 @@ class RefactoringFinder : public BaseGraphTransformationUnit
 	Q_OBJECT
 
 public:
-	RefactoringFinder(LogicalModelAssistInterface const &logicalModelApi
-			, GraphicalModelAssistInterface const &graphicalModelApi
+	RefactoringFinder(LogicalModelAssistInterface &logicalModelApi
+			, GraphicalModelAssistInterface &graphicalModelApi
 			, gui::MainWindowInterpretersInterface &interpretersInterface
 			, qrRepo::RepoApi *refactoringRepoApi);
 

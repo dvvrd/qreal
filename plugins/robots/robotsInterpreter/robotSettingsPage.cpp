@@ -1,24 +1,44 @@
-#include "robotSettingsPage.h"
+﻿#include "robotSettingsPage.h"
 #include "ui_robotSettingsPage.h"
 
-#include "../../../qrkernel/settingsManager.h"
-#include "../../../plugins/robots/thirdparty/qextserialport/src/qextserialenumerator.h"
+#include <qrkernel/settingsManager.h>
+#include <qrkernel/exception/exception.h>
+#include <plugins/robots/thirdparty/qextserialport/src/qextserialenumerator.h>
+#include <qrutils/graphicsWatcher/sensorsGraph.h>
 
 using namespace qReal::interpreters::robots;
 
 PreferencesRobotSettingsPage::PreferencesRobotSettingsPage(QWidget *parent)
 		: PreferencesPage(parent)
+		, details::SensorsConfigurationProvider("PreferencesRobotSettingsPage")
 		, mUi(new Ui::PreferencesRobotSettingsPage)
+		, mSensorsWidget(new details::SensorsConfigurationWidget(false))
 {
 	mIcon = QIcon(":/icons/preferences/robot.png");
 	mUi->setupUi(this);
 
-	connect(mUi->nullModelRadioButton, SIGNAL(toggled(bool)), this, SLOT(activatedUnrealModel(bool)));
-	connect(mUi->d2ModelRadioButton, SIGNAL(toggled(bool)), this, SLOT(activatedUnrealModel(bool)));
+	bool const enableTrik = SettingsManager::value("enableTrik", false).toBool();
+
+	if (!enableTrik) {
+		mUi->tcpRadioButton->setVisible(false);
+		mUi->trikModelRadioButton->setVisible(false);
+	}
+
+	connect(mUi->nullModelRadioButton, SIGNAL(toggled(bool)), this, SLOT(onSomethingChanged()));
+	connect(mUi->d2ModelRadioButton, SIGNAL(toggled(bool)), this, SLOT(onSomethingChanged()));
+	connect(mUi->nxtModelRadioButton, SIGNAL(toggled(bool)), this, SLOT(onSomethingChanged()));
+	connect(mUi->trikModelRadioButton, SIGNAL(toggled(bool)), this, SLOT(onSomethingChanged()));
+	connect(mUi->usbRadioButton, SIGNAL(toggled(bool)), this, SLOT(onSomethingChanged()));
+	connect(mUi->bluetoothRadioButton, SIGNAL(toggled(bool)), this, SLOT(onSomethingChanged()));
+	connect(mUi->tcpRadioButton, SIGNAL(toggled(bool)), this, SLOT(onSomethingChanged()));
+
 	connect(mUi->manualComPortCheckbox, SIGNAL(toggled(bool)), this, SLOT(manualComPortCheckboxChecked(bool)));
 
+	mSensorsWidget->connectSensorsConfigurationProvider(this);
+
+	connect(mUi->textVisibleCheckBox, SIGNAL(toggled(bool)), this, SIGNAL(textVisibleChanged(bool)));
 	QList<QextPortInfo> ports = QextSerialEnumerator::getPorts();
-	QString const defaultPortName = SettingsManager::value("bluetoothPortName", "").toString();
+	QString const defaultPortName = SettingsManager::value("bluetoothPortName").toString();
 
 	if (ports.isEmpty()) {
 		mUi->comPortComboBox->hide();
@@ -36,7 +56,7 @@ PreferencesRobotSettingsPage::PreferencesRobotSettingsPage(QWidget *parent)
 		mUi->directInputComPortLineEdit->hide();
 		mUi->noComPortsFoundLabel->hide();
 
-		foreach (QextPortInfo info, ports) {
+		foreach (QextPortInfo const &info, ports) {
 			QRegExp const portNameRegexp("COM\\d+", Qt::CaseInsensitive);
 			if (portNameRegexp.indexIn(info.portName) != -1) {
 				QString const portName = portNameRegexp.cap();
@@ -49,42 +69,11 @@ PreferencesRobotSettingsPage::PreferencesRobotSettingsPage(QWidget *parent)
 		}
 	}
 
-	if (SettingsManager::value("manualComPortCheckboxChecked", "false").toBool()) {
-		mUi->manualComPortCheckbox->setChecked(true);
-	}
+	refreshValuesOnUi();
 
-	QStringList sensorNames;
-	sensorNames << tr("Unused")
-			<< tr("Touch sensor (boolean value)")
-			<< tr("Touch sensor (raw value)")
-			<< tr("Sonar sensor")
-			<< tr("Color sensor (full colors)")
-			<< tr("Color sensor (red)")
-			<< tr("Color sensor (green)")
-			<< tr("Color sensor (blue)")
-			<< tr("Color sensor (passive)")
-	;
-
-	mUi->port1ComboBox->addItems(sensorNames);
-	mUi->port2ComboBox->addItems(sensorNames);
-	mUi->port3ComboBox->addItems(sensorNames);
-	mUi->port4ComboBox->addItems(sensorNames);
-
-	sensorType::SensorTypeEnum const port1 = static_cast<sensorType::SensorTypeEnum>(SettingsManager::value("port1SensorType", "0").toInt());
-	sensorType::SensorTypeEnum const port2 = static_cast<sensorType::SensorTypeEnum>(SettingsManager::value("port2SensorType", "0").toInt());
-	sensorType::SensorTypeEnum const port3 = static_cast<sensorType::SensorTypeEnum>(SettingsManager::value("port3SensorType", "0").toInt());
-	sensorType::SensorTypeEnum const port4 = static_cast<sensorType::SensorTypeEnum>(SettingsManager::value("port4SensorType", "0").toInt());
-
-	mUi->port1ComboBox->setCurrentIndex(port1);
-	mUi->port2ComboBox->setCurrentIndex(port2);
-	mUi->port3ComboBox->setCurrentIndex(port3);
-	mUi->port4ComboBox->setCurrentIndex(port4);
-
-	robotModelType::robotModelTypeEnum typeOfRobotModel = static_cast<robotModelType::robotModelTypeEnum>(SettingsManager::value("robotModel", "1").toInt());
-	initRobotModelType(typeOfRobotModel);
-
-	QString const typeOfCommunication = SettingsManager::value("valueOfCommunication", "bluetooth").toString();
-	initTypeOfCommunication(typeOfCommunication);
+	QVBoxLayout *sensorsLayout = new QVBoxLayout;
+	sensorsLayout->addWidget(mSensorsWidget);
+	mUi->sensorsSettingsGroupBox->setLayout(sensorsLayout);
 }
 
 PreferencesRobotSettingsPage::~PreferencesRobotSettingsPage()
@@ -97,27 +86,7 @@ void PreferencesRobotSettingsPage::changeEvent(QEvent *e)
 	switch (e->type()) {
 	case QEvent::LanguageChange: {
 		mUi->retranslateUi(this);
-
-		QStringList sensorNames;
-		sensorNames << tr("Unused")
-				<< tr("Touch sensor (boolean value)")
-				<< tr("Touch sensor (raw value)")
-				<< tr("Sonar sensor")
-				<< tr("Color sensor (full colors)")
-				<< tr("Color sensor (red)")
-				<< tr("Color sensor (green)")
-				<< tr("Color sensor (blue)")
-				<< tr("Color sensor (passive)")
-		;
-
-		mUi->port1ComboBox->clear();
-		mUi->port2ComboBox->clear();
-		mUi->port3ComboBox->clear();
-		mUi->port4ComboBox->clear();
-		mUi->port1ComboBox->addItems(sensorNames);
-		mUi->port2ComboBox->addItems(sensorNames);
-		mUi->port3ComboBox->addItems(sensorNames);
-		mUi->port4ComboBox->addItems(sensorNames);
+		mSensorsWidget->retranslateUi();
 		break;
 	}
 	default:
@@ -125,54 +94,142 @@ void PreferencesRobotSettingsPage::changeEvent(QEvent *e)
 	}
 }
 
-void PreferencesRobotSettingsPage::initRobotModelType(robotModelType::robotModelTypeEnum type)
+void PreferencesRobotSettingsPage::initRobotModelType(enums::robotModelType::robotModelTypeEnum type)
 {
-	if (type == robotModelType::null) {
+	switch (type)
+	{
+	case enums::robotModelType::null:
 		mUi->nullModelRadioButton->setChecked(true);
-		activatedUnrealModel(true);
-	} else if (type == robotModelType::unreal) {
+		break;
+	case enums::robotModelType::twoD:
 		mUi->d2ModelRadioButton->setChecked(true);
-		activatedUnrealModel(true);
-	} else {
-		mUi->realModelRadioButton->setChecked(true);
+		break;
+	case enums::robotModelType::nxt:
+		mUi->nxtModelRadioButton->setChecked(true);
+		break;
+	case enums::robotModelType::trik:
+		mUi->trikModelRadioButton->setChecked(true);
+		break;
 	}
+
+	onSomethingChanged();
 }
 
-void PreferencesRobotSettingsPage::initTypeOfCommunication(QString type)
+void PreferencesRobotSettingsPage::initTypeOfCommunication(QString const &type)
 {
-	if (type == "bluetooth")
+	if (type == "bluetooth") {
 		mUi->bluetoothRadioButton->setChecked(true);
-	else
+	} else if (type == "usb") {
 		mUi->usbRadioButton->setChecked(true);
+	} else {
+		mUi->tcpRadioButton->setChecked(true);
+	}
+
+	onSomethingChanged();
 }
 
-robotModelType::robotModelTypeEnum PreferencesRobotSettingsPage::selectedRobotModel() const
+enums::robotModelType::robotModelTypeEnum PreferencesRobotSettingsPage::selectedRobotModel() const
 {
 	if (mUi->nullModelRadioButton->isChecked()) {
-		return robotModelType::null;
+		return enums::robotModelType::null;
 	} else if (mUi->d2ModelRadioButton->isChecked()) {
-		return robotModelType::unreal;
+		return enums::robotModelType::twoD;
+	} else if (mUi->trikModelRadioButton->isChecked()) {
+		return enums::robotModelType::trik;
 	} else {
-		return robotModelType::real;
+		return enums::robotModelType::nxt;
 	}
+}
+
+void PreferencesRobotSettingsPage::refreshValuesOnUi()
+{
+	mUi->manualComPortCheckbox->setChecked(SettingsManager::value("manualComPortCheckboxChecked").toBool());
+
+	mUi->sensorUpdateSpinBox->setValue(
+			SettingsManager::value("sensorUpdateInterval"
+					, utils::sensorsGraph::SensorsGraph::readSensorDefaultInterval).toInt()
+	);
+	mUi->autoScalingSpinBox->setValue(
+			SettingsManager::value("autoscalingInterval"
+					, utils::sensorsGraph::SensorsGraph::autoscalingDefault).toInt()
+	);
+	mUi->textUpdaterSpinBox->setValue(
+			SettingsManager::value("textUpdateInterval"
+					, utils::sensorsGraph::SensorsGraph::textUpdateDefault).toInt()
+	);
+
+	enums::robotModelType::robotModelTypeEnum typeOfRobotModel =
+			static_cast<enums::robotModelType::robotModelTypeEnum>(SettingsManager::value("robotModel").toInt());
+	initRobotModelType(typeOfRobotModel);
+
+	QString const typeOfCommunication = SettingsManager::value("valueOfCommunication").toString();
+	initTypeOfCommunication(typeOfCommunication);
+
+	mUi->textVisibleCheckBox->setChecked(SettingsManager::value("showTitlesForRobots").toBool());
+	mUi->tcpServerLineEdit->setText(SettingsManager::value("tcpServer").toString());
+	mUi->tcpPortSpinBox->setValue(SettingsManager::value("tcpPort").toInt());
+	mUi->runningAfterUploadingComboBox->setCurrentIndex(SettingsManager::value("nxtFlashToolRunPolicy").toInt());
+}
+
+int PreferencesRobotSettingsPage::sensorUpdateInterval() const
+{
+	return mUi->sensorUpdateSpinBox->value();
+}
+
+int PreferencesRobotSettingsPage::autoscalingInterval() const
+{
+	return mUi->autoScalingSpinBox->value();
+}
+
+int PreferencesRobotSettingsPage::textUpdateInterval() const
+{
+	return mUi->textUpdaterSpinBox->value();
+}
+
+bool PreferencesRobotSettingsPage::textVisible() const
+{
+	return mUi->textVisibleCheckBox->checkState() == Qt::Checked;
+}
+
+void PreferencesRobotSettingsPage::changeTextVisibleOnSettingPage(bool isChecked)
+{
+	mUi->textVisibleCheckBox->setChecked(isChecked);
 }
 
 QString PreferencesRobotSettingsPage::selectedCommunication() const
 {
-	return mUi->bluetoothRadioButton->isChecked()
-			? "bluetooth"
-			: "usb";
+	return mUi->bluetoothRadioButton->isChecked() ? "bluetooth"
+			: mUi->usbRadioButton->isChecked() ? "usb" : "tcp";
 }
 
-void PreferencesRobotSettingsPage::activatedUnrealModel(bool checked)
+void PreferencesRobotSettingsPage::onSomethingChanged()
 {
-	mUi->bluetoothSettingsGroupBox->setEnabled(!checked);
+	if (mUi->trikModelRadioButton->isChecked()) {
+		mUi->tcpRadioButton->setChecked(true);
+	}
+
+	if (mUi->nxtModelRadioButton->isChecked() && mUi->tcpRadioButton->isChecked()) {
+		mUi->usbRadioButton->setChecked(true);
+	}
+
+	bool const nxtModelChecked = mUi->nxtModelRadioButton->isChecked();
+	bool const trikModelChecked = mUi->trikModelRadioButton->isChecked();
+	bool const bluetoohChecked = mUi->bluetoothRadioButton->isChecked() && nxtModelChecked;
+	bool const tcpChecked = mUi->tcpRadioButton->isChecked() && trikModelChecked;
+
+	mUi->communicationTypeGroupBox->setEnabled(nxtModelChecked);
+	mUi->bluetoothSettingsGroupBox->setVisible(bluetoohChecked);
+	mUi->tcpSettingsGroupBox->setVisible(tcpChecked);
+
+	mUi->bluetoothRadioButton->setEnabled(nxtModelChecked);
+	mUi->usbRadioButton->setEnabled(nxtModelChecked);
+	mUi->tcpRadioButton->setEnabled(trikModelChecked);
 }
 
 void PreferencesRobotSettingsPage::manualComPortCheckboxChecked(bool state)
 {
 	SettingsManager::setValue("manualComPortCheckboxChecked", state);
-	QString const defaultPortName = SettingsManager::value("bluetoothPortName", "").toString();
+	QString const defaultPortName = SettingsManager::value("bluetoothPortName").toString();
 
 	if (state) {
 		mUi->comPortComboBox->hide();
@@ -192,7 +249,7 @@ void PreferencesRobotSettingsPage::manualComPortCheckboxChecked(bool state)
 QString PreferencesRobotSettingsPage::selectedPortName() const
 {
 	if (!isVisible()) {
-		return SettingsManager::value("bluetoothPortName", "").toString();
+		return SettingsManager::value("bluetoothPortName").toString();
 	}
 
 	return mUi->comPortComboBox->isVisible()
@@ -200,33 +257,23 @@ QString PreferencesRobotSettingsPage::selectedPortName() const
 			: mUi->directInputComPortLineEdit->text();
 }
 
-sensorType::SensorTypeEnum PreferencesRobotSettingsPage::selectedPort1Sensor() const
-{
-	return static_cast<sensorType::SensorTypeEnum>(mUi->port1ComboBox->currentIndex());
-}
-
-sensorType::SensorTypeEnum PreferencesRobotSettingsPage::selectedPort2Sensor() const
-{
-	return static_cast<sensorType::SensorTypeEnum>(mUi->port2ComboBox->currentIndex());
-}
-
-sensorType::SensorTypeEnum PreferencesRobotSettingsPage::selectedPort3Sensor() const
-{
-	return static_cast<sensorType::SensorTypeEnum>(mUi->port3ComboBox->currentIndex());
-}
-
-sensorType::SensorTypeEnum PreferencesRobotSettingsPage::selectedPort4Sensor() const
-{
-	return static_cast<sensorType::SensorTypeEnum>(mUi->port4ComboBox->currentIndex());
-}
-
 void PreferencesRobotSettingsPage::save()
 {
 	SettingsManager::setValue("robotModel", selectedRobotModel());
 	SettingsManager::setValue("bluetoothPortName", selectedPortName());
-	SettingsManager::setValue("port1SensorType", selectedPort1Sensor());
-	SettingsManager::setValue("port2SensorType", selectedPort2Sensor());
-	SettingsManager::setValue("port3SensorType", selectedPort3Sensor());
-	SettingsManager::setValue("port4SensorType", selectedPort4Sensor());
 	SettingsManager::setValue("valueOfCommunication", selectedCommunication());
+	SettingsManager::setValue("showTitlesForRobots", textVisible());
+	SettingsManager::setValue("sensorUpdateInterval", sensorUpdateInterval());
+	SettingsManager::setValue("autoscalingInterval", autoscalingInterval());
+	SettingsManager::setValue("textUpdateInterval", textUpdateInterval());
+	SettingsManager::setValue("tcpServer", mUi->tcpServerLineEdit->text());
+	SettingsManager::setValue("tcpPort", mUi->tcpPortSpinBox->value());
+	SettingsManager::setValue("nxtFlashToolRunPolicy", mUi->runningAfterUploadingComboBox->currentIndex());
+	mSensorsWidget->save();
+	emit saved();
+}
+
+void PreferencesRobotSettingsPage::restoreSettings()
+{
+	refreshValuesOnUi();
 }

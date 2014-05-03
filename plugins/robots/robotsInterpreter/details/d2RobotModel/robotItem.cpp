@@ -1,26 +1,22 @@
 #include "robotItem.h"
-#include <QtGui/QCursor>
-#include <QtGui/QApplication>
-#include <QtGui/QGraphicsSceneMouseEvent>
-#include <QtGui/QGraphicsScene>
-#include <QtGui/QStyleOptionGraphicsItem>
+#include "constants.h"
 
 using namespace qReal::interpreters::robots;
 using namespace details::d2Model;
 using namespace graphicsUtils;
 
-int const border = 5;
+int const border = 0;
 
 RobotItem::RobotItem()
-	: AbstractItem()
+	: RotateItem()
 	, mImage(QImage(":/icons/robot.png"))
+	, mBeepItem(new BeepItem)
 	, mIsOnTheGround(true)
 	, mRotater(NULL)
 	, mRectangleImpl()
 	, mRobotModel()
 {
-	setFlags(ItemIsSelectable | ItemIsMovable | ItemClipsChildrenToShape |
-			/* ItemClipsToShape |*/ ItemSendsGeometryChanges);
+	setFlags(ItemIsSelectable | ItemIsMovable | ItemSendsGeometryChanges);
 
 	setAcceptHoverEvents(true);
 	setAcceptDrops(true);
@@ -29,9 +25,10 @@ RobotItem::RobotItem()
 	mX2 = mX1 + robotWidth;
 	mY2 = mY1 + robotHeight;
 
-	mPreviousScenePos = QPointF(0, 0);
-
-	mBasePoint = scenePos();
+	setTransformOriginPoint(rotatePoint);
+	mBeepItem->setParentItem(this);
+	mBeepItem->setPos((robotWidth - beepWavesSize) / 2, (robotHeight - beepWavesSize) / 2);
+	mBeepItem->setVisible(false);
 }
 
 void RobotItem::drawItem(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
@@ -49,7 +46,7 @@ void RobotItem::drawExtractionForItem(QPainter* painter)
 
 QRectF RobotItem::boundingRect() const
 {
-		return mRectangleImpl.boundingRect(mX1, mY1, mX2, mY2, border);
+	return mRectangleImpl.boundingRect(mX1, mY1, mX2, mY2, border);
 }
 
 QRectF RobotItem::calcNecessaryBoundingRect() const
@@ -59,58 +56,27 @@ QRectF RobotItem::calcNecessaryBoundingRect() const
 
 void RobotItem::mousePressEvent(QGraphicsSceneMouseEvent * event)
 {
+	emit mousePressed();
 	AbstractItem::mousePressEvent(event);
-	mPreviousPos = QPointF();
-	mPreviousAngle = rotateAngle();
 	mIsOnTheGround = false;
-
-	mPreviousScenePos = scenePos();
-	if (isSelected()) {
-		mRotater->reshapeWithMasterItem(scenePos()- mPreviousScenePos);
-	}
+	mDragStart = scenePos();
 }
 
 void RobotItem::mouseMoveEvent(QGraphicsSceneMouseEvent * event)
 {
 	AbstractItem::mouseMoveEvent(event);
-
-	if (mPreviousPos.isNull()) {
-		mPreviousPos = event->scenePos();
-		return;
-	}
-	mBasePoint += scenePos()- mPreviousScenePos;
-
-	foreach (SensorItem *sensor, mSensors) {
-		sensor->setDeltaBasePosition(scenePos()- mPreviousScenePos, rotateAngle());
-	}
-
-	if (isSelected()) {
-		mRotater->reshapeWithMasterItem(scenePos()- mPreviousScenePos);
-	}
-
-	mPreviousPos = event->scenePos();
-	mPreviousScenePos = scenePos();
-	mPreviousAngle = rotateAngle();
 }
 
 void RobotItem::mouseReleaseEvent(QGraphicsSceneMouseEvent * event)
 {
 	AbstractItem::mouseReleaseEvent(event);
-	mPreviousPos = QPointF();
-	mPreviousAngle = rotateAngle();
-	mIsOnTheGround = true;
-
-	if (isSelected()) {
-		mRotater->reshapeWithMasterItem(scenePos() - mPreviousScenePos);
-	}
-	mPreviousScenePos = scenePos();
-
-	emit changedPosition();
+	onLanded();
 }
 
-QPointF RobotItem::basePoint()
+void RobotItem::onLanded()
 {
-	return mBasePoint;
+	mIsOnTheGround = true;
+	emit changedPosition();
 }
 
 void RobotItem::resizeItem(QGraphicsSceneMouseEvent *event)
@@ -120,14 +86,6 @@ void RobotItem::resizeItem(QGraphicsSceneMouseEvent *event)
 
 void RobotItem::setPos(QPointF const &newPos)// for moving
 {
-	foreach (SensorItem *sensor, mSensors) {
-		sensor->setDeltaBasePosition(newPos - pos(), rotateAngle());
-	}
-
-	mRotater->reshapeWithMasterItem(newPos - pos());
-
-	mPreviousAngle = rotateAngle();
-
 	QGraphicsItem::setPos(newPos);
 }
 
@@ -163,7 +121,7 @@ void RobotItem::setRobotModel(RobotModelInterface *robotModel)
 
 void RobotItem::rotate(qreal angle)
 {
-	mRobotModel->rotateOn(angle);
+	mRobotModel->setRotation(angle);
 }
 
 QRectF RobotItem::rect() const
@@ -171,9 +129,24 @@ QRectF RobotItem::rect() const
 	return boundingRect();
 }
 
-double RobotItem::rotateAngle() const
+qreal RobotItem::rotateAngle() const
 {
 	return mRobotModel->rotateAngle();
+}
+
+void RobotItem::setRotateAngle(double const &angle)
+{
+	mRobotModel->setRotation(angle);
+}
+
+void RobotItem::setRobotPos(QPointF const &newPos)
+{
+	mRobotModel->setRobotPos(newPos);
+}
+
+QPointF RobotItem::robotPos(void)
+{
+	return mRobotModel->robotPos();
 }
 
 void RobotItem::setSelected(bool isSelected)
@@ -183,8 +156,90 @@ void RobotItem::setSelected(bool isSelected)
 
 void RobotItem::checkSelection()
 {
-	if(isSelected())
-		mRotater->setVisible(true);
-	else
-		mRotater->setVisible(false);
+	mRotater->setVisible(isSelected());
+}
+
+void RobotItem::setNeededBeep(bool isNeededBeep)
+{
+	mBeepItem->setVisible(isNeededBeep);
+}
+
+QVariant RobotItem::itemChange(GraphicsItemChange change, const QVariant &value)
+{
+	if (change == ItemPositionChange) {
+		processPositionChange();
+	}
+	if (change == ItemTransformChange) {
+		processPositionAndAngleChange();
+	}
+
+	return AbstractItem::itemChange(change, value);
+}
+
+void RobotItem::processPositionChange()
+{
+	foreach (SensorItem * const sensor, mSensors) {
+		sensor->onPositionChanged();
+	}
+}
+
+void RobotItem::processPositionAndAngleChange()
+{
+	foreach (SensorItem * const sensor, mSensors) {
+		sensor->onPositionChanged();
+		sensor->onDirectionChanged();
+	}
+}
+
+void RobotItem::recoverDragStartPosition()
+{
+	setPos(mDragStart);
+	if (!mIsOnTheGround) {
+		onLanded();
+	}
+}
+
+void RobotItem::addSensorsShapes(QPainterPath &target)
+{
+	foreach (SensorItem *const sensor, mSensors) {
+		target.addRect(QRectF(sensor->pos() - QPointF(sensorWidth / 2, sensorWidth / 2)
+				, QSizeF(sensorWidth, sensorWidth)));
+	}
+}
+
+void BeepItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option
+		, QWidget *widget)
+{
+	Q_UNUSED(option)
+	Q_UNUSED(widget)
+
+	drawBeep(painter);
+}
+
+QRectF BeepItem::boundingRect() const
+{
+	return QRectF(0, 0, beepWavesSize, beepWavesSize);
+}
+
+void BeepItem::drawBeep(QPainter *painter)
+{
+	QPointF const center(beepWavesSize / 2, beepWavesSize / 2);
+
+	drawBeepArcs(painter, center, 40);
+	drawBeepArcs(painter, center, 50);
+	drawBeepArcs(painter, center, 60);
+}
+
+void BeepItem::drawBeepArcs(QPainter *painter, QPointF const &center, qreal radius)
+{
+	painter->save();
+	QPen pen;
+	pen.setColor(Qt::red);
+	pen.setWidth(3);
+	painter->setPen(pen);
+	qreal const diameter = radius + radius;
+	QRectF rect(center.x() - radius, center.y() - radius, diameter, diameter);
+	painter->drawArc(rect, 45 * 16, 90 * 16);
+	painter->drawArc(rect, 225 * 16, 90 * 16);
+	painter->restore();
 }

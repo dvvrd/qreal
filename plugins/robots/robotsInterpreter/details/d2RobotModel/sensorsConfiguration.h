@@ -16,21 +16,21 @@ class SensorsConfiguration
 {
 public:
 	SensorsConfiguration();
-	void setSensor(inputPort::InputPortEnum const &port
-			, sensorType::SensorTypeEnum const &type
-			, QPoint const &position
+	void setSensor(robots::enums::inputPort::InputPortEnum const port
+			, robots::enums::sensorType::SensorTypeEnum const &type
+			, QPointF const &position
 			, qreal const &direction);
 
-	void setPosition(inputPort::InputPortEnum const &port, QPoint const &position);
-	QPoint position(inputPort::InputPortEnum const &port) const;
+	void setPosition(robots::enums::inputPort::InputPortEnum const port, QPointF const &position);
+	QPointF position(robots::enums::inputPort::InputPortEnum const port) const;
 
-	void setDirection(inputPort::InputPortEnum const &port, qreal direction);
-	qreal direction(inputPort::InputPortEnum const &port) const;
+	void setDirection(robots::enums::inputPort::InputPortEnum const port, qreal direction);
+	qreal direction(robots::enums::inputPort::InputPortEnum const port) const;
 
-	sensorType::SensorTypeEnum type(inputPort::InputPortEnum const &port) const;
-	void clearSensor(inputPort::InputPortEnum const &port);
+	robots::enums::sensorType::SensorTypeEnum type(robots::enums::inputPort::InputPortEnum const port) const;
+	void clearSensor(robots::enums::inputPort::InputPortEnum const port);
 
-	QDomElement  serialize(QDomDocument &document) const;
+	void serialize(QDomElement &robot, QDomDocument &document) const;
 	void deserialize(QDomElement const &element);
 
 private:
@@ -38,20 +38,21 @@ private:
 	{
 	public:
 		SensorInfo();
-		SensorInfo(QPoint const &position, qreal direction, sensorType::SensorTypeEnum const &sensorType);
+		SensorInfo(QPointF const &position, qreal direction
+				, robots::enums::sensorType::SensorTypeEnum const &sensorType);
 
-		QPoint position() const;
-		void setPosition(QPoint const &position);
+		QPointF position() const;
+		void setPosition(QPointF const &position);
 
 		qreal direction() const;
 		void setDirection(qreal direction);
 
-		sensorType::SensorTypeEnum type() const;
+		robots::enums::sensorType::SensorTypeEnum type() const;
 
 	private:
-		QPoint mPosition;
+		QPointF mPosition;
 		qreal mDirection;
-		sensorType::SensorTypeEnum mSensorType;
+		robots::enums::sensorType::SensorTypeEnum mSensorType;
 	};
 
 	QVector<SensorInfo> mSensors;

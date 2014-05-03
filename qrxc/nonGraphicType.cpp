@@ -1,5 +1,6 @@
 #include "nonGraphicType.h"
-#include "../qrutils/outFile.h"
+
+#include <qrutils/outFile.h>
 
 using namespace utils;
 
@@ -32,6 +33,11 @@ void NonGraphicType::generatePropertyDescriptionMapping(utils::OutFile &out)
 	Q_UNUSED(out)
 }
 
+void NonGraphicType::generateExplosionsMap(OutFile &out)
+{
+	Q_UNUSED(out)
+}
+
 bool NonGraphicType::generateObjectRequestString(OutFile &out, bool isNotFirst)
 {
 	Q_UNUSED(out)
@@ -39,7 +45,15 @@ bool NonGraphicType::generateObjectRequestString(OutFile &out, bool isNotFirst)
 	return false;
 }
 
-bool NonGraphicType::generateProperties(OutFile &out, bool isNotFirst)
+bool NonGraphicType::generateProperties(OutFile &out, bool isNotFirst, bool isReference)
+{
+	Q_UNUSED(out)
+	Q_UNUSED(isNotFirst)
+	Q_UNUSED(isReference)
+	return false;
+}
+
+bool NonGraphicType::generatePorts(OutFile &out, bool isNotFirst)
 {
 	Q_UNUSED(out)
 	Q_UNUSED(isNotFirst)
@@ -47,20 +61,6 @@ bool NonGraphicType::generateProperties(OutFile &out, bool isNotFirst)
 }
 
 bool NonGraphicType::generateContainedTypes(OutFile &out, bool isNotFirst)
-{
-	Q_UNUSED(out)
-	Q_UNUSED(isNotFirst)
-	return false;
-}
-
-bool NonGraphicType::generateConnections(utils::OutFile &out, bool isNotFirst)
-{
-	Q_UNUSED(out)
-	Q_UNUSED(isNotFirst)
-	return false;
-}
-
-bool NonGraphicType::generateUsages(OutFile &out, bool isNotFirst)
 {
 	Q_UNUSED(out)
 	Q_UNUSED(isNotFirst)
@@ -78,4 +78,3 @@ void NonGraphicType::generateMouseGesturesMap(utils::OutFile &out)
 {
 	Q_UNUSED(out);
 }
-

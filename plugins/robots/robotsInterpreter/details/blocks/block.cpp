@@ -20,6 +20,10 @@ Block::Block()
 	connect(this, SIGNAL(done(blocks::Block*const)), this, SLOT(finishedRunning()));
 }
 
+Block::~Block()
+{
+}
+
 void Block::init(Id const &graphicalId
 		, GraphicalModelAssistInterface const &graphicalModelApi
 		, LogicalModelAssistInterface const &logicalModelApi
@@ -38,6 +42,11 @@ void Block::init(Id const &graphicalId
 
 bool Block::initNextBlocks()
 {
+	if (id().isNull() || id() == Id::rootId()) {
+		error(tr("Control flow break detected, stopping"));
+		return false;
+	}
+
 	IdList const links = mGraphicalModelApi->graphicalRepoApi().outgoingLinks(id());
 
 	if (links.count() > 1) {
@@ -52,7 +61,7 @@ bool Block::initNextBlocks()
 
 	if (links.count() == 1) {
 		Id const nextBlockId = mGraphicalModelApi->graphicalRepoApi().otherEntityFromLink(links[0], id());
-		if (nextBlockId == Id()) {
+		if (nextBlockId.isNull() || nextBlockId == Id::rootId()) {
 			error(tr("Outgoing link is not connected"));
 			return false;
 		}
@@ -68,12 +77,13 @@ Id const Block::id() const
 
 void Block::interpret()
 {
-	if ((mState == running) || (mState == failed))
+	// mState == running is not filtered out due to recursions and forks
+	if (mState == failed) {
 		return;
+	}
 
 	mState = running;
-	bool result = initNextBlocks();
-	if (result) {
+	if (initNextBlocks()) {
 		run();
 	}
 }
@@ -148,14 +158,45 @@ QList<Block::SensorPortPair> Block::usedSensors() const
 QVariant Block::evaluate(const QString &propertyName)
 {
 	int position = 0;
-	QVariant value = mParser->standartBlockParseProcess(stringProperty(propertyName), position, mGraphicalId).property("Number");
+	utils::Number *result = mParser->standartBlockParseProcess(stringProperty(propertyName), position, mGraphicalId);
+	if (mParser->hasErrors()) {
+		mParser->deselect();
+		emit failure();
+		return QVariant();
+	}
+
+	return result->value();
+}
+
+bool Block::evaluateBool(QString const &propertyName)
+{
+	int position = 0;
+	bool const value = mParser->parseCondition(stringProperty(propertyName), position, mGraphicalId);
 	if (mParser->hasErrors()) {
 		mParser->deselect();
 		emit failure();
 	}
+
 	return value;
 }
 
-void Block::stopActiveTimerInBlock()
+QVector<bool> Block::parseEnginePorts() const
+{
+	QString const ports = stringProperty("Ports");
+	QVector<bool> result(3, false);
+	QStringList splitted = ports.split(',', QString::SkipEmptyParts);
+	foreach (QString const &port, splitted) {
+		if (port.trimmed().toUpper() == "A") {
+			result[0] = true;
+		} else if (port.trimmed().toUpper() == "B") {
+			result[1] = true;
+		} else if (port.trimmed().toUpper() == "C") {
+			result[2] = true;
+		}
+	}
+	return result;
+}
+
+void Block::finishedSteppingInto()
 {
 }

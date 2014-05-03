@@ -1,7 +1,7 @@
 #include "linuxFantom.h"
 #include <QObject>
 
-using namespace robotsInterpreter::robotCommunication;
+using namespace qReal::interpreters::robots::details;
 
 bool Fantom::isAvailable()
 {
@@ -70,5 +70,11 @@ void Fantom::nFANTOM100_iNXTIterator_advance(unsigned long NXTIterHandle, int &s
 void Fantom::nFANTOM100_iNXT_findDeviceInFirmwareDownloadMode(char resString[], int &status)
 {
 	Q_UNUSED(resString);
+	Q_UNUSED(status);
+}
+
+void Fantom::nFANTOM100_destroyNXT(unsigned long nxtHandle, int &status)
+{
+	Q_UNUSED(nxtHandle);
 	Q_UNUSED(status);
 }

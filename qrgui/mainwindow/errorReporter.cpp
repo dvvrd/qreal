@@ -1,10 +1,12 @@
 #include "errorReporter.h"
 
-#include <QtGui/QMessageBox>
-#include <QtGui/QDockWidget>
+#include <QtWidgets/QMessageBox>
+#include <QtWidgets/QDockWidget>
 
-#include "errorListWidget.h"
-#include "../../qrkernel/exception/exception.h"
+#include <qrkernel/exception/exception.h>
+
+#include "mainwindow/errorListWidget.h"
+#include "qrutils/uxInfo/uxInfo.h"
 
 using namespace qReal;
 using namespace gui;
@@ -21,23 +23,27 @@ ErrorReporter::ErrorReporter(ErrorListWidget* const errorListWidget, QDockWidget
 	, mErrorList(errorList)
 	, mIsVisible(true)
 {
+	connect(mErrorListWidget, SIGNAL(clearRequested()), this, SLOT(clear()));
 }
 
 void ErrorReporter::updateVisibility(bool isVisible)
 {
-	if (mIsVisible == isVisible)
+	if (mIsVisible == isVisible) {
 		return;
+	}
 
 	mIsVisible = isVisible;
 
-	if (!mIsVisible)
+	if (!mIsVisible) {
 		mErrorList->hide();
-	else if (mErrorListWidget->count() > 0)
+	} else if (mErrorListWidget->count() > 0) {
 		mErrorList->show();
+	}
 }
 
 void ErrorReporter::addInformation(QString const &message, Id const &position)
 {
+	utils::UXInfo::reportErrors("information", position.editor(), position.element(), message);
 	Error error(message, Error::information, position);
 	mErrors.append(error);
 	showError(error, mErrorListWidget);
@@ -45,6 +51,7 @@ void ErrorReporter::addInformation(QString const &message, Id const &position)
 
 void ErrorReporter::addWarning(QString const &message, Id const &position)
 {
+	utils::UXInfo::reportErrors("warning", position.editor(), position.element(), message);
 	Error error(message, Error::warning, position);
 	mErrors.append(error);
 	showError(error, mErrorListWidget);
@@ -52,6 +59,7 @@ void ErrorReporter::addWarning(QString const &message, Id const &position)
 
 void ErrorReporter::addError(QString const &message, Id const &position)
 {
+	utils::UXInfo::reportErrors("error", position.editor(), position.element(), message);
 	Error error(message, Error::error, position);
 	mErrors.append(error);
 	showError(error, mErrorListWidget);
@@ -59,6 +67,7 @@ void ErrorReporter::addError(QString const &message, Id const &position)
 
 void ErrorReporter::addCritical(QString const &message, Id const &position)
 {
+	utils::UXInfo::reportErrors("critical", position.editor(), position.element(), message);
 	Error error(message, Error::critical, position);
 	mErrors.append(error);
 	showError(error, mErrorListWidget);
@@ -74,17 +83,20 @@ bool ErrorReporter::showErrors(ErrorListWidget* const errorListWidget, QDockWidg
 	}
 
 	errorList->setVisible(true);
-	foreach (Error error, mErrors)
+	foreach (Error error, mErrors) {
 		showError(error, errorListWidget);
+	}
 	return false;
 }
 
 void ErrorReporter::clear()
 {
-	if (mErrorListWidget)
+	if (mErrorListWidget) {
 		mErrorListWidget->clear();
-	if (mErrorList)
+	}
+	if (mErrorList) {
 		mErrorList->setVisible(false);
+	}
 }
 
 void ErrorReporter::clearErrors()
@@ -104,15 +116,17 @@ bool ErrorReporter::wereErrors()
 
 void ErrorReporter::showError(Error const &error, ErrorListWidget* const errorListWidget) const
 {
-	if (!errorListWidget)
+	if (!errorListWidget) {
 		return;
+	}
 
-	if (mErrorList && !mErrorList->isVisible() &&  mIsVisible)
+	if (mErrorList && !mErrorList->isVisible() &&  mIsVisible) {
 		mErrorList->setVisible(true);
+	}
 
 	QListWidgetItem* item = new QListWidgetItem(errorListWidget);
-	QString message = error.timestamp() + " " + severityMessage(error) + " ";
-	message += error.message();
+	QString const message = QString(" <font color='gray'>%1</font> <u>%2</u> %3").arg(
+			error.timestamp(), severityMessage(error), error.message());
 	switch (error.severity()) {
 	case Error::information:
 		item->setIcon(QIcon(":/icons/information.png"));
@@ -129,10 +143,13 @@ void ErrorReporter::showError(Error const &error, ErrorListWidget* const errorLi
 	default:
 		throw new Exception("Incorrect total severity");
 	}
-	item->setText(" " + message.trimmed());
-	item->setTextAlignment(Qt::AlignVCenter);
+	QLabel *label = new QLabel(message.trimmed());
+	label->setAlignment(Qt::AlignVCenter);
+	label->setOpenExternalLinks(true);
 	item->setToolTip(error.position().toString());
 	errorListWidget->addItem(item);
+	errorListWidget->setItemWidget(item, label);
+	errorListWidget->setCurrentItem(item);
 }
 
 QString ErrorReporter::severityMessage(Error const &error)

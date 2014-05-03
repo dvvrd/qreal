@@ -3,11 +3,11 @@
 #include <QtCore/QMetaMethod>
 #include <QtCore/QDebug>
 
-#include "../../qrkernel/exception/exception.h"
-#include "listenerApi.h"
+#include <qrkernel/exception/exception.h>
 
-#include "../models/logicalModelAssistApi.h"
-#include "../models/graphicalModelAssistApi.h"
+#include "pluginManager/listenerApi.h"
+#include "models/logicalModelAssistApi.h"
+#include "models/graphicalModelAssistApi.h"
 
 using namespace qReal;
 
@@ -37,8 +37,8 @@ void ListenerManager::bindListenerSlotsByName(QList<ListenerInterface *> const &
 		for (int i = 0; i < methodCount; ++i) {
 
 			QMetaMethod slotMethod = listener->metaObject()->method(i);
-			char const * const slotName = slotMethod.signature();
-			int slotId = listener->metaObject()->indexOfSlot(slotName);
+			QByteArray const slotName = slotMethod.methodSignature();
+			int slotId = listener->metaObject()->indexOfSlot(slotName.data());
 
 			if (slotMethod.access() != QMetaMethod::Public
 				|| slotId == -1
@@ -50,14 +50,14 @@ void ListenerManager::bindListenerSlotsByName(QList<ListenerInterface *> const &
 			int thisMethodCount = this->metaObject()->methodCount();
 			bool connected = false;
 			for (int j = 0; j < thisMethodCount; ++j) {
-				char const * const signalName = this->metaObject()->method(j).signature();
+				QByteArray const signalName = this->metaObject()->method(j).methodSignature();
 
 				if (signalName != QString(slotName))
 					continue;
 
-				int signalId = this->metaObject()->indexOfSignal(signalName);
+				int signalId = this->metaObject()->indexOfSignal(signalName.data());
 
-				connected |= QMetaObject::connect(this, signalId, listener, slotId);
+				connected |= (bool) QMetaObject::connect(this, signalId, listener, slotId);
 			}
 
 			if (!connected)

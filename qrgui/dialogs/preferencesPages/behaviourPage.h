@@ -1,6 +1,7 @@
 #pragma once
 
-#include "preferencesPage.h"
+#include "dialogs/preferencesPages/preferencesPage.h"
+#include "mainwindow/filterObject.h"
 
 namespace Ui {
 	class PreferencesBehaviourPage;
@@ -15,6 +16,11 @@ public:
 	~PreferencesBehaviourPage();
 
 	void save();
+	virtual void restoreSettings();
+
+signals:
+	void usabilityTestingModeChanged(bool on);
+	void transparentVersioningModeChanged(bool turn);
 
 protected:
 	void changeEvent(QEvent *e);
@@ -24,4 +30,7 @@ private slots:
 
 private:
 	Ui::PreferencesBehaviourPage *mUi;
+	FilterObject mFilterObject;
+	bool mUsabilityTestingMode;
+	bool mTransparentVersioningMode;
 };

@@ -1,26 +1,33 @@
 #include "robotsBlockParser.h"
 
-using namespace qReal;
+using namespace qReal::interpreters::robots::details;
 using namespace utils;
 
-RobotsBlockParser::RobotsBlockParser(ErrorReporterInterface *errorReporter)
+QString const sensorVariablePerfix = QObject::tr("sensor");
+QString const encoderVariablePerfix = QObject::tr("encoder");
+QString const timeVariableName = QObject::tr("time");
+
+RobotsBlockParser::RobotsBlockParser(ErrorReporterInterface *errorReporter
+		, ComputableNumber::IntComputer const &timeComputer)
 	: ExpressionsParser(errorReporter)
+	, mTimeComputer(timeComputer)
 {
 	setReservedVariables();
 }
 
-Number RobotsBlockParser::standartBlockParseProcess(const QString &stream, int &pos, const Id &curId)
+Number *RobotsBlockParser::standartBlockParseProcess(const QString &stream, int &pos, const Id &curId)
 {
 	mCurrentId = curId;
 
 	if (isEmpty(stream, pos)) {
 		error(emptyProcess);
-		return Number(0, Number::intType);
+		return new Number(0, Number::intType);
 	}
 	QStringList exprs = stream.split(";", QString::SkipEmptyParts);
 	for (int i = 0; i < (exprs.length() - 1); ++i) {
-		if (mHasParseErrors)
-			return Number(0, Number::intType);
+		if (mHasParseErrors) {
+			return new Number(0, Number::intType);
+		}
 		int position = 0;
 		QString expr = exprs[i];
 		skip(expr, position);
@@ -32,7 +39,7 @@ Number RobotsBlockParser::standartBlockParseProcess(const QString &stream, int &
 		return parseExpression(valueExpression, position);
 	else {
 		error(noExpression);
-		return Number(0, Number::intType);
+		return new Number(0, Number::intType);
 	}
 }
 
@@ -40,8 +47,9 @@ void RobotsBlockParser::functionBlockParseProcess(const QString &stream, int &po
 {
 	mCurrentId = curId;
 
-	if (isEmpty(stream, pos))
+	if (isEmpty(stream, pos)) {
 		error(emptyProcess);
+	}
 
 	bool hasParseErrorsFlag = false;
 
@@ -82,18 +90,27 @@ bool RobotsBlockParser::checkForUsingReservedVariables(const QString &nameOfVari
 bool RobotsBlockParser::isLetter(const QChar &symbol)
 {
 	QString rus = QString::fromUtf8("РђР°Р‘Р±Р’РІР“РіР”РґР•РµРЃС‘Р–Р¶Р—Р·РРёР™Р№РљРєР›Р»РњРјРќРЅРћРѕРџРїР СЂРЎСЃРўС‚РЈСѓР¤С„РҐС…Р¦С†Р§С‡РЁС€Р©С‰Р¬СЊР«С‹Р™Р№Р­СЌР®СЋРЇСЏ");
-	char symbolChar = symbol.toAscii();
+	char symbolChar = symbol.toLatin1();
 	return (('A'<=symbolChar && symbolChar<='Z') || ('a'<=symbolChar && symbolChar<='z') || (rus.contains(symbol)));
 }
 
 void RobotsBlockParser::setReservedVariables()
 {
 	QString const pi = "pi";
-	Number value = Number(3.14, Number::doubleType);
-	mVariables.insert(pi, value);
+	Number * const piValue = new Number(3.14159265, Number::doubleType);
+	mVariables.insert(pi, piValue);
+	mVariables.insert(timeVariableName, new ComputableNumber(mTimeComputer));
+	mReservedVariables.append(timeVariableName);
+
 	for (int i = 1; i <= 4; ++i) {
-		QString variable = QObject::tr("Sensor") + QString::number(i);
-		mVariables.insert(variable, Number(0, Number::intType));
+		QString const variable = sensorVariablePerfix + QString::number(i);
+		mVariables.insert(variable, new Number(0, Number::intType));
+		mReservedVariables.append(variable);
+	}
+
+	for (int i = 0; i < 3; ++i) {
+		QString const variable = encoderVariablePerfix + ('A' + i);
+		mVariables.insert(variable, new Number(0, Number::intType));
 		mReservedVariables.append(variable);
 	}
 }

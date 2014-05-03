@@ -1,21 +1,20 @@
 #pragma once
 
-#include <QtCore/QObject>
-#include <QtCore/QByteArray>
-#include <QtCore/QThread>
-#include <QtCore/QTimer>
-
-#include "robotCommunicationThreadInterface.h"
-#include "../robotCommandConstants.h"
+#include "robotCommunicationThreadBase.h"
 
 class QextSerialPort;
 
-namespace qReal {
-namespace interpreters {
-namespace robots {
-namespace details {
+namespace qReal
+{
+namespace interpreters
+{
+namespace robots
+{
+namespace details
+{
 
-class BluetoothRobotCommunicationThread : public RobotCommunicationThreadInterface {
+class BluetoothRobotCommunicationThread : public RobotCommunicationThreadBase
+{
 	Q_OBJECT
 
 public:
@@ -24,29 +23,25 @@ public:
 
 public slots:
 	void send(QObject *addressee, QByteArray const &buffer, unsigned const responseSize);
-	void connect(QString const &portName);
-	void reconnect(QString const &portName);
+	void connect();
+	void reconnect();
 	void disconnect();
-	void sendI2C(QObject *addressee, QByteArray const &buffer, unsigned const responseSize
-			, inputPort::InputPortEnum const &port);
+
+	void sendI2C(
+			QObject *addressee
+			, QByteArray const &buffer
+			, unsigned const responseSize
+			, robots::enums::inputPort::InputPortEnum const port
+			);
+
+	void allowLongJobs(bool allow = true);
+	void checkConsistency();
 
 private:
-	class SleeperThread : public QThread
-	{
-	public:
-		static void msleep(unsigned long msecs)
-		{
-			QThread::msleep(msecs);
-		}
-	};
-
-	bool waitForBytes(int bytes, inputPort::InputPortEnum const &port) const;
-	int i2cBytesReady(inputPort::InputPortEnum const &port) const;
-
+	void send(QByteArray const &buffer, unsigned const responseSize
+			, QByteArray &outputBuffer);
 	void send(QByteArray const &buffer) const;
 	QByteArray receive(int size) const;
-
-	static int const timeout = 5000;
 
 	QextSerialPort *mPort;
 

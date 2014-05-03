@@ -13,6 +13,7 @@ SUBDIRS = \
 	plugins \
 	qrkernel \
 	qrutils \
+	thirdparty \
 
 qrutils.depends = qrkernel
 qrrepo.depends = qrkernel qrutils
@@ -27,6 +28,7 @@ qrgui.depends = \
 	qrutils \
 	qrkernel \
 	qrmc \
+	thirdparty \
 
 plugins.depends = \
 	qrxc \
@@ -34,4 +36,3 @@ plugins.depends = \
 	qrutils \
 	qrkernel \
 	qrmc \
-

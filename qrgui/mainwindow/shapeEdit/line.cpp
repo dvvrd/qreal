@@ -1,14 +1,14 @@
 #include "line.h"
+
 #include <QtGui/QPainter>
-#include <QtGui/QStyle>
-#include <QtGui/QStyleOptionGraphicsItem>
+#include <QtWidgets/QStyle>
+#include <QtWidgets/QStyleOptionGraphicsItem>
 
 const int step = 3;
 
 using namespace graphicsUtils;
 
-Line::Line(qreal x1, qreal y1, qreal x2, qreal y2, Item* parent)
-	:Item(parent), mLineImpl()
+Line::Line(qreal x1, qreal y1, qreal x2, qreal y2, Item* parent):Item(parent), mLineImpl()
 {
 	mNeedScalingRect = false;
 	mPen.setColor(Qt::green);
@@ -19,8 +19,7 @@ Line::Line(qreal x1, qreal y1, qreal x2, qreal y2, Item* parent)
 	mY2 = y2;
 }
 
-Line::Line(Line const &other)
-	:Item(), mLineImpl()
+Line::Line(Line const &other):Item(), mLineImpl()
 {
 	mNeedScalingRect = other.mNeedScalingRect ;
 	mPen = other.mPen;
@@ -72,7 +71,7 @@ void Line::drawExtractionForItem(QPainter* painter)
 void Line::drawScalingRects(QPainter* painter)
 {
 	QBrush brush(Qt::SolidPattern);
-	if(mX2 > mX1) {
+	if (mX2 > mX1) {
 		if (mY2 > mY1) {
 			brush.setColor(mListScalePoint.at(4).second);
 			painter->setBrush(brush);
@@ -89,8 +88,7 @@ void Line::drawScalingRects(QPainter* painter)
 			brush.setColor(mListScalePoint.at(7).second);
 			painter->setBrush(brush);
 			painter->drawRect(mX2 + step, mY2 - scalingRect + step, scalingRect, scalingRect);
-		}
-		else {
+		} else {
 			brush.setColor(mListScalePoint.at(2).second);
 			painter->setBrush(brush);
 			painter->drawRect(mX1 - step, mY1 + step, scalingRect, scalingRect);
@@ -115,7 +113,7 @@ void Line::drawScalingRects(QPainter* painter)
 
 			brush.setColor(mListScalePoint.at(1).second);
 			painter->setBrush(brush);
-			painter->drawRect(mX1  - scalingRect + step, mY1 - scalingRect - step, scalingRect, scalingRect);
+			painter->drawRect(mX1 - scalingRect + step, mY1 - scalingRect - step, scalingRect, scalingRect);
 
 			brush.setColor(mListScalePoint.at(6).second);
 			painter->setBrush(brush);
@@ -124,8 +122,7 @@ void Line::drawScalingRects(QPainter* painter)
 			brush.setColor(mListScalePoint.at(2).second);
 			painter->setBrush(brush);
 			painter->drawRect(mX2 - step, mY2 + step, scalingRect, scalingRect);
-		}
-		else {
+		} else {
 			brush.setColor(mListScalePoint.at(4).second);
 			painter->setBrush(brush);
 			painter->drawRect(mX2 - scalingRect - step, mY2 - step, scalingRect, scalingRect);
@@ -163,14 +160,18 @@ void Line::changeScalingPointState(qreal x, qreal y)
 	qreal y2 = (boundingRect().adjusted(drift, drift, -drift, -drift)).bottom();
 	int correction = step;
 	calcForChangeScalingState(QPointF(x, y), QPointF(x1, y1), QPointF(x2, y2), correction);
-	if (mScalingState == topRightX || mScalingState == topRightY || mScalingState == bottomLeftX || mScalingState == bottomLeftY)
+	if (mScalingState == topRightX || mScalingState == topRightY
+			|| mScalingState == bottomLeftX || mScalingState == bottomLeftY)
+	{
 		mDragState = None;
+	}
 }
 
 void Line::resizeItem(QGraphicsSceneMouseEvent *event)
 {
-	if (mDragState == TopLeft || mDragState == BottomRight)
+	if (mDragState == TopLeft || mDragState == BottomRight) {
 		Item::resizeItem(event);
+	}
 }
 
 void Line::reshapeRectWithShift()
@@ -181,18 +182,21 @@ void Line::reshapeRectWithShift()
 	qreal size = qMax(differenceX, differenceY);
 	const int delta = size / 2;
 	if (differenceXY > delta) {
-		QPair<qreal, qreal> res = mLineImpl.reshapeRectWithShiftForLine(mX1, mY1, mX2, mY2, differenceX, differenceY, size);
+		QPair<qreal, qreal> res = mLineImpl.reshapeRectWithShiftForLine(mX1, mY1, mX2, mY2
+				, differenceX, differenceY, size);
 		setX2andY2(res.first, res.second);
-	} else
+	} else {
 		Item::reshapeRectWithShift();
+	}
 }
 
 QPair<QPair<QString, QString>, QPair<QString, QString> > Line::setXandYBefore(QRect const &rect)
 {
-	QString x1 = "";
-	QString y1 = "";
-	QString y2 = "";
-	QString x2 = "";
+	QString x1;
+	QString y1;
+	QString y2;
+	QString x2;
+
 	if (mX2 > mX1) {
 		if (mY2 > mY1) {
 			y1 = setScaleForDoc(4, rect);
@@ -218,7 +222,10 @@ QPair<QPair<QString, QString>, QPair<QString, QString> > Line::setXandYBefore(QR
 			x2 = setScaleForDoc(0, rect);
 		}
 	}
-	return QPair<QPair<QString, QString>, QPair<QString, QString> >(QPair<QString, QString>(x1, y1), QPair<QString, QString>(x2, y2));
+
+	// omfg!
+	return QPair<QPair<QString, QString>, QPair<QString, QString> >(QPair<QString, QString>(x1, y1)
+			, QPair<QString, QString>(x2, y2));
 }
 
 void Line::setXandY(QDomElement& dom, QPair<QPair<QString, QString>, QPair<QString, QString> > pair)
@@ -237,7 +244,7 @@ QPair<QDomElement, Item::DomElementTypes> Line::generateItem(QDomDocument &docum
 	qreal const y2 = scenePos().y() + line().y2() - topLeftPicture.y();
 
 	QDomElement line = setPenBrushToDoc(document, "line");
-	setXandY(line, setXandYBefore(QRectF(x1, y1, x2 - x1, y2 - y1).normalized().toRect()));
+	setXandY(line, setXandYBefore(QRectF(x1, y1, x2 - x1 + 1, y2 - y1 + 1).normalized().toRect()));
 
 	return QPair<QDomElement, Item::DomElementTypes>(line, mDomElementType);
 }

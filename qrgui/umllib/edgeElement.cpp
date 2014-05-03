@@ -1,43 +1,64 @@
-/** @file edgeelement.cpp
- * 	@brief class for an edge on a diagram
- * */
-#include <QtGui/QStyleOptionGraphicsItem>
-#include <QtGui/QStyle>
+/** @file edgeElement.cpp
+*	@brief class for an edge on a diagram
+**/
+
+#include <QtWidgets/QStyleOptionGraphicsItem>
+#include <QtWidgets/QStyle>
 #include <QtGui/QTextDocument>
-#include <QtGui/QMenu>
-#include <QDebug>
+#include <QtWidgets/QMenu>
 #include <math.h>
 
-#include "edgeElement.h"
-#include "nodeElement.h"
-#include "../view/editorViewScene.h"
-#include "../editorPluginInterface/editorInterface.h"
+#include "umllib/edgeElement.h"
+#include "umllib/nodeElement.h"
+#include "umllib/labelFactory.h"
+#include "view/editorViewScene.h"
+
+#include "umllib/private/lineFactory.h"
+#include "umllib/private/lineHandler.h"
 
 using namespace qReal;
+using namespace enums;
 
 const double pi = 3.14159265358979;
 
-/** @brief indicator of edges' movement */
-// static bool moving = false;
+const qreal epsilon = 0.00000000001;
 
-EdgeElement::EdgeElement(ElementImpl *impl)
-		: mPenStyle(Qt::SolidLine), mPenWidth(1), mPenColor(Qt::black), mStartArrowStyle(NO_ARROW), mEndArrowStyle(NO_ARROW)
-		, mSrc(NULL), mDst(NULL)
-		, mPortFrom(0), mPortTo(0)
-		, mDragPoint(-1), mLongPart(0), mBeginning(NULL), mEnding(NULL)
-		, mAddPointAction(tr("Add point"), this)
-		, mDelPointAction(tr("Delete point"), this)
-		, mSquarizeAction(tr("Squarize"), this)
-		, mMinimizeAction(tr("Remove all points"), this)
-		, mElementImpl(impl)
-		, mLastDragPoint(-1)
+const int rightRotation = 1;// the difference between the elements of NodeSide
+const int maxReductCoeff = 16;
+const int standartReductCoeff = 3;
+
+/** @brief indicator of edges' movement */
+
+EdgeElement::EdgeElement(
+		ElementImpl *impl
+		, Id const &id
+		, qReal::models::GraphicalModelAssistApi &graphicalAssistApi
+		, qReal::models::LogicalModelAssistApi &logicalAssistApi
+		)
+		: Element(impl, id, graphicalAssistApi, logicalAssistApi)
+		, mPenStyle(Qt::SolidLine)
+		, mPenWidth(1)
+		, mPenColor(Qt::black)
+		, mSrc(nullptr)
+		, mDst(nullptr)
+		, mLineFactory(new LineFactory(this))
+		, mHandler(nullptr)
+		, mPortFrom(0)
+		, mPortTo(0)
+		, mDragType(noPort)
+		, mLongPart(0)
+		, mReverseAction(tr("Reverse"), this)
+		, mChangeShapeAction(tr("Change shape type"), this)
+		, mBreakPointPressed(false)
+		, mModelUpdateIsCalled(false)
+		, mIsLoop(false)
 {
 	mPenStyle = mElementImpl->getPenStyle();
 	mPenWidth = mElementImpl->getPenWidth();
 	mPenColor = mElementImpl->getPenColor();
 	setZValue(100);
 	setFlag(ItemIsMovable, true);
-	// FIXME: draws strangely...
+	// if flag is true then draws strangely...
 	setFlag(ItemClipsToShape, false);
 	setFlag(ItemClipsChildrenToShape, false);
 
@@ -45,25 +66,23 @@ EdgeElement::EdgeElement(ElementImpl *impl)
 
 	setAcceptHoverEvents(true);
 
-	connect(&mAddPointAction, SIGNAL(triggered(QPointF const &)), SLOT(addPointHandler(QPointF const &)));
-	connect(&mDelPointAction, SIGNAL(triggered(QPointF const &)), SLOT(delPointHandler(QPointF const &)));
-	connect(&mSquarizeAction, SIGNAL(triggered(QPointF const &)), SLOT(squarizeHandler(QPointF const &)));
-	connect(&mMinimizeAction, SIGNAL(triggered(QPointF const &)), SLOT(minimizeHandler(QPointF const &)));
+	LabelFactory factory(graphicalAssistApi, mId);
+	QList<LabelInterface*> titles;
 
-	mChaoticEdition = SettingsManager::value("ChaoticEdition").toBool();
-
-	ElementTitleFactory factory;
-
-	QList<ElementTitleInterface*> titles;
 	mElementImpl->init(factory, titles);
-	foreach (ElementTitleInterface *titleIface, titles){
-		ElementTitle *title = dynamic_cast<ElementTitle*>(titleIface);
-		if (!title)
+	foreach (LabelInterface *titleIface, titles) {
+		Label *title = dynamic_cast<Label*>(titleIface);
+		if (!title) {
 			continue;
+		}
 		title->init(boundingRect());
 		title->setParentItem(this);
-		mTitles.append(title);
+		title->setShouldCenter(false);
+		mLabels.append(title);
 	}
+
+	initLineHandler();
+	mChangeShapeAction.setMenu(mLineFactory->shapeTypeMenu());
 }
 
 EdgeElement::~EdgeElement()
@@ -74,12 +93,46 @@ EdgeElement::~EdgeElement()
 		mDst->delEdge(this);
 
 	delete mElementImpl;
+	delete mLineFactory;
+	delete mHandler;
 }
 
 void EdgeElement::initTitles()
 {
 	Element::initTitles();
 	updateLongestPart();
+}
+
+void EdgeElement::initLineHandler()
+{
+	updateShapeType();
+
+	delete mHandler;
+	mHandler = mLineFactory->createHandler(mShapeType);
+	mHandler->connectAction(&mReverseAction, this, SLOT(reverse()));
+}
+
+void EdgeElement::updateShapeType()
+{
+	mShapeType = static_cast<linkShape::LinkShape>(SettingsManager::value("LineType", linkShape::unset).toInt());
+
+	if (mShapeType == linkShape::unset) {
+		QString const shapeString
+				= mGraphicalAssistApi.graphicalRepoApi().property(id(), "linkShape").toString();
+		mShapeType = mLineFactory->stringToShape(shapeString);
+
+		if (mShapeType == linkShape::unset) {
+			mShapeType = mElementImpl->shapeType();
+		}
+	}
+}
+
+void EdgeElement::changeShapeType(linkShape::LinkShape const shapeType)
+{
+	mGraphicalAssistApi.mutableGraphicalRepoApi().setProperty(id(), "linkShape"
+			, mLineFactory->shapeToString(shapeType));
+	initLineHandler();
+	layOut();
 }
 
 QRectF EdgeElement::boundingRect() const
@@ -92,114 +145,115 @@ QPolygonF EdgeElement::line() const
 	return mLine;
 }
 
-static double lineAngle(const QLineF &line)
+void EdgeElement::setLine(QPolygonF const &line)
 {
-	double angle = ::acos(line.dx() / line.length());
-	if (line.dy() >= 0)
-		angle = 2 * pi - angle;
-
-	return angle * 180 / pi;
+	prepareGeometryChange();
+	mLine = line;
+	saveConfiguration();
+	update();
+	updateLongestPart();
 }
 
-static void drawChaosStar(QPainter *painter)
+qreal EdgeElement::fromPort() const
 {
-	painter->save();
-	QPen pen;
-	QColor color;
-	color.setNamedColor("#c3dcc4");
-	pen.setColor(color);
-	painter->setPen(pen);
+	return mPortFrom;
+}
 
-	for (int i = 0; i < 8; ++i) {
-		painter->rotate(45 * i);
-		painter->drawLine(0, 2, 0, 11);
+qreal EdgeElement::toPort() const
+{
+	return mPortTo;
+}
 
-		painter->save();
-		painter->translate(0, 11);
-		painter->rotate(30);
-		painter->drawLine(0, 0, 0, -3);
-		painter->rotate(-60);
-		painter->drawLine(0, 0, 0, -3);
-		painter->restore();
+void EdgeElement::setFromPort(qreal const fromPort)
+{
+	mPortFrom = fromPort;
+	mModelUpdateIsCalled = true;
+	mGraphicalAssistApi.setFromPort(id(), mPortFrom);
+}
+
+void EdgeElement::setToPort(qreal const toPort)
+{
+	mPortTo = toPort;
+	mModelUpdateIsCalled = true;
+	mGraphicalAssistApi.setToPort(id(), mPortTo);
+}
+
+void EdgeElement::paint(QPainter *painter, QStyleOptionGraphicsItem const *option, QWidget*)
+{
+	if (SettingsManager::value("PaintOldEdgeMode").toBool() && mHandler->isReshapeStarted()) {
+		paintEdge(painter, option, true);
 	}
 
-	painter->drawArc(-2, -2, 4, 4, 0, 5760);
-	painter->drawArc(-6, -6, 12, 12, 0, 5760);
+	paintEdge(painter, option, false);
+}
+
+void EdgeElement::paintEdge(QPainter *painter, QStyleOptionGraphicsItem const *option, bool drawSavedLine) const
+{
+	painter->save();
+
+	if (drawSavedLine) {
+		QColor const color = QColor(SettingsManager::value("oldLineColor").toString());
+		setEdgePainter(painter, edgePen(painter, color, Qt::DashDotLine, mPenWidth), 0.5);
+	} else {
+		setEdgePainter(painter, edgePen(painter, mColor, mPenStyle, mPenWidth), painter->opacity());
+	}
+
+	mHandler->drawLine(painter, drawSavedLine);
+
+	drawArrows(painter, drawSavedLine);
+
+	if ((option->state & (QStyle::State_Selected | QStyle::State_MouseOver)) && !drawSavedLine) {
+		painter->setBrush(Qt::SolidPattern);
+		mHandler->drawPorts(painter);
+	}
 
 	painter->restore();
 }
 
-void EdgeElement::drawPort(QPainter *painter) const
+void EdgeElement::drawArrows(QPainter *painter, bool savedLine) const
 {
-	QPen pen;
-	QColor color;
-	QPointF p1(-0.25,0);
-	QPointF p2(0.25,0);
-
-	color.setNamedColor("#c3dcc4");
-	pen.setWidth(11);
-	pen.setColor(color);
-	painter->setPen(pen);
-	painter->drawLine(p1, p2);
-
-	color.setNamedColor("#465945");
-	pen.setWidth(3);
-	pen.setColor(color);
-	painter->setPen(pen);
-	painter->drawLine(p1, p2);
-}
-
-void EdgeElement::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget*)
-{
-	painter->save();
-	QPen pen = painter->pen();
-	pen.setColor(mColor);
-	pen.setBrush(mColor);
-	pen.setStyle(mPenStyle);
-	pen.setWidth(mPenWidth);
-	painter->setPen(pen);
-	painter->drawPolyline(mLine);
-	painter->restore();
+	Qt::PenStyle style(QPen(painter->pen()).style());
 
 	painter->save();
-	painter->translate(mLine[0]);
-	painter->drawText(QPointF(10, 20), mFromMult);
-	painter->rotate(90 - lineAngle(QLineF(mLine[1], mLine[0])));
-	pen = painter->pen();
-	pen.setColor(mColor);
-	pen.setBrush(mColor);
-	pen.setWidth(3);
-	painter->setPen(pen);
+
+	if (savedLine) {
+		QColor const color = QColor(SettingsManager::value("oldLineColor").toString());
+		setEdgePainter(painter, edgePen(painter, color, Qt::SolidLine, 3), 0.5);
+	} else {
+		setEdgePainter(painter, edgePen(painter, mColor, style, 3), painter->opacity());
+	}
+
+	QPolygonF line = savedLine ? mHandler->savedLine() : mLine;
+
+	painter->save();
+	painter->translate(line[0]);
+	painter->rotate(90 - QLineF(line[1], line[0]).angle());
 	drawStartArrow(painter);
 	painter->restore();
 
 	painter->save();
-	painter->translate(mLine[mLine.size() - 1]);
-	painter->drawText(QPointF(10, 20), mToMult);
-	painter->rotate(90 - lineAngle(QLineF(mLine[mLine.size() - 2], mLine[mLine.size() - 1])));
-	pen = painter->pen();
-	pen.setColor(mColor);
-	pen.setBrush(mColor);
-	pen.setWidth(3);
-	painter->setPen(pen);
+	painter->translate(line[line.size() - 1]);
+	painter->rotate(90 - QLineF(line[line.size() - 2], line[line.size() - 1]).angle());
 	drawEndArrow(painter);
 	painter->restore();
 
-	if (option->state & (QStyle::State_Selected | QStyle::State_MouseOver)) {
-		painter->setBrush(Qt::SolidPattern);
-		foreach (QPointF const point, mLine) {
+	painter->restore();
+}
 
-			painter->save();
-			painter->translate(point);
+QPen EdgeElement::edgePen(QPainter *painter, QColor color, Qt::PenStyle style, int width) const
+{
+	QPen pen = painter->pen();
+	pen.setColor(color);
+	pen.setBrush(color);
+	pen.setStyle(style);
+	pen.setWidth(width);
+	return pen;
+}
 
-			if (mChaoticEdition)
-				drawChaosStar(painter);
-			else
-				drawPort(painter);
-
-			painter->restore();
-		}
-	}
+void EdgeElement::setEdgePainter(QPainter *painter, QPen pen, qreal opacity) const
+{
+	painter->setPen(pen);
+	painter->setOpacity(opacity);
 }
 
 QPainterPath EdgeElement::shape() const
@@ -207,31 +261,19 @@ QPainterPath EdgeElement::shape() const
 	QPainterPath path;
 	path.setFillRule(Qt::WindingFill);
 
-	QPainterPathStroker ps;
-	ps.setWidth(kvadratik - 5);
+	path.addPath(mHandler->shape());
 
-	path.addPolygon(mLine);
+	QPainterPathStroker ps;
+	ps.setWidth(stripeWidth);
+
 	path = ps.createStroke(path);
 
-	foreach (QPointF const point, mLine) {
-		path.addRect(getPortRect(point));
+	foreach (QPointF const &point, mLine) {
+		path.addRect(QRectF(point - QPointF(stripeWidth / 2, stripeWidth / 2)
+				, QSizeF(stripeWidth, stripeWidth)).adjusted(1, 1, -1, -1));
 	}
 
 	return path;
-}
-
-QRectF EdgeElement::getPortRect(QPointF const &point)
-{
-	return QRectF(point - QPointF(kvadratik - 5, kvadratik - 5), QSizeF(kvadratik * 2, kvadratik * 2));
-}
-
-int EdgeElement::getPoint(const QPointF &location)
-{
-	for (int i = 0; i < mLine.size(); ++i)
-		if (getPortRect(mLine[i]).contains(location))
-			return i;
-
-	return -1;
 }
 
 void EdgeElement::updateLongestPart()
@@ -247,386 +289,465 @@ void EdgeElement::updateLongestPart()
 	}
 	mLongPart = maxIdx;
 
-	if (mTitles.count() == 1) {
-		ElementTitle *title = mTitles[0];
+	if (mLabels.count() == 1) {
+		Label *title = mLabels[0];
 		qreal x = (mLine[maxIdx].x() + mLine[maxIdx + 1].x()) / 2;
 		qreal y = (mLine[maxIdx].y() + mLine[maxIdx + 1].y()) / 2;
 		x -= title->boundingRect().width() / 2;
 		y -= title->boundingRect().height() / 2;
 		title->setPos(x, y);
-
-		QLineF longest(mLine[maxIdx], mLine[mLongPart + 1]);
-
-		if (mChaoticEdition)
-			title->rotate(-lineAngle(longest));
 	}
 }
 
 void EdgeElement::connectToPort()
 {
-	setPos(pos() + mLine.first());
-	mLine.translate(-mLine.first());
-
 	mMoving = true;
 
-	// Now we check whether start or end have been connected
-	NodeElement *newSrc = getNodeAt(mLine.first());
-	NodeElement *newDst = getNodeAt(mLine.last());
+	NodeElement *newSrc = getNodeAt(mLine.first(), true);
+	NodeElement *newDst = getNodeAt(mLine.last(), false);
 
-	// fix for #4. otherwise we have 2 annoying situations when
-	// connecting both ends of an edge to the same node:
-	// if mLine.size() is 2, then an edge will become a point
-	// if mLine.size() is 3, then two parts of an edge will overlap
-	if (newSrc == newDst && newSrc && mLine.size() <= 3) {
-		if (!mLastLine.isEmpty())
-			mLine = mLastLine;
+	mIsLoop = ((newSrc == newDst) && newSrc);
 
-		mGraphicalAssistApi->setPosition(id(), mLastPos);
-		mGraphicalAssistApi->setConfiguration(id(), mLine.toPolygon());
-
-		mMoving = false;
-		updateData();
-
+	if (mIsLoop) {
+		connectLoopEdge(newSrc);
+		createLoopEdge();
 		return;
 	}
 
-	mPortFrom = newSrc ? newSrc->getPortId(mapToItem(newSrc, mLine.first())) : -1.0;
+	mPortFrom = newSrc ? newSrc->portId(mapToItem(newSrc, mLine.first()), fromPortTypes()) : -1.0;
+	mPortTo = newDst ? newDst->portId(mapToItem(newDst, mLine.last()), toPortTypes()) : -1.0;
 
 	if (mSrc) {
 		mSrc->delEdge(this);
-		mSrc = 0;
+		mSrc = nullptr;
 	}
 
-	if (mPortFrom >= 0.0) {
+	if (mDst) {
+		mDst->delEdge(this);
+		mDst = nullptr;
+	}
+
+	if (mPortFrom >= -epsilon) {
 		mSrc = newSrc;
 		mSrc->addEdge(this);
 	}
 
-	mLogicalAssistApi->setFrom(logicalId(), (mSrc ? mSrc->logicalId() : Id::rootId()));
-	mGraphicalAssistApi->setFrom(id(), (mSrc ? mSrc->id() : Id::rootId()));
-	mGraphicalAssistApi->setFromPort(id(), mPortFrom);
+	mGraphicalAssistApi.setFrom(id(), (mSrc ? mSrc->id() : Id::rootId()));
+	mGraphicalAssistApi.setFromPort(id(), mPortFrom);
 
-	mPortTo = newDst ? newDst->getPortId(mapToItem(newDst, mLine.last())) : -1.0;
-
-	if (mDst) {
-		mDst->delEdge(this);
-		mDst = 0;
-	}
-
-	if (mPortTo >= 0.0) {
+	if (mPortTo >= -epsilon) {
 		mDst = newDst;
 		mDst->addEdge(this);
 	}
 
-	mLogicalAssistApi->setTo(logicalId(), (mDst ? mDst->logicalId() : Id::rootId()));
-	mGraphicalAssistApi->setTo(id(), (mDst ? mDst->id() : Id::rootId()));
-	mGraphicalAssistApi->setToPort(id(), mPortTo);
+	mGraphicalAssistApi.setTo(id(), (mDst ? mDst->id() : Id::rootId()));
+	mGraphicalAssistApi.setToPort(id(), mPortTo);
 
-	setFlag(ItemIsMovable, !(mDst || mSrc));
+	mLogicalAssistApi.setFrom(logicalId(), (mSrc ? mSrc->logicalId() : Id::rootId()));
+	mLogicalAssistApi.setTo(logicalId(), (mDst ? mDst->logicalId() : Id::rootId()));
 
-	mGraphicalAssistApi->setPosition(id(), pos());
-	mGraphicalAssistApi->setConfiguration(id(), mLine.toPolygon());
+	adjustLink();
+
+	setGraphicApiPos();
+	saveConfiguration();
 
 	mMoving = false;
-	if (SettingsManager::value("SquareLine").toBool())
-		squarizeHandler(QPointF());
-	adjustLink();
-	arrangeSrcAndDst();
-	if (getNodeAt(mLine.first()) != NULL && getNodeAt(mLine.last()) != NULL)
-		highlight(mPenColor);
-	else
-		highlight(Qt::red);
 
+	if (newSrc && newDst) {
+		highlight(mPenColor);
+	} else {
+		highlight(Qt::red);
+	}
+}
+
+void EdgeElement::layOut()
+{
+	mHandler->layOut();
+
+	setGraphicApiPos();
+	saveConfiguration();
+}
+
+void EdgeElement::connectLoopEdge(NodeElement *newMaster)
+{
+	mPortFrom = newMaster ? newMaster->portId(mapToItem(newMaster, mLine.first()), fromPortTypes()) : -1.0;
+	mPortTo = newMaster ? newMaster->portId(mapToItem(newMaster, mLine.last()), toPortTypes()) : -1.0;
+
+	if (mSrc) {
+		mSrc->delEdge(this);
+	}
+
+	if (mDst) {
+		mDst->delEdge(this);
+	}
+
+	if (mPortFrom >= -epsilon) {
+		newMaster->delEdge(this);
+		mSrc = newMaster;
+		mDst = newMaster;
+		mSrc->addEdge(this);
+	}
+
+	mGraphicalAssistApi.setFrom(id(), (mSrc ? mSrc->id() : Id::rootId()));
+	mGraphicalAssistApi.setFromPort(id(), mPortFrom);
+
+	mGraphicalAssistApi.setTo(id(), (mDst ? mDst->id() : Id::rootId()));
+	mGraphicalAssistApi.setToPort(id(), mPortTo);
+
+	mLogicalAssistApi.setFrom(logicalId(), (mSrc ? mSrc->logicalId() : Id::rootId()));
+	mLogicalAssistApi.setTo(logicalId(), (mDst ? mDst->logicalId() : Id::rootId()));
+
+	highlight(mPenColor);
+}
+
+void EdgeElement::createLoopEdge() // nice implementation makes sense after #602 fixed!
+{
+	if (!(mDst && mSrc)) {
+		return;
+	}
+
+	if ((int) mPortFrom == (int) mPortTo) {
+		searchNextPort();
+	}
+
+	setPos(pos() + mLine.first());
+	mLine.translate(-mLine.first());
+
+	QPolygonF newLine;
+
+	NodeSide const startSide = defineNodePortSide(true);
+	NodeSide const endSide = defineNodePortSide(false);
+
+	QPointF secondPoint = boundingRectIndent(mLine.first(), startSide);
+	QPointF penultPoint = boundingRectIndent(mLine.last(), endSide);
+
+	if (isNeighbor(startSide, endSide)) {
+		QPointF thirdPoint;
+		if ((endSide == top) || (endSide == bottom)) {
+			thirdPoint = QPointF(secondPoint.x(), penultPoint.y());
+		} else {
+			thirdPoint = QPointF(penultPoint.x(), secondPoint.y());
+		}
+		newLine << mLine.first() << secondPoint
+				<< thirdPoint << thirdPoint
+				<< penultPoint << mLine.last(); // Third point added twice for easy change of line mode (to curve lines)
+	} else {
+		QPointF thirdPoint = boundingRectIndent(secondPoint, rotateRight(startSide));
+		QPointF forthPoint = boundingRectIndent(thirdPoint, rotateRight(rotateRight(startSide)));
+
+		newLine << mLine.first() << secondPoint
+				<< thirdPoint << forthPoint
+				<< penultPoint << mLine.last();
+	}
+
+	setLine(newLine);
+
+	setGraphicApiPos();
+	saveConfiguration();
+
+	mIsLoop = true;
+}
+
+QPointF EdgeElement::boundingRectIndent(QPointF const &point, EdgeElement::NodeSide direction)
+{
+	QPointF newPoint;
+	QRectF bounds = mSrc->boundingRect();
+	int reductFactor = indentReductCoeff();
+
+	switch (direction) {
+	case top: {
+		QPointF topPoint = mapToItem(mSrc, QPointF(point.x(), 0));
+		newPoint = mapFromItem(mSrc, QPointF(topPoint.x(), bounds.top() - bounds.height() / reductFactor));
+		break;
+	}
+	case bottom: {
+		QPointF bottomPoint = mapToItem(mSrc, QPointF(point.x(), 0));
+		newPoint = mapFromItem(mSrc, QPointF(bottomPoint.x(), bounds.bottom() + bounds.height() / reductFactor));
+		break;
+	}
+	case left: {
+		QPointF leftPoint = mapToItem(mSrc, QPointF(0, point.y()));
+		newPoint = mapFromItem(mSrc, QPointF(bounds.left() - bounds.width() / reductFactor, leftPoint.y()));
+		break;
+	}
+	case right: {
+		QPointF rightPoint = mapToItem(mSrc, QPointF(0, point.y()));
+		newPoint = mapFromItem(mSrc, QPointF(bounds.right() + bounds.width() / reductFactor, rightPoint.y()));
+		break;
+	}
+	default:
+		qDebug() << "incorrect direction";
+	}
+
+	return newPoint;
+}
+
+int EdgeElement::indentReductCoeff() {
+	return (maxReductCoeff - SettingsManager::value("LoopEdgeBoundsIndent").toInt());
+}
+
+void EdgeElement::searchNextPort() {
+	mPortTo += 1;
+	if (mPortTo > mSrc->numberOfPorts()) {
+		mPortTo -= mSrc->numberOfPorts();
+	}
+}
+
+bool EdgeElement::isNeighbor(const EdgeElement::NodeSide &startSide, const EdgeElement::NodeSide &endSide) const
+{
+	return ((startSide == rotateRight(endSide)) || (endSide == rotateRight(startSide)));
+}
+
+EdgeElement::NodeSide EdgeElement::rotateRight(EdgeElement::NodeSide side) const
+{
+	return (NodeSide)(((int)side + rightRotation) % 4);
 }
 
 bool EdgeElement::initPossibleEdges()
 {
-	if (!possibleEdges.isEmpty())
+	if (!mPossibleEdges.isEmpty()) {
 		return true;
+	}
+
 	QString editor = id().editor();
 	//TODO: do a code generation for diagrams
 	QString diagram = id().diagram();
-	EditorInterface * editorInterface = mGraphicalAssistApi->editorManager().editorInterface(editor);
-	QList<StringPossibleEdge> stringPossibleEdges = editorInterface->getPossibleEdges(id().element());
+	QStringList elements = mGraphicalAssistApi.editorManagerInterface().elements(editor, diagram);
+
+	QList<StringPossibleEdge> stringPossibleEdges
+			= mGraphicalAssistApi.editorManagerInterface().possibleEdges(editor, id().element());
 	foreach (StringPossibleEdge pEdge, stringPossibleEdges) {
-		QPair<qReal::Id, qReal::Id> nodes(Id(editor, diagram, pEdge.first.first),
-		Id(editor, diagram, pEdge.first.second));
 		QPair<bool, qReal::Id> edge(pEdge.second.first, Id(editor, diagram, pEdge.second.second));
-		PossibleEdge possibleEdge(nodes, edge);
-		possibleEdges.push_back(possibleEdge);
+
+		QStringList fromElements;
+		QStringList toElements;
+		foreach (QString const &element, elements) {
+			if (mGraphicalAssistApi.editorManagerInterface().portTypes(Id(editor, diagram, element))
+					.contains(pEdge.first.first)) {
+				fromElements << element;
+			}
+			if (mGraphicalAssistApi.editorManagerInterface().portTypes(Id(editor, diagram, element))
+					.contains(pEdge.first.second)) {
+				toElements << element;
+			}
+		}
+
+		foreach (QString const &fromElement, fromElements) {
+			foreach (QString const &toElement, toElements) {
+				QPair<qReal::Id, qReal::Id> nodes(Id(editor, diagram, fromElement),	Id(editor, diagram, toElement));
+				PossibleEdge possibleEdge(nodes, edge);
+				mPossibleEdges.push_back(possibleEdge);
+
+			}
+		}
 	}
 
-	return (!possibleEdges.isEmpty());
+	return (!mPossibleEdges.isEmpty());
+}
+
+bool EdgeElement::isDividable()
+{
+	return mElementImpl->isDividable();
 }
 
 void EdgeElement::mousePressEvent(QGraphicsSceneMouseEvent *event)
 {
-	mDragPoint = -1;
-	mDragPoint = getPoint(event->pos());
-
-	if (mDragPoint == -1) {
-		Element::mousePressEvent(event);
-		if ((mSrc != NULL) || (mDst != NULL)) {
-			if (event->buttons() != Qt::RightButton) {
-				addPointHandler(event->pos());
-			}
+	if (event->button() == Qt::RightButton) {
+		event->accept();
+		if (event->buttons() & Qt::LeftButton) {
+			mHandler->rejectMovingEdge();
 		}
-	} else {
-		// saving info in case we need to rollback (see #4)
-		mLastDragPoint = mDragPoint;
-		mLastPos = pos();
-		mLastLine = mLine;
+		return;
+	}
+
+	Element::mousePressEvent(event);
+
+	if ((mSrc && mSrc->isSelected() && isSelected()) || (mDst && mDst->isSelected() && isSelected())) {
+		mDragType = wholeEdge;
+		if (mSrc && mSrc->isSelected()) {
+			mSrc->startResize();
+		} else {
+			mDst->startResize();
+		}
+	} else if (event->button() == Qt::LeftButton && !event->modifiers()) {
+		mDragType = mHandler->startMovingEdge(event->pos());
 	}
 }
-bool EdgeElement::isDividable (){
-	return mElementImpl->isDividable();
-}
-
 
 void EdgeElement::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
 {
-	NodeElement *new_src = getNodeAt(mLine.first());
-	NodeElement *new_dst = getNodeAt(mLine.back());
-
-	if (mBeginning) {
-		if (mBeginning != new_src) {
-			mBeginning->setPortsVisible(false);
-		}
+	if (event->button() == Qt::RightButton) {
+		event->accept();
+		return;
 	}
 
-	if (mEnding) {
-		if (mEnding != new_dst) {
-			mEnding->setPortsVisible(false);
-		}
-	}
-
-	mBeginning = new_src;
-	mEnding = new_dst;
-
-	if (mBeginning)
-		mBeginning->setPortsVisible(true);
-
-	if (mEnding)
-		mEnding->setPortsVisible(true);
-
-	if (mDragPoint == -1) {
+	if (mDragType == wholeEdge) {
 		Element::mouseMoveEvent(event);
+		adjustLink();
 	} else {
-		prepareGeometryChange();
-		mLine[mDragPoint] = event->pos();
-		updateLongestPart();
+		if (mDragType > mLine.size() - 1) {
+			mDragType = noPort;
+			mHandler->rejectMovingEdge();
+			return;
+		}
+
+		mHandler->moveEdge(event->pos());
 	}
 }
 
 void EdgeElement::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
 {
-	//	bool deleteCurrentPoint = false;
-
-	//	if  (mLine.size() >= 3) {
-
-	//		if ((mDragPoint > 0) && (mDragPoint < (mLine.size() - 1))) {
-
-	//			QPainterPath path;
-	//			QPainterPathStroker neighbourhood;
-	//			neighbourhood.setWidth(20);
-
-	//			path.moveTo(mLine[mDragPoint - 1]);
-	//			path.lineTo(mLine[mDragPoint + 1]);
-
-	//			if (neighbourhood.createStroke(path).contains(mLine[mDragPoint])) {
-
-	//				delPointHandler(mLine[mDragPoint]);
-	//				mDragPoint -= 1;
-	//				deleteCurrentPoint = true;
-	//			}
-	//		}
-
-	//		// try to eliminate unneeded points
-
-	//		if ((mDragPoint != -1) && (mDragPoint < (mLine.size() - 2))) {
-	//			removeUnneededPoints(mDragPoint);
-	//			if (deleteCurrentPoint)
-	//				mDragPoint += 1;
-	//		}
-
-	//		if (mDragPoint >= 2)
-	//			removeUnneededPoints(mDragPoint - 2);
-
-
-	//	}
-
-	//	if (mDragPoint == -1)
-	//		Element::mouseReleaseEvent(event);
-	//	else
-	//		mDragPoint = -1;
-
-	//	if (SettingsManager::value("SquareLine", false).toBool())
-	//		squarizeHandler(QPointF());
-
-	//	connectToPort();
-
-	//	if (mBeginning)
-	//		mBeginning->setPortsVisible(false);
-
-	//	if (mEnding)
-	//		mEnding->setPortsVisible(false);
-
-	//	// cleanup after moving/resizing
-	//	mBeginning = mEnding = NULL;
-
-	//	arrangeSrcAndDst();
-
-	deleteUnneededPoints();
-
-	if (mDragPoint == -1)
-		Element::mouseReleaseEvent(event);
-	else
-		mDragPoint = -1;
-
-	if (SettingsManager::value("SquareLine").toBool()) {
-		squarizeHandler(QPointF());
-		deleteUnneededPoints();//wtf
+	if (event->button() == Qt::RightButton) {
+		event->accept();
+		return;
 	}
 
-	connectToPort();
+	Element::mouseReleaseEvent(event);
 
-	if (mBeginning)
-		mBeginning->setPortsVisible(false);
-
-	if (mEnding)
-		mEnding->setPortsVisible(false);
-
-	// cleanup after moving/resizing
-	mBeginning = mEnding = NULL;
-
-	arrangeSrcAndDst();
-
-}
-
-void EdgeElement::deleteUnneededPoints()
-{
-	int const delWidth = 30;
-	bool deleteCurrentPoint = false;
-	if  (mLine.size() >= 3) {
-
-		if ((mDragPoint > 0) && (mDragPoint < (mLine.size() - 1))) {
-
-			QPainterPath path;
-			QPainterPathStroker neighbourhood;
-			neighbourhood.setWidth(delWidth);
-
-			path.moveTo(mLine[mDragPoint - 1]);
-			path.lineTo(mLine[mDragPoint + 1]);
-
-			if (neighbourhood.createStroke(path).contains(mLine[mDragPoint])) {
-
-				delPointHandler(mLine[mDragPoint]);
-				mDragPoint -= 1;
-				if (mLine.size() == 3)
-					mDragPoint = 0;
-				deleteCurrentPoint = true;
-			}
+	if (mDragType == wholeEdge) {
+		if (mSrc && mSrc->isSelected()) {
+			mSrc->endResize();
+		} else {
+			mDst->endResize();
 		}
-		if ((mDragPoint != -1) && (mDragPoint < (mLine.size() - 2))) {
-
-			QPainterPath path;
-			QPainterPathStroker neighbourhood;
-			neighbourhood.setWidth(delWidth);
-
-			path.moveTo(mLine[mDragPoint]);
-			path.lineTo(mLine[mDragPoint + 2]);
-
-			if (neighbourhood.createStroke(path).contains(mLine[mDragPoint + 1]))
-				delPointHandler(mLine[mDragPoint + 1]);
-
-			if (deleteCurrentPoint)
-				mDragPoint += 1;
-		}
-
-		if (mDragPoint >= 2) {
-
-			QPainterPath path;
-			QPainterPathStroker neigbourhood;
-			neigbourhood.setWidth(delWidth);
-
-			path.moveTo(mLine[mDragPoint - 2]);
-			path.lineTo(mLine[mDragPoint]);
-
-			if (neigbourhood.createStroke(path).contains(mLine[mDragPoint - 1]))
-				delPointHandler(mLine[mDragPoint - 1]);
-		}
+	} else {
+		mHandler->endMovingEdge();
 	}
 }
 
-void EdgeElement::removeUnneededPoints(int startingPoint)
-{
-	if (startingPoint + 2 < mLine.size()) {
-		if ((mLine[startingPoint].x() == mLine[startingPoint + 1].x() &&
-		mLine[startingPoint].x() == mLine[startingPoint + 2].x()) ||
-		(mLine[startingPoint].y() == mLine[startingPoint + 1].y() &&
-		mLine[startingPoint].y() == mLine[startingPoint + 2].y()))
-		{
-			delPointHandler(mLine[startingPoint + 1]);
-		}
-	}
-}
-
-NodeElement *EdgeElement::getNodeAt(QPointF const &position)
+// NOTE: using don`t forget about possible nodeElement`s overlaps (different Z-value)
+// connecting to the innermost node at the point
+NodeElement *EdgeElement::getNodeAt(QPointF const &position, bool isStart)
 {
 	QPainterPath circlePath;
-	circlePath.addEllipse(mapToScene(position), 12, 12);
-	foreach (QGraphicsItem *item, scene()->items(circlePath)) {
-		NodeElement *e = dynamic_cast<NodeElement *>(item);
-		if (e) {
-			return e;
+	int const searchAreaRadius = SettingsManager::value("IndexGrid", 25).toInt() / 2;
+	circlePath.addEllipse(mapToScene(position), searchAreaRadius, searchAreaRadius);
+	QList<QGraphicsItem*> const items = scene()->items(circlePath);
+
+	qreal minimalDistance = 10e10;  // Very large number
+	NodeElement *closestNode = nullptr;
+
+	// Searching for the node with closest port to our point
+	for (QGraphicsItem * const item : items) {
+		NodeElement * const currentNode = dynamic_cast<NodeElement *>(item);
+		if (currentNode) {
+			QPointF const positionInSceneCoordinates = mapToScene(position);
+			qreal const currentDistance = currentNode->shortestDistanceToPort(positionInSceneCoordinates
+					, isStart ? fromPortTypes() : toPortTypes());
+			if (currentDistance < minimalDistance) {
+				minimalDistance = currentDistance;
+				closestNode = currentNode;
+			}
 		}
 	}
-	return NULL;
+
+	return closestNode;
 }
 
-QList<ContextMenuAction*> EdgeElement::contextMenuActions()
+NodeElement *EdgeElement::innermostChild(QList<QGraphicsItem *> const &items, NodeElement * const element) const
+{
+	foreach (NodeElement *child, element->childNodes()) {
+		if (items.contains(child)) {
+			NodeElement *innerChild = innermostChild(items, child);
+			if (innerChild) {
+				return innerChild;
+			}
+		}
+	}
+
+	if (element->numberOfPorts() > 0) {
+		return element;
+	}
+
+	return nullptr;
+}
+
+QList<ContextMenuAction*> EdgeElement::contextMenuActions(QPointF const &pos)
 {
 	QList<ContextMenuAction*> result;
-	result.push_back(&mAddPointAction);
-	result.push_back(&mDelPointAction);
-	//	result.push_back(&mSquarizeAction);
-	result.push_back(&mMinimizeAction);
+
+	if (SettingsManager::value("LineType", linkShape::unset).toInt() == linkShape::unset) {
+		result.push_back(&mChangeShapeAction);
+	}
+
+	if (reverseActionIsPossible()) {
+		result.push_back(&mReverseAction);
+	}
+
+	result.append(mHandler->extraActions(pos));
+
 	return result;
 }
 
-QList<PossibleEdge> EdgeElement::getPossibleEdges()
+bool EdgeElement::reverseActionIsPossible() const
 {
-	return possibleEdges;
+	if (mIsLoop) {
+		return false;
+	}
+
+	return !(mSrc && !canConnect(mSrc, false)) && !(mDst && !canConnect(mDst, true));
 }
 
-void EdgeElement::delPointHandler(QPointF const &pos)
+bool EdgeElement::canConnect(NodeElement const * const node, bool from) const
 {
-	int pointIndex = getPoint(pos);
-	// it is understood that there is a point and its index is equal to the index of the first and last (end) points
-	if (pointIndex != -1 && pointIndex != mLine.count() - 1 && pointIndex) {
-		prepareGeometryChange();
-		mLine.remove(pointIndex);
-		mLongPart = 0;
-		update();
-	}
+	QSet<QString> nodePortTypes = mGraphicalAssistApi.editorManagerInterface().portTypes(node->id().type()).toSet();
+	QSet<QString> edgePortTypes = from ? mElementImpl->fromPortTypes().toSet() : mElementImpl->toPortTypes().toSet();
+
+	return !nodePortTypes.intersect(edgePortTypes).empty();
 }
 
-void EdgeElement::addPointHandler(QPointF const &pos)
+void EdgeElement::reverse()
 {
-	for (int i = 0; i < mLine.size() - 1; ++i) {
-		QPainterPath path;
-		QPainterPathStroker ps;
-		ps.setWidth(kvadratik - 5);
-
-		path.moveTo(mLine[i]);
-		path.lineTo(mLine[i + 1]);
-		if (ps.createStroke(path).contains(pos)) {
-			mLine.insert(i + 1, pos);
-			mDragPoint = i + 1;
-			update();
-			break;
-		}
+	int const length = mLine.size();
+	for (int i = 0; i < length / 2; ++i) {
+		qSwap(mLine[i], mLine[length - 1 - i]);
 	}
+
+	reversingReconnectToPorts(mDst, mSrc);
+	layOut();
+}
+
+void EdgeElement::reversingReconnectToPorts(NodeElement *newSrc, NodeElement *newDst)
+{
+	mMoving = true;
+
+	mPortFrom = newSrc ? newSrc->portId(mapToItem(newSrc, mLine.first()), fromPortTypes()) : -1.0;
+	mPortTo = newDst ? newDst->portId(mapToItem(newDst, mLine.last()), toPortTypes()) : -1.0;
+
+	setSrc(nullptr);
+	setDst(nullptr);
+
+	if (mPortFrom >= -epsilon) {
+		mSrc = newSrc;
+		mSrc->addEdge(this);
+	}
+
+	if (mPortTo >= -epsilon) {
+		mDst = newDst;
+		mDst->addEdge(this);
+	}
+
+	mGraphicalAssistApi.setFrom(id(), (mSrc ? mSrc->id() : Id::rootId()));
+	mGraphicalAssistApi.setFromPort(id(), mPortFrom);
+	mGraphicalAssistApi.setTo(id(), (mDst ? mDst->id() : Id::rootId()));
+	mGraphicalAssistApi.setToPort(id(), mPortTo);
+	mLogicalAssistApi.setFrom(logicalId(), (mSrc ? mSrc->logicalId() : Id::rootId()));
+	mLogicalAssistApi.setTo(logicalId(), (mDst ? mDst->logicalId() : Id::rootId()));
+
+	mMoving = false;
+}
+
+void EdgeElement::setGraphicApiPos()
+{
+	mMoving = true;
+	mGraphicalAssistApi.setPosition(id(), this->pos());
+	mMoving = false;
+}
+
+void EdgeElement::saveConfiguration()
+{
+	mModelUpdateIsCalled = true;
+	mGraphicalAssistApi.setConfiguration(id(), mLine.toPolygon());
 }
 
 bool EdgeElement::isBreakPointPressed()
@@ -644,128 +765,51 @@ void EdgeElement::breakPointHandler(QPointF const &pos)
 	mBreakPointPressed = true;
 	if (mLine.startsWith(pos.toPoint())) {
 		mLine.insert(0, pos);
-		mDragPoint = 0;
+		mDragType = 0;
 	}
 
 	if (mLine.endsWith(pos.toPoint())) {
 		mLine.insert(mLine.size() - 1, pos);
-		mDragPoint = mLine.size() - 1;
+		mDragType = mLine.size() - 1;
 	}
 }
 
-void EdgeElement::squarizeHandler(QPointF const &pos)
+QList<PossibleEdge> EdgeElement::getPossibleEdges()
 {
-	Q_UNUSED(pos);
-	prepareGeometryChange();
-	int i = 0;
-	while (!mLine.endsWith(mLine[i])) {
-
-		//don't make new point between first-second & (last-1)-last. just drag them.
-		if (i == 0 && mLine.size() > 2) {
-			if (mLine[i + 1].y() == mLine[i + 2].y()) {
-				mLine[i + 1].setX(mLine[i].x());
-				i += 2;
-				continue;
-			}
-			if (mLine[i + 1].x() == mLine[i + 2].x()) {
-				mLine[i + 1].setY(mLine[i].y());
-				i += 2;
-				continue;
-			}
-		}
-
-		if (i == mLine.size() - 3) {
-			if (mLine[i + 1].y() == mLine[i].y()) {
-				mLine[i + 1].setX(mLine[i + 2].x());
-				i += 2;
-				continue;
-			}
-			if (mLine[i + 1].x() == mLine[i].x()) {
-				mLine[i + 1].setY(mLine[i + 2].y());
-				break;
-			}
-		}
-		//if 3 points have same X or Y coordinate delete point between them.
-		if (i < mLine.size() - 3) {
-			if (mLine[i + 1].x() == mLine[i].x() && mLine[i + 2].x() == mLine[i].x()) {
-				mLine.remove(i + 1);
-				i++;
-				continue;
-			}
-			if (mLine[i + 1].y() == mLine[i].y() && mLine[i + 2].y() == mLine[i].y()) {
-				mLine.remove(i + 1);
-				i++;
-				continue;
-			}
-		}
-
-
-		QPointF insPoint = mLine[i]; //point to insert between 2 others to make right angle
-
-		// we need moar comments!!111
-		//dont make new points on line
-		if (insPoint.x() == mLine[i + 1].x() || insPoint.y() == mLine[i + 1].y()) {
-			i++;
-			continue;
-		}
-		insPoint.setX(mLine[i + 1].x());
-		if (mLine[i].x() == insPoint.x() && mLine[i].y() == insPoint.y()) {
-			i++;
-			continue;
-		}
-
-		mLine.insert(i + 1, insPoint); //insert new point to make right angle
-		i += 2;
-	}
-
-	update();
+	return mPossibleEdges;
 }
 
-void EdgeElement::minimizeHandler(const QPointF &pos) {
-	Q_UNUSED(pos);
-	QPolygonF newMLine;
+EdgeElement::NodeSide EdgeElement::defineNodePortSide(bool isStart) const
+{
+	NodeElement const * const node = isStart ? mSrc : mDst;
+	if (!node) {
+		return isStart ? right : top;
+	}
 
-	newMLine << mLine.first() << mLine.last();
-	mLine = newMLine;
-	mGraphicalAssistApi->setConfiguration(id(), mLine.toPolygon());
+	QPointF pos = node->portPos(isStart ? mPortFrom : mPortTo);
+	QRectF const bounds = node->contentsRect();
+
+	// divide bounding rectangle with it's diagonals, then determine in which part the port lies
+	bool isTop = pos.y() < bounds.height() / bounds.width() * pos.x();
+	bool isLeft = pos.y() / bounds.height() + pos.x() / bounds.width() < 1;
+
+	if (isTop) {
+		if (isLeft) {
+			return top;
+		} else {
+			return right;
+		}
+	}
+	if (isLeft) {
+		return left;
+	} else {
+		return bottom;
+	}
 }
 
 void EdgeElement::adjustLink()
 {
-	prepareGeometryChange();
-	if (mSrc)
-		mLine.first() = mapFromItem(mSrc, mSrc->getPortPos(mPortFrom));
-	if (mDst)
-		mLine.last() = mapFromItem(mDst, mDst->getPortPos(mPortTo));
-	updateLongestPart();
-	for (int i = 0; i < mLine.size() - 2; i++)
-		removeUnneededPoints(i);
-	if (SettingsManager::value("SquareLine").toBool())
-		squarizeHandler(QPointF());
-}
-
-bool EdgeElement::shouldReconnect() const
-{
-	if (mSrc) {
-		qreal newFrom = mSrc->getPortId(mapToItem(mSrc, mLine[1]));
-		if (floor(newFrom) != floor(mPortFrom))
-			return true;
-	}
-	if (mDst) {
-		qreal newTo = mDst->getPortId(mapToItem(mDst, mLine[mLine.count() - 2]));
-		if (floor(newTo) != floor(mPortTo))
-			return true;
-	}
-	return false;
-}
-
-void EdgeElement::arrangeSrcAndDst()
-{
-	if (mSrc) {
-		mSrc->arrangeLinks();
-	} else if (mDst) {
-		mDst->arrangeLinks();
-	}
+	mHandler->adjust();
 }
 
 NodeElement *EdgeElement::src() const
@@ -788,145 +832,155 @@ bool EdgeElement::isDst(NodeElement const *node) const
 	return (mDst == node);
 }
 
-qreal EdgeElement::portIdOn(NodeElement const *node) const
+QPair<qreal, qreal> EdgeElement::portIdOn(NodeElement const *node) const
 {
-	if (node == mSrc)
-		return mPortFrom;
-	if (node == mDst)
-		return mPortTo;
-	return -1;
+	if (mIsLoop && node == mSrc) {
+		return qMakePair(mPortFrom, mPortTo);
+	}
+	if (node == mSrc) {
+		return qMakePair(mPortFrom, -1.0);
+	}
+	if (node == mDst) {
+		return qMakePair(-1.0, mPortTo);
+	}
+	return qMakePair(-1.0, -1.0);
 }
 
-QPointF EdgeElement::nextFrom(NodeElement const *node) const
+EdgeArrangeCriteria EdgeElement::arrangeCriteria(NodeElement const *node, QLineF const &portLine) const
 {
-	if (node == mSrc)
-		return mapToItem(mSrc, mLine[1]);
-	if (node == mDst)
-		return mapToItem(mDst, mLine[mLine.count() - 2]);
-	return QPointF();
+	return mHandler->arrangeCriteria(node, portLine);
 }
 
-QPointF EdgeElement::connectionPoint(NodeElement const *node) const
+NodeElement * EdgeElement::otherSide(NodeElement const *node) const
 {
-	if (node == mSrc)
-		return mapToItem(mSrc, mLine[0]);
-	if (node == mDst)
-		return mapToItem(mDst, mLine[mLine.count() - 1]);
-	return QPointF();
-
-}
-
-NodeElement* EdgeElement::otherSide(NodeElement const *node) const
-{
-	if (node == mSrc)
+	if (node == mSrc) {
 		return mDst;
-	if (node == mDst)
+	}
+	if (node == mDst) {
 		return mSrc;
+	}
 	return 0;
 }
 
-bool EdgeElement::reconnectToNearestPorts(bool reconnectSrc, bool reconnectDst, bool jumpsOnly)
+void EdgeElement::reconnectToNearestPorts(bool reconnectSrc, bool reconnectDst)
 {
-	bool reconnectedSrc = false;
-	bool reconnectedDst = false;
-	if (mSrc && reconnectSrc) {
-		qreal newFrom = mSrc->getPortId(mapToItem(mSrc, mLine[1]));
-		reconnectedSrc = (NodeElement::portId(newFrom) != NodeElement::portId(mPortFrom));
-		if (!jumpsOnly || reconnectedSrc) {
-			mPortFrom = newFrom;
-			mGraphicalAssistApi->setFromPort(id(), mPortFrom);
-		}
-
-	}
-	if (mDst && reconnectDst) {
-		qreal newTo = mDst->getPortId(mapToItem(mDst, mLine[mLine.count() - 2]));
-		reconnectedDst = (NodeElement::portId(newTo) != NodeElement::portId(mPortTo));
-		if (!jumpsOnly || reconnectedDst) {
-			mPortTo = newTo;
-			mGraphicalAssistApi->setToPort(id(), mPortTo);
-		}
-	}
-
-	return reconnectedSrc || reconnectedDst;
+	mHandler->reconnect(reconnectSrc, reconnectDst);
 }
 
 void EdgeElement::updateData()
 {
-	if (mMoving)
+	if (mMoving) {
 		return;
+	}
+
+	if (mModelUpdateIsCalled) {
+		Element::updateData();
+		mElementImpl->updateData(this);
+		update();
+		mModelUpdateIsCalled = false;
+		return;
+	}
 
 	Element::updateData();
 
-	setPos(mGraphicalAssistApi->position(id()));
-	QPolygonF newLine = mGraphicalAssistApi->configuration(id());
+	setPos(mGraphicalAssistApi.position(id()));
+	QPolygonF newLine = mGraphicalAssistApi.configuration(id());
 
-	if (!newLine.isEmpty())
+	if (!newLine.isEmpty()) {
 		mLine = newLine;
+	}
 
-	qReal::Id idFrom = mGraphicalAssistApi->from(id());
-	qReal::Id idTo = mGraphicalAssistApi->to(id());
+	qReal::Id idFrom = mGraphicalAssistApi.from(id());
+	qReal::Id idTo = mGraphicalAssistApi.to(id());
 
-	if (mSrc)
+	if (mSrc) {
 		mSrc->delEdge(this);
-	if (mDst)
+	}
+	if (mDst && (mDst != mSrc)) {
 		mDst->delEdge(this);
+	}
 
 	mSrc = dynamic_cast<NodeElement *>(static_cast<EditorViewScene *>(scene())->getElem(idFrom));
 	mDst = dynamic_cast<NodeElement *>(static_cast<EditorViewScene *>(scene())->getElem(idTo));
 
-	if (mSrc)
+	if (mSrc) {
 		mSrc->addEdge(this);
-	if (mDst)
+	}
+	if (mDst && (mDst != mSrc)) {
 		mDst->addEdge(this);
+	}
 
-	setFlag(ItemIsMovable, !(mDst || mSrc));
+	mPortFrom = mGraphicalAssistApi.fromPort(id());
+	mPortTo = mGraphicalAssistApi.toPort(id());
 
-	mPortFrom = mGraphicalAssistApi->fromPort(id());
-	mPortTo = mGraphicalAssistApi->toPort(id());
-
-	adjustLink();
-	if (SettingsManager::value("SquareLine").toBool())
-		squarizeHandler(QPointF());
 	mElementImpl->updateData(this);
+
 	update();
+	updateLongestPart();
+	highlight((mSrc && mDst) ? mPenColor : Qt::red);
 }
 
 void EdgeElement::removeLink(NodeElement const *from)
 {
-	if (mSrc == from)
-		mSrc = NULL;
+	if (mSrc == from) {
+		mSrc = nullptr;
+	}
 
-	if (mDst == from)
-		mDst = NULL;
+	if (mDst == from) {
+		mDst = nullptr;
+	}
+
+	mIsLoop = false;
+
+	highlight();
+}
+
+QStringList EdgeElement::fromPortTypes() const
+{
+	return mElementImpl->fromPortTypes();
+}
+
+QStringList EdgeElement::toPortTypes() const
+{
+	return mElementImpl->toPortTypes();
 }
 
 void EdgeElement::placeStartTo(QPointF const &place)
 {
 	mLine[0] = place;
-	updateLongestPart();
-	if (SettingsManager::value("SquareLine").toBool())
-		squarizeHandler(QPointF());
-	adjustLink();
-
 }
 
 void EdgeElement::placeEndTo(QPointF const &place)
 {
+	prepareGeometryChange();
 	mLine[mLine.size() - 1] = place;
+
+	mHandler->adjust();
+
+	mModelUpdateIsCalled = true;
+	mGraphicalAssistApi.setPosition(id(), this->pos());
+
 	updateLongestPart();
-	if (SettingsManager::value("SquareLine").toBool())
-		squarizeHandler(QPointF());
-	//	adjustLink();
 }
 
 void EdgeElement::moveConnection(NodeElement *node, qreal const portId) {
-	if (node == mSrc) {
-		mPortFrom = portId;
-		mGraphicalAssistApi->setFromPort(id(), mPortFrom);
+	//expected that the id will change only fractional part
+	if ((!mIsLoop || ((int) mPortFrom == (int) portId)) && (node == mSrc)) {
+		setFromPort(portId);
 	}
-	if (node == mDst) {
-		mPortTo = portId;
-		mGraphicalAssistApi->setToPort(id(), mPortTo);
+	if ((!mIsLoop || ((int) mPortTo == (int) portId)) && (node == mDst)) {
+		setToPort(portId);
+	}
+}
+
+void EdgeElement::arrangeLinearPorts()
+{
+	if (mSrc) {
+		mSrc->arrangeLinearPorts();
+	}
+
+	if (mDst) {
+		mDst->arrangeLinearPorts();
 	}
 }
 
@@ -942,23 +996,123 @@ void EdgeElement::drawEndArrow(QPainter *painter) const
 		mElementImpl->drawEndArrow(painter);
 }
 
-void EdgeElement::setColorRect(bool bl)
+void EdgeElement::setColorRect(bool bl) // method is empty
 {
 	Q_UNUSED(bl);
-}
-
-QPointF EdgeElement::from() const
-{
-	return mLine.first() + pos();
-}
-
-QPointF EdgeElement::to() const
-{
-	return mLine.last() + pos();
 }
 
 void EdgeElement::highlight(QColor const color)
 {
 	mColor = color;
 	update();
+}
+
+EdgeData& EdgeElement::data()
+{
+	mData.id = id();
+	mData.logicalId = logicalId();
+	mData.srcId = src() ? src()->id() : Id::rootId();
+	mData.dstId = dst() ? dst()->id() : Id::rootId();
+
+	mData.portFrom = mPortFrom;
+	mData.portTo = mPortTo;
+
+	mData.configuration = mGraphicalAssistApi.configuration(mId);
+	mData.pos = mGraphicalAssistApi.position(mId);
+
+	mData.shapeType = mShapeType;
+
+	return mData;
+}
+
+QVariant EdgeElement::itemChange(GraphicsItemChange change, QVariant const &value)
+{
+	switch (change) {
+	case ItemPositionHasChanged:
+		if (mIsLoop) {
+			return value;
+		}
+		if (isSelected() && (mSrc || mDst) && !mMoving) {
+			if (mSrc && !mSrc->isSelected()) {
+				prepareGeometryChange();
+				mLine.first() = mapFromItem(mSrc, mSrc->portPos(mPortFrom));
+			}
+			if (mDst && !mDst->isSelected()) {
+				prepareGeometryChange();
+				mLine.last() = mapFromItem(mDst, mDst->portPos(mPortTo));
+			}
+		}
+
+		updateLongestPart();
+		return value;
+	default:
+		return QGraphicsItem::itemChange(change, value);
+	}
+}
+
+void EdgeElement::setSrc(NodeElement *node)
+{
+	if (mSrc) {
+		mSrc->delEdge(this);
+	}
+	mSrc = node;
+	mGraphicalAssistApi.setFrom(id(), mSrc ? mSrc->id() : Id::rootId());
+	mLogicalAssistApi.setFrom(logicalId(), mSrc ? mSrc->logicalId() : Id::rootId());
+	if (node) {
+		mSrc->addEdge(this);
+	}
+}
+
+void EdgeElement::setDst(NodeElement *node)
+{
+	if (mDst) {
+		mDst->delEdge(this);
+	}
+	mDst = node;
+	mGraphicalAssistApi.setTo(id(), mDst ? mDst->id() : Id::rootId());
+	mLogicalAssistApi.setTo(logicalId(), mDst ? mDst->logicalId() : Id::rootId());
+	if (node) {
+		mDst->addEdge(this);
+	}
+}
+
+void EdgeElement::tuneForLinker()
+{
+	mMoving = true;
+	setPos(pos() + mLine.first());
+	mLine.translate(-mLine.first());
+	mPortFrom = mSrc ? mSrc->portId(mapToItem(mSrc, mLine.first()), fromPortTypes()) : -1.0;
+	mGraphicalAssistApi.setFromPort(id(), mPortFrom);
+	layOut();
+	mGraphicalAssistApi.setPosition(id(), pos());
+	mMoving = false;
+}
+
+bool EdgeElement::isLoop()
+{
+	return mIsLoop;
+}
+
+void EdgeElement::alignToGrid()
+{
+	prepareGeometryChange();
+	mHandler->alignToGrid();
+	updateLongestPart();
+}
+
+
+void EdgeElement::setPos(qreal x, qreal y)
+{
+	setPos(QPointF(x, y));
+}
+
+void EdgeElement::setPos(QPointF const &pos)
+{
+	if (std::isnan(pos.x()) || std::isnan(pos.y())) {
+		Element::setPos(QPointF());
+		qDebug() << "NaN passed to EdgeElement::setPos(). That means that something went wrong."\
+				"Learn to reproduce this message. The position has been set to (0,0).";
+	} else {
+		Element::setPos(pos);
+	}
 }

@@ -1,11 +1,11 @@
 #pragma once
 
-#include <QtGui/QGraphicsTextItem>
-#include <QtGui/QStyleOptionGraphicsItem>
+#include <QtWidgets/QGraphicsTextItem>
+#include <QtWidgets/QStyleOptionGraphicsItem>
 #include <QtGui/QPainter>
 #include <QtGui/QFont>
 
-#include "item.h"
+#include "mainwindow/shapeEdit/item.h"
 
 class Text : public Item
 {

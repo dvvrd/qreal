@@ -10,8 +10,8 @@
 using namespace qrmc;
 using namespace qReal;
 
-NodeType::NodeType(Diagram *diagram, qrRepo::RepoApi *api, qReal::Id id) : GraphicType(diagram, api, id), mIsPin(false),
-mIsHavePin(false)
+NodeType::NodeType(Diagram *diagram, qrRepo::LogicalRepoApi *api, qReal::Id id) : GraphicType(diagram, api, id), mIsPin(false),
+	mIsHavePin(false)
 {
 }
 
@@ -46,13 +46,13 @@ QString NodeType::generateIsNodeOrEdge(QString const &lineTemplate) const
 	return line;
 }
 
-QString NodeType::generateEdgeClass(const QString &classTemplate) const
+QString NodeType::generateEdgeClass(QString const &classTemplate) const
 {
 	Q_UNUSED(classTemplate)
 	return "";
 }
 
-QString NodeType::generateNodeClass(const QString &classTemplate)
+QString NodeType::generateNodeClass(QString const &classTemplate)
 {
 	if (!mIsVisible)
 		return "";
@@ -77,24 +77,36 @@ QString NodeType::generateNodeClass(const QString &classTemplate)
 			.replace(nodeBorderTag, border)
 			.replace(isNodeTag, "true")
 			.replace(elementNameTag, name())
+			.replace(isResizeable, loadBoolProperty(mId, "isResizeable"))
 			.replace("\\n", "\n");
 	nodeClass += endline;
 	return nodeClass;
 }
 
-QString NodeType::loadBoolProperty(qReal::Id const &id, const QString &property) const
+QString NodeType::loadBoolProperty(qReal::Id const &id, QString const &property) const
 {
 	QString result = mApi->stringProperty(id, property);
-	if (result.isEmpty())
+	if (result.isEmpty()) {
 		result = "false";
+	}
 	return result;
 }
 
-QString NodeType::loadIntProperty(qReal::Id const &id, const QString &property) const
+QString NodeType::loadIntProperty(qReal::Id const &id, QString const &property) const
 {
 	QString result = mApi->stringProperty(id, property);
-	if (result.isEmpty())
+	if (result.isEmpty()) {
 		result = "0";
+	}
+	return result;
+}
+
+QString NodeType::loadIntVectorProperty(qReal::Id const &id, QString const &property) const
+{
+	QString result = mApi->stringProperty(id, property);
+	if (result.isEmpty()) {
+		result = "0,0,0,0";
+	}
 	return result;
 }
 
@@ -102,7 +114,7 @@ void NodeType::generateContainerStuff(QString &classTemplate) const
 {
 	IdList children = mApi->children(mId);
 	bool foundChild = false;
-	foreach(Id child, children){
+	foreach(Id child, children) {
 		if (!mApi->isLogicalElement(child))
 			continue;
 
@@ -113,7 +125,7 @@ void NodeType::generateContainerStuff(QString &classTemplate) const
 					.replace(minimizeToChildrenTag, loadBoolProperty(child, "minimizeToChildren"))
 					.replace(maximizeChildrenTag, loadBoolProperty(child, "maximizeChildren"))
 					.replace(hasMovableChildrenTag, movableChildren)
-					.replace(forestallingSizeTag, loadIntProperty(child, "forestallingSize"))
+					.replace(forestallingSizeTag, loadIntVectorProperty(child, "forestallingSize"))
 					.replace(childrenForestallingSizeTag, loadIntProperty(child, "childrenForestallingSize"));
 			break;
 		}
@@ -145,7 +157,7 @@ void NodeType::generateContextMenuItems(QString &classTemplate, MetaCompiler *co
 			.replace(itemsList, compiler->getTemplateUtils(itemsValidList));
 }
 
-QString NodeType::generateResourceLine(const QString &resourceTemplate) const
+QString NodeType::generateResourceLine(QString const &resourceTemplate) const
 {
 	return mShape.generateResourceLine(resourceTemplate);
 }

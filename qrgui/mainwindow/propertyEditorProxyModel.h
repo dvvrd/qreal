@@ -1,24 +1,24 @@
 /** @file propertyeditorproxymodel.h
- *	@brief Модель редактора свойств
- * */
+*	@brief Property editor model
+* */
+
 #pragma once
 
-#include <QAbstractTableModel>
+#include <QtCore/QAbstractTableModel>
 #include <QtCore/QStringList>
 
-#include "../pluginManager/editorManager.h"
-#include "../../qrrepo/logicalRepoApi.h"
+#include <qrrepo/logicalRepoApi.h>
 
-/** @class PropertyEditorModel
- *	@brief Модель редактора свойств
- * */
+#include "pluginManager/editorManagerInterface.h"
+
+/// Proxy model for property editor, maps single element from main model
+/// (logical or graphical) to a list model with element properties.
 class PropertyEditorModel : public QAbstractTableModel
 {
 	Q_OBJECT
 
 public:
-	explicit PropertyEditorModel(qReal::EditorManager const &editorManager,
-			QObject *parent = 0);
+	explicit PropertyEditorModel(qReal::EditorManagerInterface const &editorManagerInterface, QObject *parent = 0);
 
 	int rowCount(const QModelIndex &index) const;
 	int columnCount(const QModelIndex &index) const;
@@ -42,6 +42,7 @@ public:
 	// Methods for use in delegate, allow to determine where in actual models to put data
 	QModelIndex modelIndex(int row) const;
 	int roleByIndex(int row) const;
+	bool isReference(QModelIndex const &index, QString const &propertyName);
 
 	const QModelIndex& logicalModelIndex() const;
 	const QModelIndex& graphicalModelIndex() const;
@@ -50,6 +51,8 @@ public:
 	QAbstractItemModel* graphicalTargetModel() const;
 
 	bool isCurrentIndex(QModelIndex const &index) const;
+
+	qReal::Id idByIndex(QModelIndex const &index) const;
 
 private slots:
 	void rereadData(QModelIndex const &, QModelIndex const &);
@@ -87,7 +90,7 @@ private:
 
 	QList<Field> mFields;
 
-	qReal::EditorManager const &mEditorManager;
+	qReal::EditorManagerInterface const &mEditorManagerInterface;
 
 	bool isValid() const;
 };

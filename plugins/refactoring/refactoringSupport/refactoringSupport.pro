@@ -1,12 +1,18 @@
 QT += xml
 
 TEMPLATE = lib
-CONFIG += plugin
+CONFIG += plugin c++11
 DESTDIR = ../../../bin/plugins/
 MOC_DIR = .moc
 RCC_DIR = .moc
 
 LIBS += -L../../../bin -lqrkernel -lqrutils -lqrrepo
+
+INCLUDEPATH += \
+	$$PWD/../../.. \
+	$$PWD/../../../qrgui/ \
+
+QT += widgets
 
 TRANSLATIONS = refactoringSupport_ru.ts
 

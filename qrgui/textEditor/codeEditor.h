@@ -1,7 +1,8 @@
 #pragma once
 
-#include <QMainWindow>
-#include "codeArea.h"
+#include <QtWidgets/QMainWindow>
+
+#include "mainwindow/qscintillaTextEdit.h"
 
 namespace qReal {
 namespace gui {
@@ -11,12 +12,12 @@ class CodeEditor : public QMainWindow {
 
 	public:
 		CodeEditor(QWidget *parent = 0);
-		CodeEditor(const QString& filename, QWidget *parent = 0);
+		CodeEditor(QString const &filename, QWidget *parent = 0);
 
 		void setHighlightedLineNumbers(const QList<int>& lineNumbers);
 
 	private:
-		CodeArea mCodeArea;
+		QScintillaTextEdit mCodeArea;
 };
 
 }

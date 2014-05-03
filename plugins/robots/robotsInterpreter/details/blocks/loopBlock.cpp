@@ -6,16 +6,19 @@ using namespace interpreters::robots::details::blocks;
 LoopBlock::LoopBlock()
 	: mIterationStartBlock(NULL)
 	, mIterations(0)
+	, mFirstRun(true)
 {
 }
 
 void LoopBlock::run()
 {
 	--mIterations;
-	if (mIterations <= 0)
+	if (mIterations < 0) {
+		mFirstRun = true;
 		emit done(mNextBlock);
-	else
+	} else {
 		emit done(mIterationStartBlock);
+	}
 }
 
 bool LoopBlock::initNextBlocks()
@@ -25,15 +28,17 @@ bool LoopBlock::initNextBlocks()
 
 	IdList const links = mGraphicalModelApi->graphicalRepoApi().outgoingLinks(id());
 
-	foreach (Id const linkId, links) {
+	QString const iterationNotFoundError = tr("There must be an outgoing link with"\
+			" property <b>Guard</b> set as <b>iteration</b>. See help, chapter <i>Programming</i>");
+	foreach (Id const &linkId, links) {
 		Id const targetBlockId = mGraphicalModelApi->graphicalRepoApi().otherEntityFromLink(linkId, id());
-		if (targetBlockId == Id()) {
+		if (targetBlockId.isNull()) {
 			error(tr("Outgoing link is not connected"));
 			return false;
 		}
 
 		Block *targetBlock = mBlocksTable->block(targetBlockId);
-		if (stringProperty(linkId, "Guard").toLower() == tr("iteration")) {
+		if (stringProperty(linkId, "Guard").toLower() == QString::fromUtf8("итерация")) {
 			if (!iterationFound) {
 				mIterationStartBlock = targetBlock;
 				iterationFound = true;
@@ -46,20 +51,25 @@ bool LoopBlock::initNextBlocks()
 				mNextBlock = targetBlock;
 				nextFound = true;
 			} else {
-				error(tr("Two outgoing links to a next element found"));
+				error(iterationNotFoundError);
 				return false;
 			}
 		}
 	}
 
 	if (!iterationFound) {
-		error(tr("There must be a link with property \"Guard\" set as \"iteration\""));
+		error(iterationNotFoundError);
 		return false;
 	}
 
 	if (!nextFound) {
 		error(tr("There must be a non-marked outgoing link"));
 		return false;
+	}
+
+	if (mFirstRun) {
+		additionalInit();
+		mFirstRun = false;
 	}
 
 	return true;

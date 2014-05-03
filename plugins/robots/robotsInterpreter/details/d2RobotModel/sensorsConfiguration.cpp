@@ -1,7 +1,8 @@
-#include "sensorsConfiguration.h"
-
 #include <QtCore/QStringList>
 
+#include "sensorsConfiguration.h"
+
+using namespace qReal::interpreters;
 using namespace qReal::interpreters::robots;
 using namespace details::d2Model;
 
@@ -10,49 +11,48 @@ SensorsConfiguration::SensorsConfiguration()
 	mSensors.resize(4);
 }
 
-void SensorsConfiguration::setSensor(inputPort::InputPortEnum const &port
-		, sensorType::SensorTypeEnum const &type
-		, QPoint const &position
+void SensorsConfiguration::setSensor(robots::enums::inputPort::InputPortEnum const port
+		, robots::enums::sensorType::SensorTypeEnum const &type
+		, QPointF const &position
 		, qreal const &direction)
 {
 	mSensors[port] = SensorInfo(position, direction, type);
 }
 
-void SensorsConfiguration::setPosition(inputPort::InputPortEnum const &port, QPoint const &position)
+void SensorsConfiguration::setPosition(robots::enums::inputPort::InputPortEnum const port, QPointF const &position)
 {
 	mSensors[port].setPosition(position);
 }
 
-QPoint SensorsConfiguration::position(inputPort::InputPortEnum const &port) const
+QPointF SensorsConfiguration::position(robots::enums::inputPort::InputPortEnum const port) const
 {
 	return mSensors[port].position();
 }
 
-void SensorsConfiguration::setDirection(inputPort::InputPortEnum const &port, qreal direction)
+void SensorsConfiguration::setDirection(robots::enums::inputPort::InputPortEnum const port, qreal direction)
 {
 	mSensors[port].setDirection(direction);
 }
 
-qreal SensorsConfiguration::direction(inputPort::InputPortEnum const &port) const
+qreal SensorsConfiguration::direction(robots::enums::inputPort::InputPortEnum const port) const
 {
 	return mSensors[port].direction();
 }
 
-sensorType::SensorTypeEnum SensorsConfiguration::type(inputPort::InputPortEnum const &port) const
+robots::enums::sensorType::SensorTypeEnum SensorsConfiguration::type(robots::enums::inputPort::InputPortEnum const port) const
 {
 	return mSensors[port].type();
 }
 
-void SensorsConfiguration::clearSensor(inputPort::InputPortEnum const &port)
+void SensorsConfiguration::clearSensor(robots::enums::inputPort::InputPortEnum const port)
 {
 	mSensors[port] = SensorInfo();
 }
 
-QDomElement SensorsConfiguration::serialize(QDomDocument &document) const
+void SensorsConfiguration::serialize(QDomElement &robot, QDomDocument &document) const
 {
-	QDomElement result = document.createElement("robot");
 	QDomElement sensorsElem = document.createElement("sensors");
-	result.appendChild(sensorsElem);
+	robot.appendChild(sensorsElem);
 
 	int port = 0;
 	foreach (SensorInfo const &sensor, mSensors) {
@@ -64,8 +64,7 @@ QDomElement SensorsConfiguration::serialize(QDomDocument &document) const
 		sensorElem.setAttribute("direction", sensor.direction());
 		++port;
 	}
-
-	return result;
+	robot.appendChild(sensorsElem);
 }
 
 void SensorsConfiguration::deserialize(QDomElement const &element)
@@ -82,14 +81,17 @@ void SensorsConfiguration::deserialize(QDomElement const &element)
 	for (int i = 0; i < sensors.count(); ++i) {
 		QDomElement const sensorNode = sensors.at(i).toElement();
 
-		inputPort::InputPortEnum const port = static_cast<inputPort::InputPortEnum>(sensorNode.attribute("port", "0").toInt());
-		sensorType::SensorTypeEnum const type = static_cast<sensorType::SensorTypeEnum>(sensorNode.attribute("type", "0").toInt());
+		robots::enums::inputPort::InputPortEnum const port
+				= static_cast<robots::enums::inputPort::InputPortEnum>(sensorNode.attribute("port", "0").toInt());
+
+		robots::enums::sensorType::SensorTypeEnum const type
+				= static_cast<robots::enums::sensorType::SensorTypeEnum>(sensorNode.attribute("type", "0").toInt());
 
 		QString const positionStr = sensorNode.attribute("position", "0:0");
 		QStringList const splittedStr = positionStr.split(":");
-		int const x = splittedStr[0].toInt();
-		int const y = splittedStr[1].toInt();
-		QPoint const position = QPoint(x, y);
+		qreal const x = static_cast<qreal>(splittedStr[0].toDouble());
+		qreal const y = static_cast<qreal>(splittedStr[1].toDouble());
+		QPointF const position = QPoint(x, y);
 
 		qreal const direction = sensorNode.attribute("direction", "0").toDouble();
 
@@ -99,24 +101,25 @@ void SensorsConfiguration::deserialize(QDomElement const &element)
 
 
 SensorsConfiguration::SensorInfo::SensorInfo()
-	: mDirection(0), mSensorType(sensorType::unused)
+	: mDirection(0), mSensorType(robots::enums::sensorType::unused)
 {
 }
 
-SensorsConfiguration::SensorInfo::SensorInfo(QPoint const &position
+SensorsConfiguration::SensorInfo::SensorInfo(QPointF const &position
 		, qreal direction
-		, sensorType::SensorTypeEnum const &sensorType
-)
-	: mPosition(position), mDirection(direction), mSensorType(sensorType)
+		, robots::enums::sensorType::SensorTypeEnum const &sensorType)
+	: mPosition(position)
+	, mDirection(direction)
+	, mSensorType(sensorType)
 {
 }
 
-QPoint SensorsConfiguration::SensorInfo::position() const
+QPointF SensorsConfiguration::SensorInfo::position() const
 {
 	return mPosition;
 }
 
-void SensorsConfiguration::SensorInfo::setPosition(QPoint const &position)
+void SensorsConfiguration::SensorInfo::setPosition(QPointF const &position)
 {
 	mPosition = position;
 }
@@ -131,7 +134,7 @@ void SensorsConfiguration::SensorInfo::setDirection(qreal direction)
 	mDirection = direction;
 }
 
-sensorType::SensorTypeEnum SensorsConfiguration::SensorInfo::type() const
+robots::enums::sensorType::SensorTypeEnum SensorsConfiguration::SensorInfo::type() const
 {
 	return mSensorType;
 }
