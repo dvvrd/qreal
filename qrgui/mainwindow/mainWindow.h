@@ -45,6 +45,8 @@
 #include "toolPluginInterface/systemEvents.h"
 #include "mainwindow/filterObject.h"
 
+class QDeclarativeEngine;
+
 namespace Ui {
 class MainWindowUi;
 }
@@ -389,6 +391,8 @@ private:
 	gestures::GesturesWidget *mGesturesWidget;
 	SystemEvents *mSystemEvents;
 	TextManager *mTextManager;
+
+	QDeclarativeEngine *mQmlEngine;
 
 	QVector<bool> mSaveListChecked;
 

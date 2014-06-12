@@ -8,7 +8,11 @@
 #include <QtWidgets/QToolTip>
 #include <QtWidgets/QGraphicsDropShadowEffect>
 
+#include <QtDeclarative/QDeclarativeEngine>
+#include <QtDeclarative/QDeclarativeItem>
+
 #include <math.h>
+#include <qrutils/inFile.h>
 #include <qrutils/mathUtils/geometry.h>
 
 #include "umllib/labelFactory.h"
@@ -29,12 +33,14 @@
 using namespace qReal;
 using namespace qReal::commands;
 
-NodeElement::NodeElement(ElementImpl *impl
-		, Id const &id
-		, models::GraphicalModelAssistApi &graphicalAssistApi
-		, models::LogicalModelAssistApi &logicalAssistApi
-		)
+NodeElement::NodeElement(QDeclarativeEngine * const qmlEngine
+	, ElementImpl *impl
+	, Id const &id
+	, models::GraphicalModelAssistApi &graphicalAssistApi
+	, models::LogicalModelAssistApi &logicalAssistApi
+	)
 		: Element(impl, id, graphicalAssistApi, logicalAssistApi)
+		, mQmlEngine(qmlEngine)
 		, mSwitchGridAction(tr("Switch on grid"), this)
 		, mDragState(None)
 		, mResizeCommand(NULL)
@@ -53,13 +59,14 @@ NodeElement::NodeElement(ElementImpl *impl
 	setFlag(ItemClipsChildrenToShape, false);
 	setFlag(QGraphicsItem::ItemDoesntPropagateOpacityToChildren);
 
-	mRenderer = new SdfRenderer();
+	initQml();
+
 	LabelFactory labelFactory(graphicalAssistApi, mId);
 	QList<LabelInterface*> titles;
 
 	QList<PortInterface *> ports;
 	PortFactory portFactory;
-	mElementImpl->init(mContents, portFactory, ports, labelFactory, titles, mRenderer, this);
+	mElementImpl->init(mContents, portFactory, ports, labelFactory, titles, this);
 	mPortHandler = new PortHandler(this, mGraphicalAssistApi, ports);
 
 	foreach (LabelInterface * const labelInterface, titles) {
@@ -100,7 +107,6 @@ NodeElement::~NodeElement()
 		delete title;
 	}
 
-	delete mRenderer;
 	delete mElementImpl;
 
 	foreach (ContextMenuAction* action, mBonusContextMenuActions) {
@@ -109,6 +115,20 @@ NodeElement::~NodeElement()
 
 	delete mGrid;
 	delete mPortHandler;
+}
+
+void NodeElement::initQml()
+{
+	QDeclarativeComponent component(mQmlEngine, QUrl("qrc:/generated/shapes/" + mId.element() + "Class.qml"));
+	if (component.isReady()) {
+		mQmlItem = qobject_cast<QDeclarativeItem *>(component.create());
+	} else {
+		QDeclarativeComponent defaultComponent(mQmlEngine, QUrl("qrc:/default.qml"));
+		mQmlItem = qobject_cast<QDeclarativeItem *>(defaultComponent.create());
+	}
+
+	qobject_cast<QGraphicsObject *>(mQmlItem)->setParentItem(this);
+	mQmlItem->setFlag(QGraphicsItem::ItemStacksBehindParent);
 }
 
 void NodeElement::initPortsVisibility()
@@ -165,6 +185,13 @@ void NodeElement::setGeometry(QRectF const &geom)
 	mTransform.reset();
 	mTransform.scale(mContents.width(), mContents.height());
 	adjustLinks();
+	/// Setting item`s size immediately leads to incorrect qml`s engine behaviour during initialization.
+	QTimer::singleShot(0, this, SLOT(syncQmlItemSize()));
+}
+
+void NodeElement::syncQmlItemSize()
+{
+	mQmlItem->setSize(mContents.size());
 }
 
 void NodeElement::setPos(QPointF const &pos)
@@ -823,7 +850,7 @@ void NodeElement::setPortsVisible(QStringList const &types)
 
 void NodeElement::paint(QPainter *painter, QStyleOptionGraphicsItem const *style, QWidget *)
 {
-	mElementImpl->paint(painter, mContents);
+//	mElementImpl->paint(painter, mContents);
 	paint(painter, style);
 
 	if (mSelectionNeeded) {
@@ -1329,7 +1356,7 @@ void NodeElement::initRenderedDiagram()
 	Id const diagram = mLogicalAssistApi.logicalRepoApi().outgoingExplosion(logicalId());
 	Id const graphicalDiagram = mGraphicalAssistApi.graphicalIdsByLogicalId(diagram)[0];
 
-	EditorView view(window);
+	EditorView view(mQmlEngine, window);
 	EditorViewScene *openedScene = dynamic_cast<EditorViewScene *>(view.scene());
 	openedScene->setMainWindow(window);
 	openedScene->setNeedDrawGrid(false);
@@ -1361,8 +1388,8 @@ void NodeElement::initRenderedDiagram()
 QRectF NodeElement::diagramRenderingRect() const
 {
 	EditorViewScene const *evScene = dynamic_cast<EditorViewScene *>(scene());
-	NodeElement const *initial = new NodeElement(
-			evScene->mainWindow()->editorManager().elementImpl(id())
+	NodeElement const *initial = new NodeElement(mQmlEngine
+			, evScene->mainWindow()->editorManager().elementImpl(id())
 			, id().sameTypeId()
 			, mGraphicalAssistApi
 			, mLogicalAssistApi

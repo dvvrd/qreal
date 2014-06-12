@@ -1,4 +1,4 @@
-QT += svg xml printsupport widgets help
+QT += svg xml printsupport widgets help declarative
 
 INCLUDEPATH += \
 	$$PWD \

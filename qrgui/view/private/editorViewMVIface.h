@@ -6,6 +6,7 @@
 #include "models/logicalModelAssistApi.h"
 
 class QGraphicsItem;
+class QDeclarativeEngine;
 
 namespace qReal {
 
@@ -24,7 +25,7 @@ class EditorViewMViface : public QAbstractItemView
 	Q_OBJECT
 
 public:
-	EditorViewMViface(qReal::EditorView *view, EditorViewScene *scene);
+	EditorViewMViface(QDeclarativeEngine *qmlEngine, qReal::EditorView *view, EditorViewScene *scene);
 	~EditorViewMViface();
 
 	QModelIndex indexAt(const QPoint &point) const;
@@ -57,14 +58,6 @@ private slots:
 private:
 	typedef QPair<QPersistentModelIndex, Element*> IndexElementPair;
 
-	EditorViewScene *mScene;
-	qReal::EditorView *mView;
-	models::GraphicalModelAssistApi *mGraphicalAssistApi;
-	models::LogicalModelAssistApi *mLogicalAssistApi;
-
-	/** @brief elements on the scene. their indices change SUDDENLY, so don't use maps, hashes etc. */
-	QSet<IndexElementPair> mItems;
-
 	QModelIndex moveCursor(QAbstractItemView::CursorAction cursorAction, Qt::KeyboardModifiers modifiers);
 
 	int horizontalOffset() const;
@@ -81,6 +74,15 @@ private:
 	void removeItem(QPersistentModelIndex const &index);
 
 	void clearItems();
+
+	QDeclarativeEngine *mQmlEngine;
+	EditorViewScene *mScene;
+	qReal::EditorView *mView;
+	models::GraphicalModelAssistApi *mGraphicalAssistApi;
+	models::LogicalModelAssistApi *mLogicalAssistApi;
+
+	/** @brief elements on the scene. their indices change SUDDENLY, so don't use maps, hashes etc. */
+	QSet<IndexElementPair> mItems;
 };
 
 }
