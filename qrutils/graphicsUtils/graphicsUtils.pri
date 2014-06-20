@@ -11,6 +11,7 @@ HEADERS += \
 	$$PWD/gridDrawer.h \
 	$$PWD/paintWidget.h \
 	$$PWD/painterInterface.h \
+	$$PWD/itemRenderer.h \
 
 SOURCES += \
 	$$PWD/abstractItem.cpp \
@@ -25,3 +26,4 @@ SOURCES += \
 	$$PWD/gridDrawer.cpp \
 	$$PWD/paintWidget.cpp \
 	$$PWD/painterInterface.cpp \
+	$$PWD/itemRenderer.cpp \

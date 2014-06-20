@@ -30,6 +30,7 @@
 #include "view/editorView.h"
 #include "hotKeyManager/hotKeyManager.h"
 #include "umllib/element.h"
+#include "umllib/qmlIconLoader.h"
 #include "pluginManager/listenerManager.h"
 #include "view/sceneCustomizer.h"
 #include "brandManager/brandManager.h"
@@ -100,6 +101,8 @@ MainWindow::MainWindow(QString const &fileToOpen)
 
 	initMiniMap();
 	initGridProperties();
+
+	QmlIconLoader::setQmlEngine(mQmlEngine);
 
 	splashScreen.setProgress(40);
 
