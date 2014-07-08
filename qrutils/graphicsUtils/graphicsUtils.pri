@@ -12,6 +12,7 @@ HEADERS += \
 	$$PWD/paintWidget.h \
 	$$PWD/painterInterface.h \
 	$$PWD/itemRenderer.h \
+	$$PWD/animatedHighlighter.h \
 
 SOURCES += \
 	$$PWD/abstractItem.cpp \
@@ -27,3 +28,4 @@ SOURCES += \
 	$$PWD/paintWidget.cpp \
 	$$PWD/painterInterface.cpp \
 	$$PWD/itemRenderer.cpp \
+	$$PWD/animatedHighlighter.cpp \

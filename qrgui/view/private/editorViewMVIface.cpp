@@ -17,6 +17,7 @@ EditorViewMViface::EditorViewMViface(QDeclarativeEngine *qmlEngine, EditorView *
 	, mView(view)
 	, mGraphicalAssistApi(nullptr)
 	, mLogicalAssistApi(nullptr)
+	, mExploser(nullptr)
 {
 	mScene->setMVIface(this);
 	mScene->mView = mView;
@@ -147,7 +148,8 @@ void EditorViewMViface::rowsInserted(QModelIndex const &parent, int start, int e
 		ElementImpl * const elementImpl = mScene->mainWindow()->editorManager().elementImpl(currentId);
 		Element *elem = elementImpl->isNode()
 				? dynamic_cast<Element *>(
-						new NodeElement(mQmlEngine, elementImpl, currentId, *mGraphicalAssistApi, *mLogicalAssistApi)
+						new NodeElement(mQmlEngine, elementImpl, currentId
+								, *mGraphicalAssistApi, *mLogicalAssistApi, *mExploser)
 						)
 				: dynamic_cast<Element *>(
 						new EdgeElement(elementImpl, currentId, *mGraphicalAssistApi, *mLogicalAssistApi)
@@ -386,11 +388,12 @@ void EditorViewMViface::removeItem(QPersistentModelIndex const &index)
 	}
 }
 
-void EditorViewMViface::setAssistApi(models::GraphicalModelAssistApi &graphicalAssistApi
-		, models::LogicalModelAssistApi &logicalAssistApi)
+void EditorViewMViface::configure(models::GraphicalModelAssistApi &graphicalAssistApi
+		, models::LogicalModelAssistApi &logicalAssistApi, Exploser &exploser)
 {
 	mGraphicalAssistApi = &graphicalAssistApi;
 	mLogicalAssistApi = &logicalAssistApi;
+	mExploser = &exploser;
 }
 
 void EditorViewMViface::setLogicalModel(QAbstractItemModel * const logicalModel)

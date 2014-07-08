@@ -41,7 +41,9 @@ public:
 			, ElementImpl *impl
 			, Id const &id
 			, qReal::models::GraphicalModelAssistApi &graphicalAssistApi
-			, qReal::models::LogicalModelAssistApi &logicalAssistApi);
+			, qReal::models::LogicalModelAssistApi &logicalAssistApi
+			, Exploser &exploser
+			);
 
 	~NodeElement() override;
 
@@ -267,6 +269,8 @@ private:
 
 	QDeclarativeEngine *mQmlEngine;
 	QDeclarativeItem *mQmlItem;
+
+	Exploser &mExploser;
 
 	ContextMenuAction mSwitchGridAction;
 

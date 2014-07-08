@@ -4,6 +4,7 @@
 
 #include "models/graphicalModelAssistApi.h"
 #include "models/logicalModelAssistApi.h"
+#include "pluginManager/exploser.h"
 
 class QGraphicsItem;
 class QDeclarativeEngine;
@@ -32,8 +33,8 @@ public:
 	QRect visualRect(const QModelIndex &index) const;
 	void scrollTo(const QModelIndex &index, ScrollHint hint = EnsureVisible);
 	bool isDescendentOf(const QModelIndex &descendent, const QModelIndex &ancestor);
-	void setAssistApi(models::GraphicalModelAssistApi &graphicalAssistApi
-			, models::LogicalModelAssistApi &logicalAssistApi);
+	void configure(models::GraphicalModelAssistApi &graphicalAssistApi
+			, models::LogicalModelAssistApi &logicalAssistApi, Exploser &exploser);
 	void setLogicalModel(QAbstractItemModel * const logicalModel);
 	Id rootId() const;
 
@@ -80,6 +81,7 @@ private:
 	qReal::EditorView *mView;
 	models::GraphicalModelAssistApi *mGraphicalAssistApi;
 	models::LogicalModelAssistApi *mLogicalAssistApi;
+	Exploser *mExploser;
 
 	/** @brief elements on the scene. their indices change SUDDENLY, so don't use maps, hashes etc. */
 	QSet<IndexElementPair> mItems;
