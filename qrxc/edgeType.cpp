@@ -198,12 +198,20 @@ void EdgeType::generateGraphics() const
 {
 	QString lineType = mLineType;
 	lineType.remove("Qt::").remove("Line").toLower();
-
 	OutFile out("generated/shapes/" + resourceName("Class"));
-	out() << "<picture sizex=\"100\" sizey=\"60\" >\n"
-			<< "\t<line fill=\""<< mLineColor.name() << "\" stroke-style=\"" << lineType << "\" stroke=\""
-			<< mLineColor.name() <<"\" y1=\"0\" "
-			<< "x1=\"0\" y2=\"60\" stroke-width=\"2\" x2=\"100\" fill-style=\"solid\" />\n" << "</picture>";
+	out() << "import QtQuick 1.1 \n"
+			<< "import CustomComponents 1.0 \n"
+			<< "Rectangle { \n"
+			<< "\t width: 100 \n"
+			<< "\t height: 60 \n"
+			<< "\t Line { \n"
+			<< "\t \t x1: 0; y1: 0 \n"
+			<< "\t \t x2: 100; y2: 60 \n"
+			<< "\t \t color: \"" << mLineColor.name().toLower() << "\"\n"
+			<< "\t \t width: 1 \n"
+			<< "\t \t style: \"" << lineType.toLower() << "\"\n"
+			<< "\t} \n"
+			<< "}";
 	mDiagram->editor()->xmlCompiler()->addResource("\t<file>generated/shapes/" + resourceName("Class") + "</file>\n");
 }
 

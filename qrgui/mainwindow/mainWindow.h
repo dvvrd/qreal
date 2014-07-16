@@ -312,6 +312,7 @@ private:
 	void setDefaultShortcuts();
 
 	void registerMetaTypes();
+	void registerQmlTypes();
 
 	QListWidget* createSaveListWidget();
 

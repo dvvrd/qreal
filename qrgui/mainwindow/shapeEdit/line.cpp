@@ -6,6 +6,7 @@
 
 const int step = 3;
 
+using namespace qReal;
 using namespace graphicsUtils;
 
 Line::Line(qreal x1, qreal y1, qreal x2, qreal y2, Item* parent):Item(parent), mLineImpl()
