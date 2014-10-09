@@ -12,7 +12,7 @@
 
 using namespace qReal;
 
-StartWidget::StartWidget(MainWindow *mainWindow, ProjectManager *projectManager)
+StartWidget::StartWidget(MainWindow *mainWindow, ProjectManager *projectManager, QDeclarativeEngine * const qmlEngine)
 	: mMainWindow(mainWindow)
 	, mProjectManager(projectManager)
 	, mProjectListSize(5)  // TODO: Why 5?
@@ -20,6 +20,7 @@ StartWidget::StartWidget(MainWindow *mainWindow, ProjectManager *projectManager)
 	, mOpenProjectButton(nullptr)
 	, mOpenInterpreterButton(nullptr)
 	, mCreateInterpreterButton(nullptr)
+	, mQmlEngine(qmlEngine)
 {
 	setStyleSheet(BrandManager::styles()->startTabSubstrateBackgroundStyle());
 	QWidget * const mainWidget = createMainWidget();
@@ -273,7 +274,7 @@ void StartWidget::openInterpretedDiagram()
 	ProxyEditorManager &editorManagerProxy = mMainWindow->editorManagerProxy();
 
 	if (!fileName.isEmpty() && mProjectManager->open(fileName)) {
-		editorManagerProxy.setProxyManager(new InterpreterEditorManager(fileName));
+		editorManagerProxy.setProxyManager(new InterpreterEditorManager(fileName, mQmlEngine));
 		QStringList interpreterDiagramsList;
 		foreach (Id const &editor, editorManagerProxy.editors()) {
 			foreach (Id const &diagram, editorManagerProxy.diagrams(editor)) {
@@ -304,7 +305,7 @@ void StartWidget::createInterpretedDiagram()
 {
 	hide();
 	ProxyEditorManager &editorManagerProxy = mMainWindow->editorManagerProxy();
-	editorManagerProxy.setProxyManager(new InterpreterEditorManager(""));
+	editorManagerProxy.setProxyManager(new InterpreterEditorManager("", mQmlEngine));
 	bool ok = false;
 	QString name = QInputDialog::getText(this, tr("Enter the diagram name:"), tr("diagram name:")
 			, QLineEdit::Normal, "", &ok);

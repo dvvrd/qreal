@@ -2282,7 +2282,7 @@ void MainWindow::setVersion(QString const &version)
 
 void MainWindow::openStartTab()
 {
-	mStartWidget = new StartWidget(this, mProjectManager);
+	mStartWidget = new StartWidget(this, mProjectManager, mQmlEngine);
 	int const index = mUi->tabs->addTab(mStartWidget, tr("Getting Started"));
 	mUi->tabs->setTabUnclosable(index);
 	mStartWidget->setVisibleForInterpreterButton(mToolManager.customizer()->showInterpeterButton());

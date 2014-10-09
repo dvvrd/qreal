@@ -122,7 +122,8 @@ NodeElement::~NodeElement()
 
 void NodeElement::initQml()
 {
-	QDeclarativeComponent component(mQmlEngine, mElementImpl->qmlUrl());
+	QDeclarativeComponent component(mQmlEngine);
+	component.setData(mElementImpl->qmlString().toLocal8Bit(),QUrl());
 	if (component.isReady()) {
 		mQmlItem = qobject_cast<QDeclarativeItem *>(component.create());
 	} else {

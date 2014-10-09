@@ -6,6 +6,9 @@
 
 #include "mainwindow/projectManager/projectManager.h"
 
+class QDeclarativeItem;
+class QDeclarativeEngine;
+
 namespace qReal {
 
 class MainWindow;
@@ -19,7 +22,7 @@ class StartWidget : public QWidget
 	Q_OBJECT
 
 public:
-	StartWidget(MainWindow *mainWindow, ProjectManager *projectManager);
+	StartWidget(MainWindow *mainWindow, ProjectManager *projectManager, QDeclarativeEngine * const qmlEngine);
 
 	/// Shows or hides interpreter buttons. Also this method can change layout of the
 	/// buttons on start tab.
@@ -56,6 +59,7 @@ private:
 	QPushButton *mOpenProjectButton;  // Has ownership.
 	QPushButton *mOpenInterpreterButton;  // Has ownership.
 	QPushButton *mCreateInterpreterButton;  // Has ownership.
+	QDeclarativeEngine *mQmlEngine;
 };
 
 }

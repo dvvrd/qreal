@@ -12,15 +12,17 @@
 #include "pluginManager/interpreterEditorManager.h"
 #include "umllib/nodeElement.h"
 #include "umllib/edgeElement.h"
+#include "umllib/qmlIconLoader.h"
 #include "pluginManager/details/interpreterElementImpl.h"
 #include "mainwindow/mainWindow.h"
 
 using namespace qReal;
 using namespace utils;
 
-InterpreterEditorManager::InterpreterEditorManager(QString const &fileName, QObject *parent)
+InterpreterEditorManager::InterpreterEditorManager(QString const &fileName, QDeclarativeEngine * const qmlEngine, QObject *parent)
 		: QObject(parent)
 		, mMetamodelFile(fileName)
+		, mQmlEngine(qmlEngine)
 {
 	qrRepo::RepoApi * const repo = new qrRepo::RepoApi(fileName);
 	mEditorRepoApi.insert("test", repo);
@@ -417,10 +419,23 @@ QIcon InterpreterEditorManager::icon(Id const &id) const
 	QPair<qrRepo::RepoApi*, Id> const repoAndMetaIdPair = repoAndMetaId(id);
 	qrRepo::RepoApi const * const repo = repoAndMetaIdPair.first;
 	Id const metaId = repoAndMetaIdPair.second;
-	QDomDocument classDoc;
-	QDomElement sdfElement;
+	QString const source;
+	//QDomDocument classDoc;
+	//QDomElement sdfElement;
+
 	if (metaId.element() == "MetaEntityEdge") {
-		sdfElement = classDoc.createElement("picture");
+		source.arg("import QtQuick 1.1 \n")
+				.arg("import CustomComponents 1.0 \n")
+				 .arg("Rectangle { \n")
+				 .arg("\t width : 100; height : 60 \n")
+				 .arg("\t Line{ \n")
+				 .arg("\t\t x1 : 0; y1 : 0 \n")
+				 .arg("\t\t x2 : 100; y2:60 \n")
+				 .arg("\t\t width : 2 \n")
+				 .arg("\t\t style:\"solid""\"\n")
+				 .arg("\t} \n")
+				 .arg("}\n");
+		/*sdfElement = classDoc.createElement("picture");
 		sdfElement.setAttribute("sizex", 100);
 		sdfElement.setAttribute("sizey", 60);
 		QDomElement lineElement = classDoc.createElement("line");
@@ -434,27 +449,27 @@ QIcon InterpreterEditorManager::icon(Id const &id) const
 		lineElement.setAttribute("stroke-width", 2);
 		lineElement.setAttribute("x2", 100);
 		lineElement.setAttribute("fill-style", "solid");
-		sdfElement.appendChild(lineElement);
+		sdfElement.appendChild(lineElement);*/
 	} else {
-		QDomDocument graphics;
-		graphics.setContent(repo->stringProperty(metaId, "shape"));
-		sdfElement = graphics.firstChildElement("graphics").firstChildElement("picture");
+		// содержимое кода на qml
+		source.arg(repo->stringProperty(metaId, "shape"));
 	}
 
-	if (sdfElement.isNull()) {
+	if (source.compare("")) {
 		return QIcon();
 	}
 
-	classDoc.appendChild(classDoc.importNode(sdfElement, true));
+//	classDoc.appendChild(classDoc.importNode(sdfElement, true));
 //	SdfIconEngineV2 * const engine = new SdfIconEngineV2(classDoc);
 //	return QIcon(engine);
-	return QIcon();
+	return QmlIconLoader::iconOf(source);
+	//return QIcon();
 }
 
 ElementImpl *InterpreterEditorManager::elementImpl(Id const &id) const
 {
 	QPair<qrRepo::RepoApi*, Id> const repoAndMetaIdPair = repoAndMetaId(id);
-	InterpreterElementImpl * const impl = new InterpreterElementImpl(repoAndMetaIdPair.first, repoAndMetaIdPair.second);
+	InterpreterElementImpl * const impl = new InterpreterElementImpl(repoAndMetaIdPair.first, repoAndMetaIdPair.second, mQmlEngine);
 	if (!impl) {
 		return 0;
 	}

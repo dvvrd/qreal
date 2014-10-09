@@ -8,6 +8,7 @@
 #include <QtCore/QPair>
 #include <QtGui/QIcon>
 
+
 #include <qrkernel/ids.h>
 #include <qrkernel/settingsManager.h>
 #include <qrrepo/graphicalRepoApi.h>
@@ -18,6 +19,9 @@
 #include "editorPluginInterface/editorInterface.h"
 #include "pluginManager/editorManagerInterface.h"
 
+class QDeclarativeEngine;
+class QDeclarativeItem;
+
 namespace qReal {
 
 class Element;
@@ -27,7 +31,7 @@ class InterpreterEditorManager : public QObject, public EditorManagerInterface
 	Q_OBJECT
 
 public:
-	explicit InterpreterEditorManager(QString const &fileName, QObject *parent = NULL);
+	explicit InterpreterEditorManager(QString const &fileName, QDeclarativeEngine * const qmlEngine,  QObject *parent = NULL);
 	~InterpreterEditorManager();
 
 	IdList editors() const override;
@@ -160,6 +164,8 @@ private:
 			, CheckPropertyForParent const &checker) const;
 	QString valueOfProperty(Id const &id, QString const &propertyName, QString const &value) const;
 	void deletePropertyInElement(qrRepo::RepoApi *repo, Id const &diagram, QString const &propDisplayedName) const;
+
+	QDeclarativeEngine *mQmlEngine;
 };
 
 }

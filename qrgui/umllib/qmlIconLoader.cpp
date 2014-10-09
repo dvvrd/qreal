@@ -21,15 +21,15 @@ void QmlIconLoader::setQmlEngine(QDeclarativeEngine * const engine)
 	instance()->mQmlEngine = engine;
 }
 
-QIcon QmlIconLoader::iconOf(QString const &fileName)
+QIcon QmlIconLoader::iconOf(QString const &qmlString)
 {
-	return loadPixmap(fileName);
+	return loadPixmap(qmlString);
 }
 
-QSize QmlIconLoader::preferedSizeOf(QString const &fileName)
+QSize QmlIconLoader::preferedSizeOf(QString const &qmlString)
 {
-	loadPixmap(fileName);
-	return instance()->mPreferedSizes[fileName];
+	loadPixmap(qmlString);
+	return instance()->mPreferedSizes[qmlString];
 }
 
 QmlIconLoader *QmlIconLoader::instance()
@@ -38,23 +38,16 @@ QmlIconLoader *QmlIconLoader::instance()
 	return &instance;
 }
 
-QIcon QmlIconLoader::loadPixmap(QString const &fileName)
+QIcon QmlIconLoader::loadPixmap(QString const &qmlString)
 {
-	if (!instance()->mLoadedIcons.contains(fileName)) {
-		QDeclarativeComponent component(instance()->mQmlEngine, QUrl(fileName));
-		if (component.isReady()) {
-			QDeclarativeItem * const item = qobject_cast<QDeclarativeItem *>(component.create());
-			QIcon const icon = graphicsUtils::ItemRenderer::renderRecursively(item
-					, item->width(), item->height(), QColor(Qt::white));
+	QDeclarativeComponent component(instance()->mQmlEngine);
+	component.setData(qmlString.toLocal8Bit(), QUrl());
+	QDeclarativeItem * const item = qobject_cast<QDeclarativeItem *>(component.create());
+	QIcon const icon = graphicsUtils::ItemRenderer::renderRecursively(item
+		, item->width(), item->height(), QColor(Qt::white));
 
-			instance()->mLoadedIcons[fileName] = icon;
-			instance()->mPreferedSizes[fileName] = QSize(item->width(), item->height());
-		} else {
-			QIcon const icon(":/icons/default.svg");
-			instance()->mLoadedIcons[fileName] = icon;
-			instance()->mPreferedSizes[fileName] = QSize(50, 50);
-		}
-	}
+	instance()->mLoadedIcons[qmlString] = icon;
+	instance()->mPreferedSizes[qmlString] = QSize(item->width(), item->height());
 
-	return instance()->mLoadedIcons[fileName];
+	return instance()->mLoadedIcons[qmlString];
 }
