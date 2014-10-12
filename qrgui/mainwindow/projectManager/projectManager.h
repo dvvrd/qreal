@@ -1,6 +1,10 @@
 #pragma once
 
-#include "projectManagementInterface.h"
+#include <QtCore/QFileInfo>
+
+#include "mainwindow/projectManager/projectManagementInterface.h"
+#include "textEditor/textManagerInterface.h"
+#include "toolPluginInterface/systemEventsInterface.h"
 
 namespace qReal {
 
@@ -12,7 +16,8 @@ class ProjectManager : public ProjectManagementInterface
 	Q_OBJECT
 
 public:
-	explicit ProjectManager(MainWindow *mainWindow);
+	explicit ProjectManager(MainWindow *mainWindow, TextManagerInterface *textManager
+							, SystemEventsInterface *systemEvents);
 
 public slots:
 	bool openExisting(QString const &fileName);
@@ -42,7 +47,8 @@ public:
 	QString saveFilePath() const;
 	void setSaveFilePath(QString const &filePath = "");
 	void saveGenCode(QString const &text);
-
+	void reload();
+	bool getUnsavedIndicator();
 	/// Prompts user to restore last session if it was incorrectly terminated
 	/// and returns yes if he agrees. Otherwise returns false
 	bool restoreIncorrectlyTerminated();
@@ -66,10 +72,12 @@ private:
 	void fileNotFoundMessage(QString const &fileName) const;
 
 	MainWindow *mMainWindow;
+	TextManagerInterface *mTextManager;
 	Autosaver *mAutosaver;
 	bool mUnsavedIndicator;
 	QString mSaveFilePath;
 	bool mSomeProjectOpened;
+	SystemEventsInterface *mSystemEvents;
 };
 
 }

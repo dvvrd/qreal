@@ -1,10 +1,10 @@
 #pragma once
 
-#include "../../qrutils/versioningUtils/externalClientPluginBase.h"
-#include "../../qrgui/toolPluginInterface/customizer.h"
+#include <qrutils/versioningUtils/externalClientPluginBase.h>
+#include <qrgui/toolPluginInterface/customizer.h>
 #include "viewInteraction.h"
 
-namespace versioning
+namespace svn
 {
 
 class SubversionPlugin : public qReal::versioning::ExternalClientPluginBase
@@ -34,15 +34,22 @@ public:
 	// Brief VCS interface
 	virtual void beginWorkingCopyDownloading(QString const &repoAddress
 			, QString const &targetProject
-			, int revisionNumber = -1
+			, QString revisionNumber = "-1"
 			, bool quiet = false);
+
 	virtual void beginWorkingCopyUpdating(QString const &targetProject = QString());
-	virtual void beginChangesSubmitting(const QString &description, QString const &targetProject = QString());
+	virtual void beginChangesSubmitting(const QString &description, QString const &targetProject = QString()
+											, bool const &quiet = false);
 	virtual bool reinitWorkingCopy(QString const &targetProject = QString());
 	virtual QString information(QString const &targetProject = QString());
 	virtual int revisionNumber(QString const &targetProject = QString());
 	virtual QString remoteRepositoryUrl(QString const &targetProject = QString());
-	virtual bool isMyWorkingCopy(QString const &directory = QString());
+	virtual bool isMyWorkingCopy(QString const &directory = QString(), bool const &quiet = false
+								, bool const &prepareAndProcess = false);
+	virtual QString friendlyName();
+	virtual QString getLog(QString const &format = QString(), bool const &quiet = false);
+	virtual void setVersion(QString hash, bool const &quiet = false){}
+	bool clientExist();
 
 	void editProxyConfiguration();
 
@@ -50,7 +57,7 @@ public slots:
 	void startCheckout(QString const &from
 			, QString const &targetProject = QString()
 			, QString const &targetFolder = QString()
-			, int revision = -1, bool quiet = false);
+			, QString revision = "-1", bool quiet = false);
 	void startUpdate(QString const &to = QString()
 			, QString const &sourceProject = QString());
 	void startCommit(QString const &message = QString(), QString const &from = QString()
@@ -67,11 +74,14 @@ public slots:
 			, QString const &sourceProject = QString());
 	int currentRevision(QString const &target = QString(), bool const reportErrors = false
 			, QString const &sourceProject = QString());
+	void doAfterOperationIsFinished(QVariant const &tag);
+	void checkClientInstalling();
 
 signals:
 	void workingCopyDownloaded(const bool success, QString const &targetProject);
 	void workingCopyUpdated(const bool success);
 	void changesSubmitted(const bool success);
+	void clientInstalled(QString client, bool exist);
 
 	void checkoutComplete(bool const success, QString const &targetProject, bool quiet);
 	void updateComplete(bool const success);
@@ -102,5 +112,5 @@ private:
 	details::ViewInteraction *mViewInteraction;
 	QString mTempDir;
 };
-
 }
+

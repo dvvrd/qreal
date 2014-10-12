@@ -1,20 +1,24 @@
 #include "diffWindow.h"
 
 using namespace versioning;
-
 DiffWindow::DiffWindow(qReal::MainWindow *mainWindow
-		, DiffModel *diffModel, QWidget *parent)
-	: QDialog(parent), mDiffModel(diffModel), mMainWindow(mainWindow)
+		, DiffModel *diffModel, bool compactMode, QWidget *parent)
+	: QWidget(parent), mDiffModel(diffModel), mMainWindow(mainWindow)
+	, mShowDetails(false), mCompactMode(compactMode)
 {
-	initWindow();
+	if (compactMode){
+		this->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
+	} else{
+		this->setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Maximum);
+	}
 	initLayout();
-	initButton();
 	initViews();
+	initButton();
 	initDiffDetailsWidget();
 	QList<int> sizes;
-	sizes << 3 << 2;
+	sizes << 5 << 2;
 	mSplitter->setSizes(sizes);
-	mSplitter->setStretchFactor(0, 3);
+	mSplitter->setStretchFactor(0, 5);
 	mSplitter->setStretchFactor(1, 2);
 }
 
@@ -22,12 +26,20 @@ DiffWindow::~DiffWindow()
 {
 }
 
-void DiffWindow::initWindow()
+versioning::details::DiffView *DiffWindow::getNewModel()
 {
-	setWindowTitle(tr("Diff"));
-	setWindowState(Qt::WindowMaximized | Qt::WindowActive);
-	setWindowFlags(Qt::Window | Qt::WindowMinMaxButtonsHint);
-	setWindowOpacity(1.00);
+	return mNewView;
+}
+
+void DiffWindow::showDetails()
+{
+	mShowDetails = !mShowDetails;
+	mDiffDetailsWidget->setVisible(mShowDetails);
+	if (mShowDetails){
+		mDetailsLabel->setText(tr("click on details to HIDE it"));
+	} else {
+		mDetailsLabel->setText(tr("click on details to OPEN it"));
+	}
 }
 
 void DiffWindow::initLayout()
@@ -47,28 +59,37 @@ void DiffWindow::initLayout()
 
 void DiffWindow::initButton()
 {
-	mOkButton = new QPushButton;
-	mOkButton->setText(tr("OK"));
-	mOkButton->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Preferred);
-	connect(mOkButton, SIGNAL(clicked()), this, SLOT(accept()));
-	mLayout->addWidget(mOkButton, 1, 0, Qt::AlignRight);
+	if (mCompactMode){
+		mDetailsButton = new QPushButton;
+		mDetailsButton->setText(tr("Details..."));
+		mDetailsLabel = new QLabel(tr("click on details to OPEN it"));
+		connect(mDetailsButton, SIGNAL(clicked()), this, SLOT(showDetails()));
+		mLayout->addWidget(mDetailsButton, 1, 0, Qt::AlignRight);
+		mLayout->addWidget(mDetailsLabel, 1, 0, Qt::AlignLeft);
+	}
 }
 
 void DiffWindow::initViews()
 {
 	QSplitter *splitter = new QSplitter(Qt::Horizontal, this);
+	QList<int> sizes;
+	sizes << 1;
+
 
 	mOldView = new details::DiffView(mMainWindow, mDiffModel, true, this);
+	if (!mCompactMode){
+		QFrame *oldFrame = new QFrame;
+		oldFrame->setLayout(initView(mOldView));
+		sizes << 1;
+		splitter->addWidget(oldFrame);
+	} else {
+		mOldView->setVisible(false);
+	}
+
 	mNewView = new details::DiffView(mMainWindow, mDiffModel, false, this);
-	QFrame *oldFrame = new QFrame;
 	QFrame *newFrame = new QFrame;
-	oldFrame->setLayout(initView(mOldView));
 	newFrame->setLayout(initView(mNewView));
 
-	QList<int> sizes;
-	sizes << 1 << 1;
-
-	splitter->addWidget(oldFrame);
 	splitter->addWidget(newFrame);
 	splitter->setSizes(sizes);
 	mSplitter->addWidget(splitter);
@@ -96,4 +117,7 @@ void DiffWindow::initDiffDetailsWidget()
 	mSplitter->addWidget(mDiffDetailsWidget);
 	mOldView->setDetailsWidget(mDiffDetailsWidget);
 	mNewView->setDetailsWidget(mDiffDetailsWidget);
+	if (mCompactMode){
+		mDiffDetailsWidget->setVisible(mShowDetails);
+	}
 }

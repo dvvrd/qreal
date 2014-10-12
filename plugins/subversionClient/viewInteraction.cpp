@@ -3,22 +3,19 @@
 #include "../../qrkernel/settingsManager.h"
 #include "../../qrutils/versioningUtils/versionSelector.h"
 
-using namespace versioning::details;
-using namespace versioning::ui;
+using namespace svn::details;
+using namespace svn::ui;
 
 ViewInteraction::ViewInteraction(SubversionPlugin *pluginInstance)
 	: mPlugin(pluginInstance)
 	, mPreferencesPage(new PreferencesVersioningPage())
 {
 	initActions();
-	connect(mPlugin, SIGNAL(checkoutComplete(bool,QString,bool))
-			, this, SLOT(onCheckoutComplete(bool,QString,bool)));
-	connect(mPlugin, SIGNAL(updateComplete(bool))
-			, this, SLOT(onUpdateComplete(bool)));
-	connect(mPlugin, SIGNAL(commitComplete(bool))
-			, this, SLOT(onCommitComplete(bool)));
-	connect(mPlugin, SIGNAL(revertComplete(bool))
-			, this, SLOT(onRevertComplete(bool)));
+	connect(mPlugin, SIGNAL(checkoutComplete(bool,QString,bool)), this, SLOT(onCheckoutComplete(bool,QString,bool)));
+	connect(mPlugin, SIGNAL(updateComplete(bool)), this, SLOT(onUpdateComplete(bool)));
+	connect(mPlugin, SIGNAL(commitComplete(bool)), this, SLOT(onCommitComplete(bool)));
+	connect(mPlugin, SIGNAL(revertComplete(bool)), this, SLOT(onRevertComplete(bool)));
+	connect(mPreferencesPage, SIGNAL(checkClienExisting()), mPlugin, SLOT(checkClientInstalling()));
 }
 
 void ViewInteraction::initActions()

@@ -2,7 +2,7 @@
 
 #include <QtCore/QObject>
 
-#include "../../qrgui/versioning/diffPluginBase.h"
+#include "../versioning/diffPluginBase.h"
 #include "model/modelLoader.h"
 
 namespace versioning
@@ -20,10 +20,10 @@ public:
 			, qReal::EditorManagerInterface *manager);
 
 public slots:
-	void showDiff(QString const &targetProject = QString());
-	void showDiff(int repoRevision, QString const &targetProject = QString());
-	void showDiff(int oldRepoRevision , int newRepoRevision
-			, QString const &targetProject = QString());
+	void showDiff(QString const &targetProject, QWidget *parentWidget, bool const &compactMode = false);
+	void showDiff(QString repoRevision, QString const &targetProject, QWidget *parentWidget, const bool &compactMode);
+	void showDiff(QString oldRepoRevision , QString newRepoRevision
+			, QString const &targetProject, QWidget *parentWidget, bool const &compactMode = false);
 
 private slots:
 	void onModelLoaded(DiffModel *model);
@@ -36,6 +36,8 @@ private:
 	qReal::ErrorReporterInterface *mErrorReporter;
 	qReal::ProjectManagementInterface *mProjectManager;
 	details::ModelLoader *mLoader;
+	QWidget *mParentWidget;
+	bool mCompactMode;
 };
 
 }

@@ -1,19 +1,29 @@
-#include "../mainWindow.h"
-#include "ui_mainWindow.h"
-#include "../models/models.h"
-#include "../view/editorViewScene.h"
-#include "../view/editorView.h"
-#include "../dialogs/suggestToCreateDiagramDialog.h"
 #include "projectManager.h"
-#include "../../../../qrutils/outFile.h"
+
+#include <qrutils/outFile.h>
+#include <qrutils/qRealFileDialog.h>
+
+#include "mainwindow/mainWindow.h"
+
+// TODO: lolwut?
+//#include "ui_mainWindow.h"
+
+#include "models/models.h"
+#include "view/editorViewScene.h"
+#include "view/editorView.h"
+#include "dialogs/suggestToCreateDiagramDialog.h"
 
 using namespace qReal;
+using namespace utils;
 
-ProjectManager::ProjectManager(MainWindow *mainWindow)
+ProjectManager::ProjectManager(MainWindow *mainWindow, TextManagerInterface *textManager
+							   , SystemEventsInterface *systemEvents)
 	: mMainWindow(mainWindow)
+	, mTextManager(textManager)
 	, mAutosaver(new Autosaver(this))
 	, mUnsavedIndicator(false)
 	, mSomeProjectOpened(false)
+	, mSystemEvents(systemEvents)
 {
 	setSaveFilePath();
 }
@@ -114,18 +124,22 @@ bool ProjectManager::open(QString const &fileName)
 		mSomeProjectOpened = open(mSaveFilePath);
 		return false;
 	}
+
+	mMainWindow->closeStartTab();
 	mMainWindow->propertyModel().setSourceModels(mMainWindow->models()->logicalModel()
 			, mMainWindow->models()->graphicalModel());
 	mMainWindow->graphicalModelExplorer()->setModel(mMainWindow->models()->graphicalModel());
 	mMainWindow->logicalModelExplorer()->setModel(mMainWindow->models()->logicalModel());
-	mMainWindow->openFirstDiagram();
+	/// @todo Crashes metamodeling on fly.
 
+	mMainWindow->openFirstDiagram();
 	setSaveFilePath(fileName);
 	refreshApplicationStateAfterOpen();
 
 	emit afterOpen(fileName);
 
 	mSomeProjectOpened = true;
+
 	return true;
 }
 
@@ -257,9 +271,12 @@ void ProjectManager::close()
 	}
 	mMainWindow->closeAllTabs();
 	mMainWindow->setWindowTitle(mMainWindow->toolManager().customizer()->windowTitle());
+
 	mAutosaver->removeAutoSave();
 	mAutosaver->removeTemp();
 	mSomeProjectOpened = false;
+
+	emit closed();
 }
 
 void ProjectManager::saveTo(QString const &fileName)
@@ -276,12 +293,25 @@ void ProjectManager::save()
 	saveTo(mSaveFilePath);
 	mAutosaver->removeAutoSave();
 	refreshApplicationStateAfterSave();
+	mSystemEvents->emitStartSave();
 }
 
 void ProjectManager::saveGenCode(QString const &text)
 {
 	utils::OutFile out("nxt-tools/example0/example0.c");
 	out() << text;
+}
+
+void ProjectManager::reload()
+{
+	QString currentAdress = this->saveFilePath();
+	this->close();
+	this->open(currentAdress);
+}
+
+bool ProjectManager::getUnsavedIndicator()
+{
+	return mUnsavedIndicator;
 }
 
 bool ProjectManager::restoreIncorrectlyTerminated()
@@ -291,6 +321,10 @@ bool ProjectManager::restoreIncorrectlyTerminated()
 
 bool ProjectManager::saveOrSuggestToSaveAs()
 {
+	if (mTextManager->saveText(false)) {
+		return true;
+	}
+
 	if (mSaveFilePath == mAutosaver->tempFilePath()
 			|| mSaveFilePath == mMainWindow->editorManagerProxy().saveMetamodelFilePath()) {
 		return suggestToSaveAs();
@@ -301,6 +335,10 @@ bool ProjectManager::saveOrSuggestToSaveAs()
 
 bool ProjectManager::suggestToSaveAs()
 {
+	if (mTextManager->saveText(true)) {
+		return true;
+	}
+
 	if (mMainWindow->editorManagerProxy().isInterpretationMode()) {
 		QString const newMetamodelFileName = getSaveFileName(tr("Select file to save current metamodel to"));
 		if (newMetamodelFileName.isEmpty()) {
@@ -321,13 +359,18 @@ bool ProjectManager::saveAs(QString const &fileName)
 	mMainWindow->models()->repoControlApi().saveTo(workingFileName);
 	setSaveFilePath(workingFileName);
 	refreshApplicationStateAfterSave();
+	mSystemEvents->emitStartSave();
 	return true;
 }
 
 QString ProjectManager::openFileName(QString const &dialogWindowTitle) const
 {
-	QString fileName = QFileDialog::getOpenFileName(mMainWindow, dialogWindowTitle
-			, QFileInfo(mSaveFilePath).absoluteDir().absolutePath(), tr("QReal Save File(*.qrs)"));
+	QString const pathToExamples = mMainWindow->toolManager().customizer()->examplesDirectory();
+	QString const defaultDirectory = pathToExamples.isEmpty()
+			? QFileInfo(mSaveFilePath).absoluteDir().absolutePath()
+			: pathToExamples;
+	QString fileName = QRealFileDialog::getOpenFileName("OpenQRSProject", mMainWindow, dialogWindowTitle
+			, defaultDirectory, tr("QReal Save File(*.qrs)"));
 
 	if (!fileName.isEmpty() && !QFile::exists(fileName)) {
 		fileNotFoundMessage(fileName);
@@ -338,7 +381,7 @@ QString ProjectManager::openFileName(QString const &dialogWindowTitle) const
 
 QString ProjectManager::getSaveFileName(QString const &dialogWindowTitle)
 {
-	QString fileName = QFileDialog::getSaveFileName(mMainWindow, dialogWindowTitle
+	QString fileName = QRealFileDialog::getSaveFileName("SaveQRSProject", mMainWindow, dialogWindowTitle
 			, QFileInfo(mSaveFilePath).absoluteDir().absolutePath(), tr("QReal Save File(*.qrs)"));
 
 	if (!fileName.isEmpty() && !fileName.endsWith(".qrs", Qt::CaseInsensitive)) {

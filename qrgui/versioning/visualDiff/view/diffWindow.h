@@ -12,16 +12,19 @@
 namespace versioning
 {
 
-class DiffWindow : public QDialog
+class DiffWindow : public QWidget
 {
 	Q_OBJECT
 
 public:
-	DiffWindow(qReal::MainWindow *mainWindow, DiffModel *diffModel, QWidget *parent = 0);
+	DiffWindow(qReal::MainWindow *mainWindow, DiffModel *diffModel, bool compactMode, QWidget *parent = 0);
 	~DiffWindow();
+	details::DiffView *getNewModel();
+
+private slots:
+	void showDetails();
 
 private:
-	void initWindow();
 	void initLayout();
 	void initButton();
 	void initViews();
@@ -32,10 +35,14 @@ private:
 	QGridLayout *mLayout;
 	QSplitter *mSplitter;
 	QPushButton *mOkButton;
+	QPushButton *mDetailsButton;
 	details::DiffView *mOldView;
 	details::DiffView *mNewView;
 	details::DiffDetailsWidget *mDiffDetailsWidget;
 	MainWindow *mMainWindow;
+	QLabel *mDetailsLabel;
+	bool mShowDetails;
+	bool mCompactMode;
 };
 
 }

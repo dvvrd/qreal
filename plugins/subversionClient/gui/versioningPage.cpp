@@ -1,10 +1,11 @@
 #include <QtWidgets/QFileDialog>
+#include <QProcess>
 
 #include "versioningPage.h"
 #include "ui_versioningPage.h"
 #include "../../../qrkernel/settingsManager.h"
 
-using namespace versioning::ui;
+using namespace svn::ui;
 
 PreferencesVersioningPage::PreferencesVersioningPage(QWidget *parent)
 	: PreferencesPage(parent)
@@ -13,7 +14,7 @@ PreferencesVersioningPage::PreferencesVersioningPage(QWidget *parent)
 	mIcon = QIcon(":/icons/preferences/versioning.png");
 	mUi->setupUi(this);
 
-	mAuthenticationSettings = new AuthenticationSettingsWidget("svn");
+	mAuthenticationSettings = new qReal::versioning::ui::AuthenticationSettingsWidget("svn");
 	// The last widget in layout must remain spacer
 	mUi->verticalLayout->insertWidget(mUi->verticalLayout->count() - 1, mAuthenticationSettings);
 	restoreSettings();
@@ -41,6 +42,7 @@ void PreferencesVersioningPage::save()
 	qReal::SettingsManager::setValue("pathToSvnClient", mUi->pathToSvnClientLineEdit->text());
 	qReal::SettingsManager::setValue("svnClientTimeout", mUi->svnTimeoutSpinBox->value());
 	mAuthenticationSettings->save();
+	emit checkClienExisting();
 }
 
 void PreferencesVersioningPage::restoreSettings()

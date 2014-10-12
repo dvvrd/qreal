@@ -19,19 +19,26 @@ DiffPluginWrapper::DiffPluginWrapper(DiffPluginBase *plugin
 			, this, SLOT(onModelLoaded(DiffModel*)));
 }
 
-void DiffPluginWrapper::showDiff(const QString &targetProject)
+void DiffPluginWrapper::showDiff(const QString &targetProject, QWidget *parentWidget, const bool &compactMode)
 {
+	mCompactMode = compactMode;
+	mParentWidget = parentWidget;
 	mLoader->startModelLoading(targetProject);
 }
 
-void DiffPluginWrapper::showDiff(int repoRevision, const QString &targetProject)
+void DiffPluginWrapper::showDiff(QString repoRevision, const QString &targetProject
+								 , QWidget *parentWidget, bool const &compactMode = false)
 {
+	mCompactMode = compactMode;
+	mParentWidget = parentWidget;
 	mLoader->startModelLoading(repoRevision, targetProject);
 }
 
-void DiffPluginWrapper::showDiff(int oldRepoRevision, int newRepoRevision
-		, const QString &targetProject)
+void DiffPluginWrapper::showDiff(QString oldRepoRevision, QString newRepoRevision
+		, const QString &targetProject, QWidget *parentWidget, const bool &compactMode)
 {
+	mCompactMode = compactMode;
+	mParentWidget = parentWidget;
 	mLoader->startModelLoading(oldRepoRevision, newRepoRevision, targetProject);
 }
 
@@ -40,7 +47,7 @@ void DiffPluginWrapper::onModelLoaded(DiffModel *model)
 	if (!model) {
 		return;
 	}
-	DiffWindow *diffWindow = new DiffWindow(mMainWindow, model, mMainWindow);
-	diffWindow->exec();
-	delete diffWindow;
+	DiffWindow *diffWindow = new DiffWindow(mMainWindow, model, mCompactMode, mMainWindow);
+	mParentWidget->layout()->addWidget(diffWindow);
 }
+

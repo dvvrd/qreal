@@ -5,6 +5,7 @@
 #include <QtWidgets/QLabel>
 #include <QtWidgets/QGridLayout>
 
+#include <QScreen>
 #include "../../../../qrkernel/ids.h"
 
 namespace versioning
@@ -31,15 +32,16 @@ signals:
 	void mouseLeaved(qReal::Id const& id);
 
 private:
-	QString labelText() const;
+	QString labelLogicalText() const;
+	QString labelGraphicalText() const;
 
 	QString mDefaultText;
 	bool mIdSetted;
 	qReal::Id mGraphicalId;
 	qReal::Id mLogicalId;
 	QGridLayout *mLayout;
-	QLabel *mLabel;
-
+	QLabel *mLabelLogical;
+	QLabel *mLabelGraphical;
 };
 
 }

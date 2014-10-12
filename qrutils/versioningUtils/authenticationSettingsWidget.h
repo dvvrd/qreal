@@ -8,10 +8,10 @@ namespace Ui {
 class AuthenticationSettingsWidget;
 }
 
-namespace versioning
-{
-namespace ui
-{
+
+namespace qReal {
+namespace versioning {
+namespace ui {
 
 /// @brief Represents credentials editor (username, address)
 /// Can be used by different plugins
@@ -55,6 +55,8 @@ public:
 	/// @param prefix Prefix of required key
 	static QString passwordSettingsName(QString const &prefix);
 
+	static QString emailSettingsName(QString const &prefix);
+
 private slots:
 	void onEnableChecked();
 
@@ -62,10 +64,12 @@ private:
 	QString enabledSettingsName() const;
 	QString usernameSettingsName() const;
 	QString passwordSettingsName() const;
+	QString emailSettingsName() const;
 
 	Ui::AuthenticationSettingsWidget *mUi;
 	QString mSettingsPrefix;
 };
 
+}
 }
 }

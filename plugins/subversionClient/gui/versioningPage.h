@@ -1,17 +1,15 @@
 #pragma once
 
-#include "../../../qrgui/dialogs/preferencesPages/preferencesPage.h"
-#include "../../../qrutils/versioningUtils/authenticationSettingsWidget.h"
-#include "../../../qrutils/versioningUtils/networkSettingsWidget.h"
+#include <qrgui/dialogs/preferencesPages/preferencesPage.h>
+#include <qrutils/versioningUtils/authenticationSettingsWidget.h>
+#include <qrutils/versioningUtils/networkSettingsWidget.h>
 
 namespace Ui {
 	class PreferencesVersioningPage;
 }
 
-namespace versioning
-{
-namespace ui
-{
+namespace svn {
+namespace ui {
 
 class PreferencesVersioningPage : public PreferencesPage
 {
@@ -24,6 +22,9 @@ public:
 	virtual void save();
 	virtual void restoreSettings();
 
+signals:
+	void checkClienExisting();
+
 protected:
 	virtual void changeEvent(QEvent *e);
 
@@ -32,7 +33,7 @@ private slots:
 
 private:
 	Ui::PreferencesVersioningPage *mUi;
-	AuthenticationSettingsWidget *mAuthenticationSettings;
+	qReal::versioning::ui::AuthenticationSettingsWidget *mAuthenticationSettings;
 
 };
 

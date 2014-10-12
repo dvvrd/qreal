@@ -3,7 +3,7 @@
 #include <QtCore/QObject>
 #include <QtCore/QString>
 
-#include "autosaver.h"
+#include "mainwindow/projectManager/autosaver.h"
 
 namespace qReal
 {
@@ -51,14 +51,20 @@ public:
 	virtual bool open(QString const &fileName = "") = 0;
 	virtual bool suggestToSaveChangesOrCancel() = 0;
 	virtual void setUnsavedIndicator(bool isUnsaved) = 0;
+	virtual void reload() = 0;
+	virtual bool getUnsavedIndicator() = 0;
 
 signals:
 	/// Emitted each time when project manager is going to open new project
 	/// @param fileName Project location
 	void beforeOpen(QString const &fileName);
+
 	/// Emitted each time when project manager has opened new project
 	/// @param fileName Opened project location
 	void afterOpen(QString const &fileName);
+
+	/// Emitted each time when project manager has closed current project
+	void closed();
 };
 
 }

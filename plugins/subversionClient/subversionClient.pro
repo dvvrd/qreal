@@ -1,6 +1,12 @@
 QT += widgets
 LIBS += -L../../bin -lqrkernel -lqrutils
 
+CONFIG += c++11
+
+INCLUDEPATH += \
+	$$PWD/../.. \
+	$$PWD/../../qrgui/ \
+
 TEMPLATE = lib
 CONFIG += plugin
 DESTDIR = ../../bin/plugins/
@@ -19,6 +25,7 @@ HEADERS = \
 	gui/commitDialog.h \
 	gui/versioningPage.h \
 	../../qrgui/dialogs/preferencesPages/preferencesPage.h \
+	tags.h
 
 SOURCES = \
 	subversionPlugin.cpp \

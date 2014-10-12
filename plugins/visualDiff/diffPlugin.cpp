@@ -1,27 +1,33 @@
 #include "diffPlugin.h"
-
-Q_EXPORT_PLUGIN2(visualDiff, versioning::DiffPlugin)
+#include <qdebug.h>
 
 using namespace versioning;
 
+DiffPlugin::DiffPlugin()
+{
+}
+
 QList<qReal::ActionInfo> DiffPlugin::actions()
 {
-	QMenu *diffMenu = new QMenu(tr("Visual diff"));
+//	QMenu *diffMenu = new QMenu(tr("Visual diff"));diffMenu->setObjectName("Visual diff");
 
-	QAction *diffAction = diffMenu->addAction(tr("Diff"));
-	connect(diffAction, SIGNAL(triggered()), this, SLOT(diffClicked()));
+//	QAction *diffAction = diffMenu->addAction(tr("Diff"));
+//	connect(diffAction, SIGNAL(triggered()), this, SLOT(diffClicked()));
 
-	QAction *diffBetweenAction = diffMenu->addAction(tr("View diff between..."));
-	connect(diffBetweenAction, SIGNAL(triggered()), this, SLOT(diffBetweenClicked()));
+//	QAction *diffBetweenAction = diffMenu->addAction(tr("View diff between..."));
+//	connect(diffBetweenAction, SIGNAL(triggered()), this, SLOT(diffBetweenClicked()));
 
-	QList<qReal::ActionInfo> result;
-	result << qReal::ActionInfo(diffMenu, "tools");
-	return result;
+//	mMenu << qReal::ActionInfo(diffMenu, "tools");
+	return mMenu;
 }
 
 void DiffPlugin::diffClicked()
 {
-	showDiff(mProjectManager->saveFilePath());
+	QWidget *widget = new QWidget();
+	QGridLayout *mLayout = new QGridLayout(widget);
+	mLayout->setMargin(0);
+	widget->setLayout(mLayout);
+	showDiff(mProjectManager->saveFilePath(), widget);
 }
 
 void DiffPlugin::diffBetweenClicked()

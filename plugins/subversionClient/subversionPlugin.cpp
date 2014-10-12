@@ -1,10 +1,13 @@
 #include <QtWidgets/QApplication>
 
-#include "subversionPlugin.h"
-#include "../../qrkernel/settingsManager.h"
-#include "../../qrutils/fileSystemUtils.h"
+#include <qrkernel/settingsManager.h>
+#include <qrutils/fileSystemUtils.h>
+#include <qrutils/versioningUtils/authenticationSettingsWidget.h>
 
-using namespace versioning;
+#include "subversionPlugin.h"
+#include "tags.h"
+
+using namespace svn;
 using namespace qReal::versioning;
 
 QString const tempFolderName = "tempSvn";
@@ -16,6 +19,8 @@ SubversionPlugin::SubversionPlugin()
 {
 	qReal::SettingsManager::instance()->setValue("svnTempDir", mTempDir);
 	setPathToClient(pathToSvn());
+
+	connect(this, SIGNAL(operationIsFinished(QVariant)), SLOT(doAfterOperationIsFinished(QVariant)));
 }
 
 SubversionPlugin::~SubversionPlugin()
@@ -75,7 +80,7 @@ bool SubversionPlugin::onFileChanged(QString const &filePath, QString const &wor
 
 void SubversionPlugin::beginWorkingCopyDownloading(QString const &repoAddress
 		, QString const &targetProject
-		, int revisionNumber, bool quiet)
+		, QString revisionNumber, bool quiet)
 {
 	startCheckout(repoAddress, targetProject, tempFolder(), revisionNumber, quiet);
 }
@@ -85,7 +90,7 @@ void SubversionPlugin::beginWorkingCopyUpdating(QString const &targetProject)
 	startUpdate(tempFolder(), targetProject);
 }
 
-void SubversionPlugin::beginChangesSubmitting(QString const &description, QString const &targetProject)
+void SubversionPlugin::beginChangesSubmitting(QString const &description, QString const &targetProject, bool const &quiet)
 {
 	startCommit(tempFolder(), description, targetProject);
 }
@@ -110,12 +115,38 @@ QString SubversionPlugin::remoteRepositoryUrl(QString const &targetProject)
 	return repoUrl(tempFolder(), false, targetProject);
 }
 
-bool SubversionPlugin::isMyWorkingCopy(QString const &directory)
+bool SubversionPlugin::isMyWorkingCopy(QString const &directory, bool const &quiet, bool const &prepareAndProcess)
 {
 	// If svn info worked well then it is our dir
 	QStringList infoArgs;
 	infoArgs << "info" << (directory.isEmpty() ? tempFolder() : directory);
-	return invokeOperation(infoArgs, false, directory, false, false, QString(), QString(), false);
+	return invokeOperation(infoArgs, prepareAndProcess, directory, false
+							, prepareAndProcess, QString(), QString(), quiet);
+}
+
+QString SubversionPlugin::friendlyName()
+{
+	return "Subversion Plugin";
+}
+
+QString SubversionPlugin::getLog(const QString &format, const bool &quiet)
+{
+	Q_UNUSED(format)
+	Q_UNUSED(quiet)
+}
+
+bool SubversionPlugin::clientExist()
+{
+	QProcess *process = new QProcess;
+	process->start(pathToSvn(), QStringList() << "--version");
+	process->waitForFinished();
+	bool res = process->readAllStandardOutput().startsWith(QString("svn").toLocal8Bit());
+	qReal::SettingsManager::setValue("svnClientExist", res);
+	if (res) {
+		setPathToClient(pathToSvn());
+	}
+	delete process;
+	return res;
 }
 
 int SubversionPlugin::timeout() const
@@ -131,21 +162,22 @@ QString SubversionPlugin::tempFolder() const
 void SubversionPlugin::startCheckout(QString const &from
 		, QString const &targetProject
 		, QString const &targetFolder
-		, int revision, bool quiet)
+		, QString revision, bool quiet)
 {
 	QString checkoutDist = targetFolder.isEmpty() ? tempFolder() : targetFolder;
 	qReal::FileSystemUtils::removeDir(checkoutDist);
 	QStringList arguments;
 	arguments << "checkout" << from << checkoutDist;
-	if (revision > 0) {
+	if (revision.toInt() > 0) {
 		arguments << "--revision";
-		arguments << QString::number(revision);
+		arguments << revision;
 	}
 	arguments << authenticationArgs();
-	invokeOperationAsync(arguments
-			, new invocation::BoolClassMemberCallback<SubversionPlugin>(this
-			, &SubversionPlugin::onCheckoutComplete, targetProject, quiet)
-			, false, QString(), QString(), false, !quiet);
+
+	const Tag tagStruct("checkout", targetProject, quiet);
+	QVariant tagVariant;
+	tagVariant.setValue(tagStruct);
+	invokeOperationAsync(arguments, tagVariant, false, QString(), QString(), false, !quiet);
 }
 
 void SubversionPlugin::startUpdate(QString const &to
@@ -155,9 +187,11 @@ void SubversionPlugin::startUpdate(QString const &to
 	QStringList arguments;
 	arguments << "update" << targetDir;
 	arguments << authenticationArgs();
-	invokeOperationAsync(arguments
-		, new invocation::BoolClassMemberCallback<SubversionPlugin>(this, &SubversionPlugin::onUpdateComplete)
-		, true, to, sourceProject);
+
+	const Tag tagStruct("update");
+	QVariant tagVariant;
+	tagVariant.setValue(tagStruct);
+	invokeOperationAsync(arguments, tagVariant, true, to, sourceProject);
 }
 
 void SubversionPlugin::startCommit(QString const &message, QString const &from
@@ -167,9 +201,11 @@ void SubversionPlugin::startCommit(QString const &message, QString const &from
 	QStringList arguments;
 	arguments << "commit" << targetDir << "-m" << message;
 	arguments << authenticationArgs();
-	invokeOperationAsync(arguments
-		, new invocation::BoolClassMemberCallback<SubversionPlugin>(this, &SubversionPlugin::onCommitComplete)
-		, true, from, sourceProject);
+
+	const Tag tagStruct("commit");
+	QVariant tagVariant;
+	tagVariant.setValue(tagStruct);
+	invokeOperationAsync(arguments, tagVariant, true, from, sourceProject);
 }
 
 bool SubversionPlugin::doCleanUp(QString const &what
@@ -191,9 +227,11 @@ void SubversionPlugin::startRevert(QString const &what
 	QString targetDir = what.isEmpty() ? tempFolder() : what;
 	// TODO: Add different variants
 	arguments << "revert" << "-R" << targetDir;
-	invokeOperationAsync(arguments
-		, new invocation::BoolClassMemberCallback<SubversionPlugin>(this, &SubversionPlugin::onRevertComplete)
-		, true, targetDir, sourceProject, true, true);
+
+	const Tag tagStruct("revert");
+	QVariant tagVariant;
+	tagVariant.setValue(tagStruct);
+	invokeOperationAsync(arguments, tagVariant, true, targetDir, sourceProject, true, true);
 }
 
 void SubversionPlugin::onCheckoutComplete(bool const result, QString const &targetProject, bool const quiet)
@@ -329,9 +367,9 @@ QStringList SubversionPlugin::authenticationArgs() const
 {
 	QStringList result;
 
-	QString const enabledKey = ui::AuthenticationSettingsWidget::enabledSettingsName("svn");
-	QString const usernameKey = ui::AuthenticationSettingsWidget::usernameSettingsName("svn");
-	QString const passwordKey = ui::AuthenticationSettingsWidget::passwordSettingsName("svn");
+	QString const enabledKey = versioning::ui::AuthenticationSettingsWidget::enabledSettingsName("svn");
+	QString const usernameKey = versioning::ui::AuthenticationSettingsWidget::usernameSettingsName("svn");
+	QString const passwordKey = versioning::ui::AuthenticationSettingsWidget::passwordSettingsName("svn");
 
 	bool const authenticationEnabled = qReal::SettingsManager::value(enabledKey, false).toBool();
 	if (!authenticationEnabled) {
@@ -359,4 +397,23 @@ void SubversionPlugin::editProxyConfiguration()
 {
 	// TODO: add proxy settings into settings page;
 	//   teach to edit config file to set proxy
+}
+
+void SubversionPlugin::doAfterOperationIsFinished(QVariant const &tag)
+{
+	Tag tagStruct = tag.value<Tag>();
+	if (tagStruct.operation == "checkout"){
+		onCheckoutComplete(true, tagStruct.stringTag, tagStruct.boolTag);
+	} else if (tagStruct.operation == "update"){
+		onUpdateComplete(true);
+	} else if (tagStruct.operation == "commit"){
+		onCommitComplete(true);
+	} else if (tagStruct.operation == "revert"){
+		onRevertComplete(true);
+	}
+}
+
+void SubversionPlugin::checkClientInstalling()
+{
+	emit clientInstalled(friendlyName(), clientExist());
 }

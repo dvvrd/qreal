@@ -4,13 +4,10 @@
 #include <QtCore/QProcess>
 
 #include "../utilsDeclSpec.h"
-#include "../../qrgui/versioning/versioningPluginInterface.h"
-#include "boolCallback.h"
+#include <qrgui/versioning/versioningPluginInterface.h>
 
-namespace qReal
-{
-namespace versioning
-{
+namespace qReal {
+namespace versioning {
 
 /// Base class for all VCS clients that implement their functionality
 /// in some external process
@@ -21,7 +18,7 @@ class QRUTILS_EXPORT ExternalClientPluginBase : public VersioningPluginInterface
 public:
 	void setWorkingCopyManager(qrRepo::WorkingCopyManagementInterface *workingCopyManager);
 
-	virtual void init(PluginConfigurator const &configurator);
+	void init(PluginConfigurator const &configurator) override;
 
 	/// Starts process which executable`s path specified by setPathToClient() method and waits for its finish.
 	/// @param args Startup arguments
@@ -41,14 +38,14 @@ public:
 	/// Starts process which executable`s path specified by setPathToClient() method in separate thread.
 	/// @param args Startup arguments
 	/// @param needPreparation Specifies if working copy must be fetchced from current project
-	/// @param callback A callback that will be called when operation complete with result specification.
+	/// @param tag !!!!! A callback that will be called when operation complete with result specification.
 	/// @param workingDir A path to working directory. If empty, tempFolder() used
 	/// @param sourceProject A path to source project. If empty, working one used
 	/// @param checkWorkingDir Specifies if before operation will be checked if specified directory is under version control
 	/// @param reportErrors Specifies if all occured errors are reported to GUI
 	/// @returns Pointer to started operaton
 	invocation::LongOperation *invokeOperationAsync(QStringList const &args
-		, invocation::BoolCallback *callback = 0
+		, QVariant const &tag
 		, bool needPreparation = true
 		, QString const &workingDir = QString()
 		, QString const &sourceProject = QString()
@@ -100,7 +97,8 @@ protected slots:
 signals:
 	/// The easiest way to invoke @see onErrorOccured() in on thread
 	void errorOccured(QString const &message);
-
+	/// Signal for notification plagins about end of operation
+	void operationIsFinished(QVariant const &tag);
 
 private slots:
 	void onOperationComplete(invocation::LongOperation *operation);
@@ -109,7 +107,8 @@ private:
 	bool startAndWait(const QStringList &args, bool reportErrors
 			, QString const &workingDir, bool const checkWorkingCopy);
 
-	bool startProcess(QStringList const &args, bool reportErrors = true);
+
+	bool startProcess(QStringList const &args, QString const &workingDir = QString(), bool reportErrors = true);
 	bool checkClientPath(bool reportErrors = true);
 	bool processErrors(bool reportErrors = true);
 	bool waitForClient(bool reportErrors = true);
@@ -119,7 +118,7 @@ private:
 	ErrorReporterInterface *mErrorReporter;
 	QString mPathToClient;
 	QProcess *mClientProcess;
-	QMap<invocation::LongOperation *, invocation::BoolCallback *> mRunningOperationsCallbacksMap;
+	QMap<invocation::LongOperation *, QVariant> mRunningOperationsCallbacksMap;
 };
 
 }

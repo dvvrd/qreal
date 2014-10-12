@@ -1,12 +1,12 @@
 #pragma once
 
-#include "../pluginManager/toolPluginManager.h"
-#include "../../qrutils/versioningUtils/briefVersioningInterface.h"
-#include "../../qrrepo/workingCopyInspectionInterface.h"
-#include "../../qrrepo/workingCopyManagementInterface.h"
+#include <pluginManager/toolPluginManager.h>
+#include <qrutils/versioningUtils/briefVersioningInterface.h>
+#include <qrrepo/workingCopyInspectionInterface.h>
+#include <qrrepo/workingCopyManagementInterface.h>
+#include "qrgui/versioning/diffPluginInterface.h"
 
-namespace qReal
-{
+namespace qReal {
 
 /// Base class for all VCS cliens. Consists of 3 parts: view part,
 /// repo part and brief interface. View part customizes UI with
@@ -24,6 +24,8 @@ public:
 
 	virtual void setWorkingCopyManager(
 			qrRepo::WorkingCopyManagementInterface *workingCopyManager) = 0;
+
+	virtual void setDiffViewerInterface(DiffPluginInterface *interface) = 0;
 };
 
 }
