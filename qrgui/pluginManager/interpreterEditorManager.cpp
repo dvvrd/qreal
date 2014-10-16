@@ -419,22 +419,22 @@ QIcon InterpreterEditorManager::icon(Id const &id) const
 	QPair<qrRepo::RepoApi*, Id> const repoAndMetaIdPair = repoAndMetaId(id);
 	qrRepo::RepoApi const * const repo = repoAndMetaIdPair.first;
 	Id const metaId = repoAndMetaIdPair.second;
-	QString const source;
+	QString source = "";
 	//QDomDocument classDoc;
 	//QDomElement sdfElement;
 
 	if (metaId.element() == "MetaEntityEdge") {
-		source.arg("import QtQuick 1.1 \n")
-				.arg("import CustomComponents 1.0 \n")
-				 .arg("Rectangle { \n")
-				 .arg("\t width : 100; height : 60 \n")
-				 .arg("\t Line{ \n")
-				 .arg("\t\t x1 : 0; y1 : 0 \n")
-				 .arg("\t\t x2 : 100; y2:60 \n")
-				 .arg("\t\t width : 2 \n")
-				 .arg("\t\t style:\"solid""\"\n")
-				 .arg("\t} \n")
-				 .arg("}\n");
+		source += QString("import QtQuick 1.1 \n")
+				+ QString("import CustomComponents 1.0 \n")
+				+ QString("Rectangle { \n")
+				+ QString("\t width : 100; height : 60 \n")
+				+ QString("\t Line{ \n")
+				+ QString("\t\t x1 : 0; y1 : 0 \n")
+				+ QString("\t\t x2 : 100; y2:60 \n")
+				+ QString("\t\t width : 2 \n")
+				+ QString("\t\t style:\"solid""\"\n")
+				+ QString("\t} \n")
+				+ QString("}\n");
 		/*sdfElement = classDoc.createElement("picture");
 		sdfElement.setAttribute("sizex", 100);
 		sdfElement.setAttribute("sizey", 60);
@@ -452,7 +452,7 @@ QIcon InterpreterEditorManager::icon(Id const &id) const
 		sdfElement.appendChild(lineElement);*/
 	} else {
 		// содержимое кода на qml
-		source.arg(repo->stringProperty(metaId, "shape"));
+		source = (repo->stringProperty(metaId, "shape"));
 	}
 
 	if (source.compare("")) {
