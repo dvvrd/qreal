@@ -253,12 +253,11 @@ QString EditorManager::mouseGesture(const Id &id) const
 
 QIcon EditorManager::icon(Id const &id) const
 {
-	if (QFile(":/generated/shapes/" + id.element() + "Class.qml").exists())
-	{
-	Q_ASSERT(mPluginsLoaded.contains(id.editor()));
-	return	utils::InFile::readAll(":/generated/shapes/" + id.element() + "Class.qml") != ""
-			? QmlIconLoader::iconOf(utils::InFile::readAll(":/generated/shapes/" + id.element() + "Class.qml"))
-			: QIcon(":/icons/default.svg");
+	if (QFile(":/generated/shapes/" + id.element() + "Class.qml").exists()) {
+		Q_ASSERT(mPluginsLoaded.contains(id.editor()));
+		return	!utils::InFile::readAll(":/generated/shapes/" + id.element() + "Class.qml").isEmpty()
+				? QmlIconLoader::iconOf(utils::InFile::readAll(":/generated/shapes/" + id.element() + "Class.qml"))
+				: QIcon(":/icons/default.svg");
 	} else {
 		return QIcon(":/icons/default.svg");
 	}
@@ -267,10 +266,9 @@ QIcon EditorManager::icon(Id const &id) const
 
 QSize EditorManager::iconSize(Id const &id) const
 {
-	if (QFile(":/generated/shapes/" + id.element() + "Class.qml").exists())
-	{
-	Q_ASSERT(mPluginsLoaded.contains(id.editor()));
-	return utils::InFile::readAll(":/generated/shapes/" + id.element() + "Class.qml") != ""
+	if (QFile(":/generated/shapes/" + id.element() + "Class.qml").exists()) {
+		Q_ASSERT(mPluginsLoaded.contains(id.editor()));
+		return !utils::InFile::readAll(":/generated/shapes/" + id.element() + "Class.qml").isEmpty()
 				? QmlIconLoader::preferedSizeOf(utils::InFile::readAll(":/generated/shapes/" + id.element() + "Class.qml"))
 				: QSize(50, 50);
 	} else {

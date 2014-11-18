@@ -58,6 +58,9 @@
 #include "qmlType/declarativeEllipse.h"
 #include "qmlType/declarativeLine.h"
 #include "qmlType/declarativePen.h"
+#include "qmlType/declarativeArc.h"
+#include "qmlType/declarativePath.h"
+#include "qmlType/declarativeImage.h"
 
 using namespace qReal;
 using namespace qReal::commands;
@@ -286,7 +289,10 @@ void MainWindow::registerQmlTypes()
 {
 	qmlRegisterType<qmlTypes::DeclarativeLine>("CustomComponents", 1, 0, "Line");
 	qmlRegisterType<qmlTypes::DeclarativeEllipse>("CustomComponents", 1, 0, "Ellipse");
-	qmlRegisterType<qmlTypes::DeclarativePen>("CustomComponents", 1, 0,"Border");
+	qmlRegisterType<qmlTypes::DeclarativeArc>("CustomComponents", 1, 0, "Arc");
+	qmlRegisterType<qmlTypes::DeclarativePen>("CustomComponents", 1, 0, "Border");
+	qmlRegisterType<qmlTypes::DeclarativePath>("CustomComponents", 1, 0, "Path");
+	qmlRegisterType<qmlTypes::DeclarativeImage>("CustomComponents", 1, 0, "Picture");
 }
 
 void MainWindow::showFindDialog()

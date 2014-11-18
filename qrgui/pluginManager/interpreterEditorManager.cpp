@@ -420,8 +420,6 @@ QIcon InterpreterEditorManager::icon(Id const &id) const
 	qrRepo::RepoApi const * const repo = repoAndMetaIdPair.first;
 	Id const metaId = repoAndMetaIdPair.second;
 	QString source = "";
-	//QDomDocument classDoc;
-	//QDomElement sdfElement;
 
 	if (metaId.element() == "MetaEntityEdge") {
 		source += QString("import QtQuick 1.1 \n")
@@ -435,35 +433,15 @@ QIcon InterpreterEditorManager::icon(Id const &id) const
 				+ QString("\t\t style:\"solid""\"\n")
 				+ QString("\t} \n")
 				+ QString("}\n");
-		/*sdfElement = classDoc.createElement("picture");
-		sdfElement.setAttribute("sizex", 100);
-		sdfElement.setAttribute("sizey", 60);
-		QDomElement lineElement = classDoc.createElement("line");
-		lineElement.setAttribute("fill", "#000000");
-		QString const lineType = repo->stringProperty(metaId, "lineType").remove("Line");
-		lineElement.setAttribute("stroke-style", lineType);
-		lineElement.setAttribute("stroke", "#000000");
-		lineElement.setAttribute("y1", 0);
-		lineElement.setAttribute("x1", 0);
-		lineElement.setAttribute("y2", 60);
-		lineElement.setAttribute("stroke-width", 2);
-		lineElement.setAttribute("x2", 100);
-		lineElement.setAttribute("fill-style", "solid");
-		sdfElement.appendChild(lineElement);*/
 	} else {
-		// содержимое кода на qml
 		source = (repo->stringProperty(metaId, "shape"));
 	}
 
-	if (source.compare("")) {
+	if (source.isEmpty()) {
 		return QIcon();
 	}
 
-//	classDoc.appendChild(classDoc.importNode(sdfElement, true));
-//	SdfIconEngineV2 * const engine = new SdfIconEngineV2(classDoc);
-//	return QIcon(engine);
 	return QmlIconLoader::iconOf(source);
-	//return QIcon();
 }
 
 ElementImpl *InterpreterEditorManager::elementImpl(Id const &id) const

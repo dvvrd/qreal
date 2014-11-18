@@ -8,7 +8,6 @@
 #include <QtCore/QPair>
 #include <QtGui/QIcon>
 
-
 #include <qrkernel/ids.h>
 #include <qrkernel/settingsManager.h>
 #include <qrrepo/graphicalRepoApi.h>

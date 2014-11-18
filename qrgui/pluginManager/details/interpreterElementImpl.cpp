@@ -538,8 +538,6 @@ void InterpreterElementImpl::updateRendererContent(QString const &shape)
 	QDeclarativeComponent component(mQmlEngine);
 	component.setData(shape.toLocal8Bit(),QUrl());
 	mQmlItem = qobject_cast<QDeclarativeItem *>(component.create());
-//	qobject_cast<QGraphicsObject *>(mQmlItem)->setParentItem(this);
-//	mQmlItem->setFlag(QGraphicsItem::ItemStacksBehindParent);
 }
 
 QStringList InterpreterElementImpl::bonusContextMenuFields() const

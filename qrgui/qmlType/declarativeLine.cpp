@@ -39,7 +39,7 @@ void DeclarativeLine::paint(QPainter *painter, QStyleOptionGraphicsItem const *o
 
 	int x = qMin(mX1, mX2) - mWidth / 2;
 	int y = qMin(mY1, mY2) - mWidth / 2;
-	painter->drawLine(mX1 - x, mY1 - y, mX2 - x, mY2 - y);
+	painter->drawLine(mX1, mY1, mX2, mY2);
 }
 
 int DeclarativeLine::x1() const
