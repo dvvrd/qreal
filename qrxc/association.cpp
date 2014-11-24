@@ -1,6 +1,6 @@
 #include "association.h"
 
-#include <QDebug>
+#include <QtCore/QDebug>
 
 bool Association::init(QDomElement const &element)
 {
@@ -11,4 +11,12 @@ bool Association::init(QDomElement const &element)
 		return false;
 	}
 	return true;
+}
+
+Association* Association::clone() const
+{
+	Association* result = new Association();
+	result->mBeginName = mBeginName;
+	result->mEndName = mEndName;
+	return result;
 }

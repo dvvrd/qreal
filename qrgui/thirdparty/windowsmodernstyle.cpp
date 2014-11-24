@@ -57,6 +57,12 @@ typedef HRESULT (WINAPI* PtrGetCurrentThemeName)( OUT LPWSTR pszThemeFileName, i
 static PtrIsAppThemed pIsAppThemed = NULL;
 static PtrGetCurrentThemeName pGetCurrentThemeName = NULL;
 
+// :(
+#define QWindowsVistaStyle QProxyStyle
+#define QWindowsXPStyle QProxyStyle
+#define QWindowsStyle QProxyStyle
+
+
 static void resolveSymbols()
 {
 	static bool tried = false;
@@ -89,15 +95,15 @@ static QColor colorRole( QPalette::ColorRole role )
 	return QApplication::palette().color( role );
 }
 
-static QColor blendColors( const QColor& src, const QColor& dest, double alpha )
+static QColor blendColors( const QColor& src, const QColor& dest, qreal alpha )
 {
-	double red = alpha * src.red() + ( 1.0 - alpha ) * dest.red();
-	double green = alpha * src.green() + ( 1.0 - alpha ) * dest.green();
-	double blue = alpha * src.blue() + ( 1.0 - alpha ) * dest.blue();
+	qreal red = alpha * src.red() + ( 1.0 - alpha ) * dest.red();
+	qreal green = alpha * src.green() + ( 1.0 - alpha ) * dest.green();
+	qreal blue = alpha * src.blue() + ( 1.0 - alpha ) * dest.blue();
 	return QColor( (int)( red + 0.5 ), (int)( green + 0.5 ), (int)( blue + 0.5 ) );
 }
 
-static QColor blendRoles( QPalette::ColorRole src, QPalette::ColorRole dest, double alpha )
+static QColor blendRoles( QPalette::ColorRole src, QPalette::ColorRole dest, qreal alpha )
 {
 	QPalette palette = QApplication::palette();
 	return blendColors( palette.color( src ), palette.color( dest ), alpha );
@@ -1052,7 +1058,7 @@ class WindowsModernStylePlugin : public QStylePlugin
 {
 public: // overrides
 	QStringList keys() const;
-	QStyle* create( const QString& key );
+	QStyle* create( QString const &key );
 };
 
 QStringList WindowsModernStylePlugin::keys() const
@@ -1060,7 +1066,7 @@ QStringList WindowsModernStylePlugin::keys() const
 	return QStringList() << "WindowsModernStyle";
 }
 
-QStyle* WindowsModernStylePlugin::create( const QString& key )
+QStyle* WindowsModernStylePlugin::create( QString const &key )
 {
 	if ( key.toLower() == QLatin1String( "windowsmodernstyle" ) )
 		return new WindowsModernStyle();
@@ -1077,7 +1083,7 @@ QObject* qt_plugin_instance_windowsmodernstyle()
 	return instance;
 }
 
-Q_IMPORT_PLUGIN( windowsmodernstyle )
+//Q_IMPORT_PLUGIN( windowsmodernstyle )
 
 #else
 

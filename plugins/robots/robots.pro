@@ -2,9 +2,12 @@ TEMPLATE = subdirs
 
 SUBDIRS = \
 	editor \
-	robotsInterpreter \
-	robotsGenerator \
-	qextSerialPort \
+	interpreters \
+	generators \
+	qextserialport \
+	utils \
 
-qextSerialPort.file = thirdparty/qextserialport/qextserialport.pro
-robotsInterpreter.depends = qextSerialPort
+qextserialport.file = thirdparty/qextserialport/qextserialport.pro
+interpreters.depends = qextserialport
+interpreters.depends = utils
+generators.depends = interpreters

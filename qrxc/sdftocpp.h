@@ -1,14 +1,13 @@
 #pragma once
 
-
-#include <QtGui/QWidget>
+#include <QtWidgets/QWidget>
 #include <QtXml/QDomDocument>
-#include <QPen>
-#include <QBrush>
-#include <QPainter>
-#include <QFont>
-#include <QFile>
-#include <QTextStream>
+#include <QtGui/QPen>
+#include <QtGui/QBrush>
+#include <QtGui/QPainter>
+#include <QtGui/QFont>
+#include <QtCore/QFile>
+#include <QtCore/QTextStream>
 #include <QtGui/QIconEngine>
 
 class SdfRenderer : public QObject
@@ -17,18 +16,17 @@ class SdfRenderer : public QObject
 
 public:
 	SdfRenderer();
-	SdfRenderer(const QString path);
+	SdfRenderer(QString const path);
 	SdfRenderer(const QDomNode &bla);
 	~SdfRenderer();
 
-	bool load (const QString &filename);
+	bool load (QString const &filename);
 	QString render();
 	void noScale();
 
 private:
 	QString toGenerator;
 	QTextStream toGen;
-
 
 	QRectF bounds;
 	int first_size_x;
@@ -69,7 +67,7 @@ private:
 	bool while_condition(QString str, int i);
 };
 
-class SdfIconEngineV2: public QIconEngineV2
+class SdfIconEngineV2: public QIconEngine
 {
 public:
 	SdfIconEngineV2(QString const &file);

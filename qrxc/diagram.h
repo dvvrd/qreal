@@ -21,7 +21,10 @@ public:
 	QString name() const;
 	QString nodeName() const;
 	QString displayedName() const;
-	QMap<QString, QStringList> paletteGroups() const;
+	QString getGroupsXML() const;
+	QList<QPair<QString, QStringList>> paletteGroups() const;
+	QMap<QString, QString> paletteGroupsDescriptions() const;
+	bool shallPaletteBeSorted() const;
 
 private:
 	struct ImportSpecification {
@@ -35,10 +38,13 @@ private:
 	QString mDiagramNodeName;
 	QString mDiagramDisplayedName;
 	Editor *mEditor;
-	QMap<QString, QStringList> mPaletteGroups;
+	QString mGroupsXML;
+	QList<QPair<QString, QStringList>> mPaletteGroups;
+	QMap<QString, QString> mPaletteGroupsDescriptions;
 	QList<ImportSpecification> mImports;
+	bool mShallPaletteBeSorted;
 
 	bool initGraphicTypes(QDomElement const &graphicTypesElement);
 	bool initNonGraphicTypes(QDomElement const &nonGraphicTypesElement);
-	void initPaletteGroups(QDomElement const &paletteGroupsElement);
+	void initPalette(QDomElement const &paletteElement);
 };

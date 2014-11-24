@@ -2,10 +2,6 @@
 
 #include "nonGraphicType.h"
 
-#include <QDomElement>
-#include <QStringList>
-#include <QDebug>
-
 namespace utils {
 	class OutFile;
 }
@@ -19,9 +15,14 @@ public:
 	virtual void generatePropertyTypes(utils::OutFile &out);
 	virtual void generatePropertyDefaults(utils::OutFile &out);
 	virtual void generateMouseGesturesMap(utils::OutFile &out);
+	virtual void generateExplosionsMap(utils::OutFile &out);
+
+	/// Returns true if enum was marked as editable in metamodel.
+	bool isEditable() const;
 
 private:
 	void generateOneCase(utils::OutFile &out, bool isNotFirst) const;
-	
-	QStringList mValues;
+
+	QMap<QString, QString> mValues;
+	bool mIsEditable;
 };

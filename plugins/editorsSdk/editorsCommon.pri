@@ -1,12 +1,12 @@
-QT += xml
+QT += xml widgets
 TEMPLATE =  lib
-CONFIG += plugin
+CONFIG += plugin c++11
 
 isEmpty(ROOT) {
 	error(Please set ROOT variable in a .pro file of your editor as a path to a root folder of QReal sources)
 }
 
-DESTDIR = $$ROOT/bin/plugins/
+DESTDIR = $$ROOT/bin/plugins/editors/
 MOC_DIR = .moc
 RCC_DIR = .moc
 

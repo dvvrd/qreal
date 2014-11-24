@@ -1,13 +1,11 @@
 #pragma once
 
-#include <QtGui/QAbstractItemView>
+#include <QtWidgets/QAbstractItemView>
 
-#include "modelsImplementation/abstractView.h"
+#include "models/details/modelsImplementation/abstractView.h"
 
 namespace qReal {
-
 namespace models {
-
 namespace details {
 
 class LogicalModel;
@@ -21,13 +19,12 @@ public:
 
 protected slots:
 	virtual void rowsInserted(QModelIndex const &parent, int start, int end);
-	virtual void dataChanged(QModelIndex const &topLeft, QModelIndex const &bottomRight);
+	virtual void dataChanged(QModelIndex const &topLeft, QModelIndex const &bottomRight
+			, QVector<int> const &roles = QVector<int>());
 	virtual void rowsAboutToBeRemoved(QModelIndex const &parent, int start, int end);
 
 };
 
 }
-
 }
-
 }

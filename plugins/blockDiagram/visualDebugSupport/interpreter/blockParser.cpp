@@ -14,16 +14,16 @@ void BlockParser::parseVarPart(QString const &stream, int &pos)
 	if (stream.mid(pos, 4).compare("var ") == 0) {
 		pos += 4;
 		skip(stream, pos);
-		if (!isEndOfStream(stream, pos) &&
-				stream.mid(pos, 4).compare("int ") != 0 && stream.mid(pos, 7).compare("double ") != 0)
+		if (!isEndOfStream(stream, pos)
+				&& stream.mid(pos, 4).compare("int ") != 0 && stream.mid(pos, 7).compare("double ") != 0)
 		{
 			error(unexpectedSymbol, QString::number(pos + 1), tr("int\' or \'double"), stream.at(pos));
 			return;
 		}
 
-		while (pos < stream.length() &&
-				(stream.mid(pos, 4).compare("int ") == 0 ||
-				stream.mid(pos, 7).compare("double ") == 0) )
+		while (pos < stream.length()
+				&& (stream.mid(pos, 4).compare("int ") == 0
+				|| stream.mid(pos, 7).compare("double ") == 0))
 		{
 			Number::Type curType;
 			if (stream.mid(pos, 4).compare("int ") == 0) {
@@ -34,7 +34,7 @@ void BlockParser::parseVarPart(QString const &stream, int &pos)
 				pos += 7;
 			}
 			skip(stream, pos);
-			while (pos < stream.length() && stream.at(pos).toAscii() != ';') {
+			while (pos < stream.length() && stream.at(pos).toLatin1() != ';') {
 				skip(stream, pos);
 				QString const variable = parseIdentifier(stream, pos);
 				if (hasErrors()) {
@@ -42,40 +42,47 @@ void BlockParser::parseVarPart(QString const &stream, int &pos)
 				}
 				skip(stream, pos);
 
-				Number n;
 				if (isEndOfStream(stream, pos)) {
 					return;
 				}
-				switch (stream.at(pos).toAscii()) {
+
+				switch (stream.at(pos).toLatin1()) {
 				case '=':
-					pos++;
-					skip(stream, pos);
-					n = parseExpression(stream, pos);
-					n.setProperty("Type", curType);
-					mVariables[variable] = n;
-					break;
+					{
+						pos++;
+						skip(stream, pos);
+						Number *temp = parseExpression(stream, pos);
+						temp->setType(curType);
+						mVariables[variable] = temp;
+						break;
+					}
 				case ',':
-					pos++;
-					mVariables[variable] = n;
-					skip(stream, pos);
-					if (pos == stream.length()) {
-						error(unexpectedEndOfStream, QString::number(pos+1));
-						return;
+					{
+						pos++;
+						mVariables[variable] = new Number();
+						skip(stream, pos);
+						if (pos == stream.length()) {
+							error(unexpectedEndOfStream, QString::number(pos+1));
+							return;
+						}
+						if (stream.at(pos).toLatin1() == ';') {
+							error(unexpectedSymbol, QString::number(pos + 1),
+									tr("\'letter"),
+									QString(stream.at(pos).toLatin1())
+							);
+							return;
+						}
+						break;
 					}
-					if (stream.at(pos).toAscii() == ';') {
-						error(unexpectedSymbol, QString::number(pos + 1),
-								tr("\'letter"),
-								QString(stream.at(pos).toAscii())
-						);
-						return;
-					}
-					break;
 				default:
-					if (!checkForColon(stream, pos)) {
-						return;
+					{
+						if (!checkForColon(stream, pos)) {
+							return;
+						}
+
+						mVariables[variable] = new Number();
+						break;
 					}
-					mVariables[variable] = n;
-					break;
 				}
 				skip(stream, pos);
 			}

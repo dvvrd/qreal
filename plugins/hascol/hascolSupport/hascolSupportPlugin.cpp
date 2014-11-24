@@ -1,12 +1,10 @@
 #include "hascolSupportPlugin.h"
 
-#include <QtGui/QApplication>
-#include <QtGui/QFileDialog>
+#include <QtWidgets/QApplication>
+#include <QtWidgets/QFileDialog>
 
 #include "hascolGenerator.h"
 #include "hascolParser.h"
-
-Q_EXPORT_PLUGIN2(hascolSupportPlugin, hascol::HascolSupportPlugin)
 
 using namespace qReal;
 using namespace hascol;
@@ -15,8 +13,6 @@ HascolSupportPlugin::HascolSupportPlugin()
 		: mGenerateCodeAction(NULL)
 		, mParseSourcesAction(NULL)
 {
-	mAppTranslator.load(":/hascolSupport_" + QLocale::system().name());
-	QApplication::installTranslator(&mAppTranslator);
 }
 
 HascolSupportPlugin::~HascolSupportPlugin()

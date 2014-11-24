@@ -1,8 +1,0 @@
-<RCC>
-    <qresource prefix="/">
-        <file>robotsGenerator_ru.qm</file>
-        <file>nxtOSEK/templates/template.c</file>
-        <file>nxtOSEK/templates/template.makefile</file>
-        <file>nxtOSEK/templates/template.oil</file>
-    </qresource>
-</RCC>

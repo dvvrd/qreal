@@ -3,11 +3,22 @@
 using namespace qReal;
 using namespace models;
 
-Models::Models(QString const &workingCopy, EditorManager const &editorManager)
+Models::Models(QString const &workingCopy, EditorManagerInterface &editorManager)
 {
 	qrRepo::RepoApi *repoApi = new qrRepo::RepoApi(workingCopy);
 	mGraphicalModel = new models::details::GraphicalModel(repoApi, editorManager);
+	mGraphicalPartModel = new models::details::GraphicalPartModel(*repoApi, *mGraphicalModel);
+
+	GraphicalModelAssistApi * const graphicalAssistApi
+			= new GraphicalModelAssistApi(*mGraphicalModel, *mGraphicalPartModel, editorManager);
+
+	mGraphicalModel->setAssistApi(graphicalAssistApi);
+
+	QObject::connect(mGraphicalModel, SIGNAL(rowsAboutToBeRemoved(QModelIndex, int, int))
+			, mGraphicalPartModel, SLOT(rowsAboutToBeRemovedInGraphicalModel(QModelIndex, int, int)));
+
 	mLogicalModel = new models::details::LogicalModel(repoApi, editorManager);
+	mExploser = new Exploser(logicalModelAssistApi());
 	mRepoApi = repoApi;
 
 	mLogicalModel->connectToGraphicalModel(mGraphicalModel);
@@ -19,6 +30,7 @@ Models::~Models()
 	delete mGraphicalModel;
 	delete mLogicalModel;
 	delete mRepoApi;
+	delete mExploser;
 }
 
 QAbstractItemModel* Models::graphicalModel() const
@@ -61,8 +73,14 @@ qrRepo::GraphicalRepoApi const &Models::graphicalRepoApi() const
 	return mGraphicalModel->api();
 }
 
+Exploser &Models::exploser() const
+{
+	return *mExploser;
+}
+
 void Models::reinit()
 {
 	mLogicalModel->reinit();
 	mGraphicalModel->reinit();
+	mGraphicalPartModel->reinit();
 }
