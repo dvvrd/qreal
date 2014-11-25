@@ -1,4 +1,5 @@
 #include "abstractItemView.h"
+
 using namespace graphicsUtils;
 
 AbstractView::AbstractView(QWidget * parent) : QGraphicsView(parent)
@@ -20,7 +21,7 @@ void AbstractView::wheelEvent(QWheelEvent *event)
 	QGraphicsView::wheelEvent(event);
 	if (event->buttons() == Qt::MidButton) {
 		if (event->delta() >= 0)
-			 zoomOut();
+			zoomOut();
 		else
 			zoomIn();
 	}

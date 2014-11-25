@@ -1,11 +1,12 @@
 #pragma once
 
-#include <QSyntaxHighlighter>
+#include <QtGui/QSyntaxHighlighter>
 
-class TextHighlighter : QSyntaxHighlighter {
+class TextHighlighter : public QSyntaxHighlighter
+{
 	public:
 		TextHighlighter(QTextDocument *document);
-		void highlightBlock(const QString& text);
+		void highlightBlock(QString const &text);
 private:
 	struct HighlightingRule
 	{

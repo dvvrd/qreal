@@ -2,7 +2,7 @@
 #include "ui_findReplaceDialog.h"
 
 FindReplaceDialog::FindReplaceDialog(qrRepo::LogicalRepoApi const &logicalRepoApi, QWidget *parent)
-	: QDialog(parent)
+	: QRealDialog("FindReplaceDialog", parent)
 	, mCommonApi(logicalRepoApi)
 	, mUi(new Ui::FindReplaceDialog)
 {
@@ -13,6 +13,7 @@ FindReplaceDialog::FindReplaceDialog(qrRepo::LogicalRepoApi const &logicalRepoAp
 	mCheckBoxes.append(mUi->mByPropertyBox);
 	mCheckBoxes.append(mUi->mByContentBox);
 	mCheckBoxes.append(mUi->mSensitivity);
+	mCheckBoxes.append(mUi->mByRegExp);
 
 	mCheckBoxes.first()->setChecked(true);
 
@@ -107,5 +108,6 @@ void FindReplaceDialog::initIds(QMap<QString, QString> foundData)
 		}
 	}
 
-	QObject::connect(mUi->mListWidget, SIGNAL(itemClicked(QListWidgetItem*)), this, SLOT(itemChosen(QListWidgetItem*)));
+	QObject::connect(mUi->mListWidget, SIGNAL(itemClicked(QListWidgetItem*)), this
+			, SLOT(itemChosen(QListWidgetItem*)));
 }

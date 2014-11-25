@@ -1,8 +1,7 @@
+#include <QtWidgets/QApplication>
+
 #include "visualDebuggerPlugin.h"
-
-#include <QtGui/QApplication>
-
-Q_EXPORT_PLUGIN2(visualDebugger, qReal::visualDebugger::VisualDebuggerPlugin)
+#include "plugins/toolPluginInterface/systemEvents.h"
 
 using namespace qReal;
 using namespace visualDebugger;
@@ -11,15 +10,13 @@ using namespace utils;
 QString const blockDiagram = "BlockDiagram";
 
 VisualDebuggerPlugin::VisualDebuggerPlugin()
-		: mVisualDebugger(NULL),
-		mDebuggerConnector(NULL),
-		mErrorReporter(NULL),
-		mWatchListWindow(NULL),
-		mParser(NULL),
-		mPreferencesPage(new VisualDebuggerPreferencesPage())
+		: mVisualDebugger(NULL)
+		, mDebuggerConnector(NULL)
+		, mErrorReporter(NULL)
+		, mWatchListWindow(NULL)
+		, mParser(NULL)
+		, mPreferencesPage(new VisualDebuggerPreferencesPage())
 {
-	mAppTranslator.load(":/visualDebugSupport_" + QLocale::system().name());
-	QApplication::installTranslator(&mAppTranslator);
 }
 
 VisualDebuggerPlugin::~VisualDebuggerPlugin()
@@ -31,19 +28,20 @@ void VisualDebuggerPlugin::init(PluginConfigurator const &configurator)
 	mErrorReporter = configurator.mainWindowInterpretersInterface().errorReporter();
 	mParser = new BlockParser(mErrorReporter);
 
-	mVisualDebugger = new VisualDebugger(
-			configurator.logicalModelApi(),
-			configurator.graphicalModelApi(),
-			configurator.mainWindowInterpretersInterface(),
-			mParser
+	mVisualDebugger = new VisualDebugger(configurator.logicalModelApi()
+			, configurator.graphicalModelApi()
+			, configurator.mainWindowInterpretersInterface()
+			, mParser
 	);
 
 	mDebuggerConnector = new DebuggerConnector(this);
+
+	connect(&configurator.systemEvents(), SIGNAL(activeTabChanged(Id)), this, SLOT(activeTabChanged(qReal::Id)));
 }
 
-QPair<QString, PreferencesPage *> VisualDebuggerPlugin::preferencesPage()
+QPair<QString, gui::PreferencesPage *> VisualDebuggerPlugin::preferencesPage()
 {
-	return qMakePair(tr("Block Diagram Debug"), static_cast<PreferencesPage*>(mPreferencesPage));
+	return qMakePair(tr("Block Diagram Debug"), static_cast<gui::PreferencesPage*>(mPreferencesPage));
 }
 
 QList<qReal::ActionInfo> VisualDebuggerPlugin::actions()
@@ -65,7 +63,6 @@ QList<qReal::ActionInfo> VisualDebuggerPlugin::actions()
 	mWatchListAction->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_I));
 	connect(mWatchListAction, SIGNAL(triggered()), this, SLOT(showWatchList()));
 	mVisualDebugMenu->addAction(mWatchListAction);
-
 
 	mVisualDebugWithGdbMenu = new QMenu(tr("Visual debug (with gdb)"));
 	ActionInfo visualDebugWithGdbMenuInfo(mVisualDebugWithGdbMenu, "tools");
@@ -147,10 +144,11 @@ void VisualDebuggerPlugin::activeTabChanged(Id const &rootElementId)
 
 void VisualDebuggerPlugin::showWatchList()
 {
-	if (mWatchListWindow != NULL) {
+	if (mWatchListWindow) {
 		mWatchListWindow->close();
 	}
-	mWatchListWindow = new watchListWindow(mParser);
+
+	mWatchListWindow = new WatchListWindow(mParser);
 	mWatchListWindow->show();
 }
 
@@ -186,8 +184,7 @@ void VisualDebuggerPlugin::generateAndBuild()
 			mDebuggerConnector->build();
 
 			if (!mDebuggerConnector->hasBuildError()) {
-				mErrorReporter->addInformation(
-						tr("Code generated and builded successfully"));
+				mErrorReporter->addInformation(tr("Code generated and builded successfully"));
 			}
 		}
 	}

@@ -1,9 +1,7 @@
 #pragma once
 
-#include <QtCore/QTranslator>
-
-#include "../../../qrgui/toolPluginInterface/toolPluginInterface.h"
-#include "../../../qrgui/toolPluginInterface/pluginConfigurator.h"
+#include <qrgui/plugins/toolPluginInterface/toolPluginInterface.h>
+#include <qrgui/plugins/toolPluginInterface/pluginConfigurator.h>
 
 #include "compilerPage.h"
 
@@ -16,6 +14,7 @@ class MetaEditorSupportPlugin : public QObject, public qReal::ToolPluginInterfac
 {
 	Q_OBJECT
 	Q_INTERFACES(qReal::ToolPluginInterface)
+	Q_PLUGIN_METADATA(IID "metaEditor.MetaEditorSupportPlugin")
 
 public:
 	MetaEditorSupportPlugin();
@@ -23,7 +22,7 @@ public:
 
 	virtual void init(qReal::PluginConfigurator const &configurator);
 	virtual QList<qReal::ActionInfo> actions();
-	virtual QPair<QString, PreferencesPage *> preferencesPage();
+	virtual QPair<QString, qReal::gui::PreferencesPage *> preferencesPage();
 
 private slots:
 	/// Generates .xml file with metamodel for later compilation with qrxc tool
@@ -40,11 +39,12 @@ private:
 	/// Compiles and loads to QReal new editor plugin
 	void loadNewEditor(
 			QString const &directoryName  ///< Directory where editor was generated (containing .pro file of that editor)
-			, QString const &metamodelName  ///< Metamodel name as set in metamodel
+			, QPair<QString, QString> const &metamodelNames  ///< Metamodel name as set in metamodel
 			, QString const &commandFirst  ///< qmake command
 			, QString const &commandSecond  ///< make command
 			, QString const &extension  ///< Extension of the resulting binary file with editor plugin (.dll/.so)
 			, QString const &prefix  ///< Optional OS-dependent prefix for resulting binary file (lib for linux, for example)
+			, QString const &buildConfiguration  ///< debug or release, passed to CONFIG variable of qmake
 			);
 
 	/// Action that starts generation of .xml file with metamodel for qrxc
@@ -55,9 +55,6 @@ private:
 
 	/// Action that starts parsing of existing .xml metamodel
 	QAction mParseEditorXmlAction;
-
-	/// Thanslator object for this plugin, provides localisation
-	QTranslator mAppTranslator;
 
 	/// Interface of MainWindow, used, for example, to reinit models when finished parsing
 	qReal::gui::MainWindowInterpretersInterface *mMainWindowInterface;  // Does not have ownership

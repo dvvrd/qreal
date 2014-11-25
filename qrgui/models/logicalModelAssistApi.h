@@ -1,71 +1,79 @@
 #pragma once
-#include "../../qrkernel/ids.h"
-#include "details/logicalModel.h"
-#include "details/modelsAssistApi.h"
-#include "../toolPluginInterface/usedInterfaces/logicalModelAssistInterface.h"
+
+#include <qrkernel/ids.h>
+
+#include "models/modelsDeclSpec.h"
+#include "models/details/logicalModel.h"
+#include "models/details/modelsAssistApi.h"
+#include "plugins/toolPluginInterface/usedInterfaces/logicalModelAssistInterface.h"
 
 namespace qReal {
 
 class EditorManager;
+class EditorManagerInterface;
 
 namespace models {
 
-namespace details {
-class LogicalModel;
-}
-
-class LogicalModelAssistApi : public qReal::LogicalModelAssistInterface
+class QRGUI_MODELS_EXPORT LogicalModelAssistApi : public qReal::LogicalModelAssistInterface
 {
 public:
-	LogicalModelAssistApi(details::LogicalModel &logicalModel, EditorManager const &editorManager);
-	virtual ~LogicalModelAssistApi() {}
-	EditorManager const &editorManager() const;
-	qrRepo::LogicalRepoApi const &logicalRepoApi() const;
-	qrRepo::LogicalRepoApi &mutableLogicalRepoApi();
-	Id createElement(Id const &parent, Id const &type);
-	Id createElement(Id const &parent, Id const &id, bool isFromLogicalModel, QString const &name, QPointF const &position);
-	IdList children(Id const &element) const;
-	void changeParent(Id const &element, Id const &parent, QPointF const &position = QPointF());
+	LogicalModelAssistApi(details::LogicalModel &logicalModel, EditorManagerInterface const &editorManagerInterface);
+	virtual ~LogicalModelAssistApi();
 
-	void connect(Id const &source, Id const &destination);
-	void disconnect(Id const &source, Id const &destination);
-	void addUsage(Id const &source, Id const &destination);
-	void deleteUsage(Id const &source, Id const &destination);
-	void createConnected(Id const &sourceElement, Id const &elementType);
-	void createUsed(Id const &sourceElement, Id const &elementType);
-	Id createConnectedElement(Id const &source, Id const &elementType);
-	IdList diagramsAbleToBeConnectedTo(Id const &element) const;
-	IdList diagramsAbleToBeUsedIn(Id const &element) const;
-	virtual void stackBefore(Id const &element, Id const &sibling);
+	EditorManagerInterface const &editorManagerInterface() const;
 
-	void setPropertyByRoleName(Id const &elem, QVariant const &newValue, QString const &roleName);
-	QVariant propertyByRoleName(Id const &elem, QString const &roleName) const;
+	qrRepo::LogicalRepoApi const &logicalRepoApi() const override;
+	qrRepo::LogicalRepoApi &mutableLogicalRepoApi() override;
+	Id createElement(Id const &parent, Id const &type) override;
+	Id createElement(Id const &parent, Id const &id, bool isFromLogicalModel, QString const &name
+			, QPointF const &position, Id const &preferedLogicalId = Id()) override;
 
-	bool isLogicalId(Id const &id) const;
+	IdList children(Id const &element) const override;
+	void changeParent(Id const &element, Id const &parent, QPointF const &position = QPointF()) override;
 
-	void setTo(Id const &elem, Id const &newValue);
-	Id to(Id const &elem) const;
+	void addExplosion(Id const &source, Id const &destination) override;
+	void removeExplosion(Id const &source, Id const &destination) override;
 
-	void setFrom(Id const &elem, Id const &newValue);
-	Id from(Id const &elem) const;
+	void setPropertyByRoleName(Id const &elem, QVariant const &newValue, QString const &roleName) override;
+	QVariant propertyByRoleName(Id const &elem, QString const &roleName) const override;
 
-	QModelIndex indexById(Id const &id) const;
-	Id idByIndex(QModelIndex const &index) const;
-	QPersistentModelIndex rootIndex() const;
-	Id rootId() const;
+	bool isLogicalId(Id const &id) const override;
 
-	bool hasRootDiagrams() const;
-	int childrenOfRootDiagram() const;
-	int childrenOfDiagram(const Id &parent) const;
+	void removeReferencesTo(Id const &id) override;
+	void removeReferencesFrom(Id const &id) override;
+	void removeReference(Id const &id, Id const &reference) override;
+
+	void setName(Id const &elem, QString const &newValue) override;
+	QString name(Id const &elem) const override;
+
+	void setTo(Id const &elem, Id const &newValue) override;
+	Id to(Id const &elem) const override;
+
+	void setFrom(Id const &elem, Id const &newValue) override;
+	Id from(Id const &elem) const override;
+
+	QModelIndex indexById(Id const &id) const override;
+	Id idByIndex(QModelIndex const &index) const override;
+	QPersistentModelIndex rootIndex() const override;
+	Id rootId() const override;
+
+	bool hasRootDiagrams() const override;
+	int childrenOfRootDiagram() const override;
+	int childrenOfDiagram(const Id &parent) const override;
+
+	void removeElement(Id const &logicalId) override;
+
+	/// Returns a mapping of known editors used for current save creation to their versions.
+	QMap<Id, Version> editorVersions() const;
 
 private:
-	details::ModelsAssistApi mModelsAssistApi;
-	details::LogicalModel &mLogicalModel;
-
 	LogicalModelAssistApi(LogicalModelAssistApi const &);  // Copying is forbidden
 	LogicalModelAssistApi& operator =(LogicalModelAssistApi const &); // Assignment is forbidden also
 
-	IdList diagramsFromList(IdList const &list) const;
+	details::ModelsAssistApi mModelsAssistApi;
+	details::LogicalModel &mLogicalModel;
+	EditorManagerInterface const &mEditorManager;
 };
+
 }
 }

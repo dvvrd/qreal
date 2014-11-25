@@ -1,6 +1,7 @@
 TEMPLATE = app
 QT += xml gui
 CONFIG += console
+CONFIG += c++11
 
 macx {
 	CONFIG -= app_bundle
@@ -11,10 +12,13 @@ OBJECTS_DIR = .obj
 
 LIBS += -L../bin -lqrutils
 
+INCLUDEPATH += \
+	$$PWD/..
+
 DESTDIR += ../bin
 
 !macx {
-	QMAKE_LFLAGS="-Wl,-O1,-rpath,$(PWD)/../bin"
+	QMAKE_LFLAGS="-Wl,-O1,-rpath,$$PWD/../bin"
 }
 
 HEADERS += association.h \
@@ -32,12 +36,11 @@ HEADERS += association.h \
 	pointPort.h \
 	port.h \
 	property.h \
-	scalableCoordinate.h \
 	sdftocpp.h \
 	stringType.h \
 	type.h \
 	xmlCompiler.h \
-	scalableItem.h
+	portType.h
 
 SOURCES += association.cpp \
 	diagram.cpp \
@@ -55,9 +58,8 @@ SOURCES += association.cpp \
 	pointPort.cpp \
 	port.cpp \
 	property.cpp \
-	scalableCoordinate.cpp \
 	sdftocpp.cpp \
 	stringType.cpp \
 	type.cpp \
 	xmlCompiler.cpp \
-	scalableItem.cpp
+	portType.cpp

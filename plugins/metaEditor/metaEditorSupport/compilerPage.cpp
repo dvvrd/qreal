@@ -1,27 +1,22 @@
-#include "../../../qrkernel/settingsManager.h"
+#include <qrkernel/settingsManager.h>
 #include "compilerPage.h"
 #include "ui_compilerPage.h"
 
 using namespace metaEditor;
+using namespace qReal;
 
 PreferencesCompilerPage::PreferencesCompilerPage(QWidget *parent)
 		: PreferencesPage(parent)
 		, mUi(new Ui::PreferencesCompilerPage)
 {
-	mIcon = QIcon(":/icons/tools.png");
+	setWindowIcon(QIcon(":/icons/tools.png"));
 	mUi->setupUi(this);
 
 	connect(mUi->linuxButton, SIGNAL(clicked()), this, SLOT(changeSystem()));
 	connect(mUi->windowsButton, SIGNAL(clicked()), this, SLOT(changeSystem()));
 	connect(mUi->otherButton, SIGNAL(clicked()), this, SLOT(changeSystem()));
 
-	mUi->windowsButton->setChecked(SettingsManager::value("windowsButton").toBool());
-	mUi->linuxButton->setChecked(SettingsManager::value("linuxButton").toBool());
-	mUi->otherButton->setChecked(SettingsManager::value("otherButton").toBool());
-	mUi->pathToQmake->setText(SettingsManager::value("pathToQmake").toString());
-	mUi->pathToMake->setText(SettingsManager::value("pathToMake").toString());
-	mUi->pluginExtension->setText(SettingsManager::value("pluginExtension").toString());
-	mUi->prefix->setText(SettingsManager::value("prefix").toString());
+	restoreSettings();
 }
 
 PreferencesCompilerPage::~PreferencesCompilerPage()
@@ -72,4 +67,15 @@ void PreferencesCompilerPage::save()
 	SettingsManager::setValue("pathToMake", mUi->pathToMake->text());
 	SettingsManager::setValue("pluginExtension", mUi->pluginExtension->text());
 	SettingsManager::setValue("prefix", mUi->prefix->text());
+}
+
+void PreferencesCompilerPage::restoreSettings()
+{
+	mUi->windowsButton->setChecked(SettingsManager::value("windowsButton").toBool());
+	mUi->linuxButton->setChecked(SettingsManager::value("linuxButton").toBool());
+	mUi->otherButton->setChecked(SettingsManager::value("otherButton").toBool());
+	mUi->pathToQmake->setText(SettingsManager::value("pathToQmake").toString());
+	mUi->pathToMake->setText(SettingsManager::value("pathToMake").toString());
+	mUi->pluginExtension->setText(SettingsManager::value("pluginExtension").toString());
+	mUi->prefix->setText(SettingsManager::value("prefix").toString());
 }

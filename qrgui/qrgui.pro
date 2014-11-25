@@ -1,69 +1,62 @@
-DESTDIR = ../bin
+TEMPLATE = subdirs
 
-QT += svg xml
-CONFIG += rpath_libdirs help
-macx {
-	CONFIG -= app_bundle
-}
+SUBDIRS += \
+	mainWindow \
+	models \
+	editor \
+	controller \
+	dialogs \
+	preferencesDialog \
+	textEditor \
+	mouseGestures \
+	hotKeyManager \
+	brandManager \
+	pluginManager \
+	editorPluginInterface \
+	toolPluginInterface \
+	interpretedPluginInterface \
+	thirdparty \
 
-RESOURCES = qrgui.qrc
-SOURCES = main.cpp
+pluginManager.file = $$PWD/plugins/pluginManager/pluginManager.pro
+editorPluginInterface.file = $$PWD/plugins/editorPluginInterface/editorPluginInterface.pro
+toolPluginInterface.file = $$PWD/plugins/toolPluginInterface/toolPluginInterface.pro
+interpretedPluginInterface.file = $$PWD/plugins/interpretedPluginInterface/interpretedPluginInterface.pro
 
-TRANSLATIONS = qrgui_ru.ts
+mainWindow.depends = \
+	models \
+	editor \
+	controller \
+	dialogs \
+	preferencesDialog \
+	textEditor \
+	hotKeyManager \
+	brandManager \
+	pluginManager \
+	thirdparty \
 
-# QMAKE_CXXFLAGS_DEBUG += -pg
-# QMAKE_LFLAGS_DEBUG += -pg
+models.depends = \
+	pluginManager \
 
-# workaround для http://bugreports.qt.nokia.com/browse/QTBUG-8110
-# как только поправят, можно будет юзать QMAKE_LFLAGS_RPATH
-!macx {
-	QMAKE_LFLAGS="-Wl,-O1,-rpath,$(PWD)/../bin/"
-}
+editor.depends = \
+	models \
+	controller \
+	mouseGestures \
+	brandManager \
+	pluginManager \
+	thirdparty \
 
-OBJECTS_DIR = .obj
-UI_DIR = .ui
-MOC_DIR = .moc
-RCC_DIR = .moc
+dialogs.depends = \
+	models \
+	thirdparty \
 
-if (equals(QMAKE_CXX, "g++") : !macx) {
-	QMAKE_LFLAGS += -Wl,-E
-}
+textEditor.depends = \
+	toolPluginInterface \
 
-LIBS += -L../bin -lqrrepo -lqrkernel -lqrutils #-lqrmc
+hotKeyManager.depends = \
+	preferencesDialog \
 
-unix:DEFINES   = _TTY_POSIX_
-win32:DEFINES  = _TTY_WIN_
+brandManager.depends = \
+	pluginManager \
 
-
-# Graphical elements
-include (umllib/umllib.pri)
-
-# Dialogs
-include (dialogs/dialogs.pri)
-
-# Main window
-include (mainwindow/mainwindow.pri)
-
-# View
-include (view/view.pri)
-
-# "Встроенные" генераторы
-include (generators/generators.pri)
-
-# Код, скачанный из интернета.
-include (thirdparty/thirdparty.pri)
-
-# Управление плагинами. Plugin managment
-include (pluginManager/pluginManager.pri)
-
-# Graphical and logical models
-include (models/models.pri)
-
-# Interfaces for plugins, used by qrxc and qrmc.
-include (editorPluginInterface/editorPluginInterface.pri)
-
-# Interfaces for tool plugins, used in handcoded tools.
-include (toolPluginInterface/toolPluginInterface.pri)
-
-# Text Editor
-include (textEditor/textEditor.pri)
+pluginManager.depends = \
+	toolPluginInterface \

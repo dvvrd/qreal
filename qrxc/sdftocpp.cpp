@@ -1,35 +1,32 @@
 #include "sdftocpp.h"
 
-#include <QMessageBox>
-#include <QFont>
-#include <QIcon>
-#include <QLineF>
-#include <QTime>
-#include <QDebug>
+#include <QtWidgets/QMessageBox>
+#include <QtGui/QFont>
+#include <QtGui/QIcon>
+#include <QtCore/QLineF>
+#include <QtCore/QTime>
+#include <QtCore/QDebug>
 
 SdfRenderer::SdfRenderer()
 	: mStartX(0), mStartY(0), mNeedScale(true)
 {
-//    	toGenerator = new QString();
 	toGen.setString(&toGenerator,QIODevice::ReadWrite);
 }
 
-SdfRenderer::SdfRenderer(const QString path)
+SdfRenderer::SdfRenderer(QString const path)
 	: mStartX(0), mStartY(0), mNeedScale(true)
 {
 	if (!load(path))
 	{
 		qDebug() << "File " + path + " - loading failed!";
-//		QMessageBox::information(0,"1","2");
 	}
-//	toGenerator = new QString();
 	toGen.setString(&toGenerator,QIODevice::ReadWrite);
 }
 
 SdfRenderer::~SdfRenderer()
 {
-//    delete toGenerator;
 }
+
 SdfRenderer::SdfRenderer(const QDomNode &bla)
 {
 	toGen.setString(&toGenerator, QIODevice::ReadWrite);
@@ -43,7 +40,7 @@ SdfRenderer::SdfRenderer(const QDomNode &bla)
 	first_size_y = docElem.attribute("sizey").toInt();
 }
 
-bool SdfRenderer::load(const QString &filename)
+bool SdfRenderer::load(QString const &filename)
 {
 	QFile file(filename);
 	if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
@@ -587,13 +584,6 @@ SdfIconEngineV2::SdfIconEngineV2(QString const &file)
 	mRenderer.noScale();
 }
 
-void SdfIconEngineV2::paint(QPainter* /*painter*/, QRect const &/*rect*/,
-	QIcon::Mode /*mode*/, QIcon::State /*state*/)
+void SdfIconEngineV2::paint(QPainter* /*painter*/, QRect const &/*rect*/, QIcon::Mode /*mode*/, QIcon::State /*state*/)
 {
-/*	painter->eraseRect(rect);
-	painter->setRenderHint(QPainter::Antialiasing, true);
-	QRect adjustedRect(rect.x(), rect.y(), rect.width() - 1, rect.height() - 1);
-	qDebug() << rect;
-	//mRenderer.render(painter, rect);
-*/
 }

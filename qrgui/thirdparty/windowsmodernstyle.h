@@ -31,13 +31,17 @@
 
 #include <QtGlobal>
 
-#if !defined( Q_WS_WIN ) || ( QT_VERSION < 0x040300 ) || defined( QT_NO_STYLE_WINDOWSVISTA )
+#if !defined( Q_OS_WIN ) || ( QT_VERSION < 0x040300 ) || defined( QT_NO_STYLE_WINDOWSVISTA )
 #define NO_STYLE_WINDOWSMODERN
 #endif
 
 #if !defined( NO_STYLE_WINDOWSMODERN )
 
-#include <QWindowsVistaStyle>
+// TODO: replace this spiky style with OK one
+
+#include <QProxyStyle>
+
+#include "thirdPartyDeclSpec.h"
 
 /**
 * Modern Qt style for Windows.
@@ -47,7 +51,7 @@
 * windows and toolboxes. The color scheme used by this style is
 * automatically adjusted to system settings.
 */
-class WindowsModernStyle : public QWindowsVistaStyle
+class QRGUI_THIRDPARTY_EXPORT WindowsModernStyle : public QProxyStyle
 {
 	Q_OBJECT
 public:

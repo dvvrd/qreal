@@ -1,7 +1,7 @@
 #pragma once
 
-#include <QDomElement>
-#include <QMap>
+#include <QtXml/QDomElement>
+#include <QtCore/QMap>
 
 class Property;
 class Diagram;
@@ -35,16 +35,16 @@ public:
 	virtual void generateCode(utils::OutFile &out) = 0;
 	virtual void generateNameMapping(utils::OutFile &out) = 0;
 	virtual bool generateObjectRequestString(utils::OutFile &out, bool isNotFirst) = 0;
-	virtual bool generateProperties(utils::OutFile &out, bool isNotFirst) = 0;
+	virtual bool generateProperties(utils::OutFile &out, bool isNotFirst, bool isReference) = 0;
+	virtual bool generatePorts(utils::OutFile &out, bool isNotFirst) = 0;
 	virtual bool generateContainedTypes(utils::OutFile &out, bool isNotFirst) = 0;
-	virtual bool generateConnections(utils::OutFile &out, bool isNotFirst) = 0;
-	virtual bool generateUsages(utils::OutFile &out, bool isNotFirst) = 0;
 	virtual bool generatePossibleEdges(utils::OutFile &out, bool isNotFirst) = 0;
 	virtual bool generateEnumValues(utils::OutFile &out, bool isNotFirst) = 0;
 	virtual void generatePropertyTypes(utils::OutFile &out) = 0;
 	virtual void generatePropertyDefaults(utils::OutFile &out) = 0;
 	virtual void generatePropertyDescriptionMapping(utils::OutFile &out) = 0;
 	virtual void generateMouseGesturesMap(utils::OutFile &out) = 0;
+	virtual void generateExplosionsMap(utils::OutFile &out) = 0;
 
 protected:
 	void copyFields(Type *type) const;
@@ -55,9 +55,12 @@ protected:
 	Diagram *mDiagram;
 
 private:
-	QString mName;  // Неквалифицированное имя метатипа
-	QString mContext;  // Контекст квалификации. Например, для Kernel::Node: Node - имя, Kernel - контекст.
-	QString mNativeContext;  // "Pодной" контекст квалификации, не меняется при импорте типа и используется для ресолва.
+	/// Unqualified metatype name
+	QString mName;
+	/// Qualification context. For example for 'Kernel::Node' 'Node' is the name and 'Kernel' is the context.
+	QString mContext;
+	/// "Native" qualification context, type import does not modify it and is used for resolve.
+	QString mNativeContext;
 	QString mDisplayedName;
 	QString mPath;
 };
