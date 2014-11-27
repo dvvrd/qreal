@@ -5,6 +5,7 @@ HEADERS += \
 	$$PWD/declarativeArc.h \
 	$$PWD/declarativePath.h \
 	$$PWD/declarativeImage.h \
+	$$PWD/declarativePolygon.h \
 
 SOURCES += \
 	$$PWD/declarativeLine.cpp \
@@ -13,3 +14,4 @@ SOURCES += \
 	$$PWD/declarativeArc.cpp \
 	$$PWD/declarativePath.cpp \
 	$$PWD/declarativeImage.cpp \
+	$$PWD/declarativePolygon.cpp \

@@ -126,7 +126,7 @@ void XmlCompiler::generateElementClasses()
 	OutFile outElements("generated/elements.h");
 	outElements() << "#pragma once\n\n"
 		<< "#include <QBrush>\n"
-		<< "#include <qrUtils/InFile.h>\n"
+		<< "#include <qrUtils/inFile.h>\n"
 		<< "#include <QPainter>\n\n"
 		<< "#include \"../" << mSourcesRootFolder << "/qrgui/editorPluginInterface/elementImpl.h\"\n"
 		<< "#include \"../" << mSourcesRootFolder << "/qrgui/editorPluginInterface/elementRepoInterface.h\"\n"
