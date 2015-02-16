@@ -2,6 +2,12 @@
 using namespace qmlTypes;
 DeclarativePolygon::DeclarativePolygon(QDeclarativeItem *parent)
 	:DeclarativePen(parent)
+	, mFill(Qt::black)
+	, mX("")
+	, mY("")
+	, mN(0)
+	, mSizex(50)
+	, mSizey(50)
 {
 	// Important, otherwise the paint method is never called
 	setFlag(QGraphicsItem::ItemHasNoContents, false);

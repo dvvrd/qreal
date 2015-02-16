@@ -155,7 +155,7 @@
           <!--<description>as leaf - for the possibility of future node extension</description>-->
           <picture sizex="30" sizey="30" >
             <external file="qml/reqnParentClass.qml"/>
-		  </picture>
+	  </picture>
           <labels>
             <label x="5" y="10" textBinded="name"/>
           </labels>
