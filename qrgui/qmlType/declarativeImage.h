@@ -22,25 +22,40 @@ class DeclarativeImage : public QDeclarativeItem
 public:
 	explicit DeclarativeImage(QDeclarativeItem *parent = 0);
 	~DeclarativeImage() {qDebug() << "in descturctor" << mSource; }
+	/// Returns x1 coordinate of image
 	int x1() const;
+	/// Returns y1 coordinate of image
 	int y1() const;
+	/// Returns x2 coordinate of image
 	int x2() const;
+	/// Returns y2 coordinate of image
 	int y2() const;
+	/// Returns source of image
 	QString source() const;
 
 signals:
+	/// Signal change of x1 coordinate
 	void x1Changed();
+	/// Signal change of y1 coordinate
 	void y1Changed();
+	/// Signal change of x2 coordinate
 	void x2Changed();
+	/// Signal change of y2 coordinate
 	void y2Changed();
+	/// Signal change source of image
 	void sourceChanged();
 
 protected:
 	void updateSize();
+	/// Set x1 coordinate of image
 	void setX1(int x1);
+	/// Set y1 coordinate of image
 	void setY1(int y1);
+	/// Set x2 coordinate of image
 	void setX2(int x2);
+	/// Set y2 coordinate of image
 	void setY2(int y2);
+	/// Set source of image
 	void setSource(QString source);
 
 private:

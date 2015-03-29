@@ -13,7 +13,7 @@ Rectangle {
 		width: 1
 	} 
 	Line { 
-		x1: 59 * parent.width / 60
+		x1: 1 * parent.width / 1
 		y1: 1 * parent.height / 2
 		x2: 5 * parent.width / 6
 		y2: 1 * parent.height / 4
@@ -22,7 +22,7 @@ Rectangle {
 		width: 1
 	} 
 	Line { 
-		x1: 59 * parent.width / 60
+		x1: 1 * parent.width / 1
 		y1: 1 * parent.height / 2
 		x2: 5 * parent.width / 6
 		y2: 3 * parent.height / 4
