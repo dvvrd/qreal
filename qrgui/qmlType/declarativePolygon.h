@@ -20,27 +20,45 @@ class DeclarativePolygon : public DeclarativePen
 public:
 	explicit DeclarativePolygon(QDeclarativeItem *parent = 0);
 
+	/// Returns size of the array of points
 	int n() const;
+	/// Returns width of background
 	int sizex() const;
+	/// Returns height of background
 	int sizey() const;
+	/// Returns the color of Polygon
 	QColor fill() const;
+	/// Returns array of x coordinates
 	QString x() const;
+	/// Returns array of y coordinates
 	QString y() const;
 
 signals:
+	/// Signal change color
 	void fillChanged();
+	/// Signal change array of x coordinates
 	void xChanged();
+	/// Signal change array of y coordinates
 	void yChanged();
+	/// Signal change width of background
 	void sizexChanged();
+	/// Signal change height of background
 	void sizeyChanged();
+	/// Signal change of the array of points
 	void nChanged();
 
 protected:
+	/// Set array of x coordinates
 	void setX(QString x);
+	/// Set array of y coordinates
 	void setY(QString y);
+	/// Set width of background
 	void setSizex(int sizex);
+	/// Set height of background
 	void setSizey(int sizey);
+	/// Set color
 	void setFill(QColor color);
+	/// Set size of the array of points
 	void setN(int n);
 	void updateSize();
 

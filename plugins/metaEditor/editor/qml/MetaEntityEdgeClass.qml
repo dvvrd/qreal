@@ -14,7 +14,7 @@ Rectangle {
 	} 
 	Line { 
 		x1: 1 * parent.width / 10
-		y1: 97 * parent.height / 100
+		y1: 1 * parent.height / 1
 		x2: 0 * parent.width / 1
 		y2: 1 * parent.height / 2
 		color: "#000000"
@@ -32,7 +32,7 @@ Rectangle {
 	} 
 	Line { 
 		x1: 9 * parent.width / 10
-		y1: 97 * parent.height / 100
+		y1: 1 * parent.height / 1
 		x2: 1 * parent.width / 1
 		y2: 1 * parent.height / 2
 		color: "#000000"

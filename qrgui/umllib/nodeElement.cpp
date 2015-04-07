@@ -789,7 +789,6 @@ QRectF NodeElement::boundingRect() const
 void NodeElement::updateData()
 {
 	Element::updateData();
-	//qDebug() << "propertries after update" << mGraphicalAssistApi.properties(logicalId());
 	if (!mMoving) {
 		QPointF newpos = mGraphicalAssistApi.position(id());
 		QPolygon newpoly = mGraphicalAssistApi.configuration(id());
@@ -823,9 +822,7 @@ void NodeElement::updateData()
 	mElementImpl->updateData(this);
 	QDeclarativeProperty propertyIds(mQmlItem,"ids");
 	propertyIds.write("");
-	qDebug() << "proppertyIds" << propertyIds.read();
 	propertyIds.write(logicalId().toString());
-	qDebug() << "proppertyIds" << propertyIds.read();
 	updateLabels();
 	update();
 }

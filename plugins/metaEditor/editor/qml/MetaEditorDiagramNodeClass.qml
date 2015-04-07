@@ -13,7 +13,7 @@ Rectangle {
 		width: 1
 	} 
 	Line { 
-		x1: 99 * parent.width / 100
+		x1: 1 * parent.width / 1
 		y1: 1 * parent.height / 5
 		x2: 1 * parent.width / 1
 		y2: 4 * parent.height / 5

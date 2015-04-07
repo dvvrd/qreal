@@ -43,25 +43,25 @@ Rectangle {
 		x1: 0 
 		y1: 30 
 		x2: 0 * parent.width / 1
-		y2: 64 * parent.height / 65
+		y2: 1 * parent.height / 1
 		color: "#000000"
 		style: "solid"
 		width: 1
 	} 
 	Line { 
-		x1: 74 * parent.width / 75
+		x1: 1 * parent.width / 1
 		y1: 30 
 		x2: 1 * parent.width / 1
-		y2: 64 * parent.height / 65
+		y2: 1 * parent.height / 1
 		color: "#000000"
 		style: "solid"
 		width: 1
 	} 
 	Line { 
 		x1: 0 * parent.width / 1
-		y1: 64 * parent.height / 65
+		y1: 1 * parent.height / 1
 		x2: 1 * parent.width / 1
-		y2: 64 * parent.height / 65
+		y2: 1 * parent.height / 1
 		color: "#000000"
 		style: "solid"
 		width: 1

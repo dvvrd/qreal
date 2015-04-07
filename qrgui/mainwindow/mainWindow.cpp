@@ -301,8 +301,8 @@ void MainWindow::registerQmlTypes()
 	qmlRegisterType<qmlTypes::DeclarativePen>("CustomComponents", 1, 0, "Border");
 	qmlRegisterType<qmlTypes::DeclarativePath>("CustomComponents", 1, 0, "Path");
 	qmlRegisterType<qmlTypes::DeclarativeImage>("CustomComponents", 1, 0, "Picture");
-    qmlRegisterType<qmlTypes::DeclarativeCurve>("CustomComponents", 1, 0, "Curve");
-    qmlRegisterType<qmlTypes::DeclarativePolygon>("CustomComponents", 1, 0, "Polygon");
+	qmlRegisterType<qmlTypes::DeclarativePolygon>("CustomComponents", 1, 0, "Polygon");
+	qmlRegisterType<qmlTypes::DeclarativeCurve>("CustomComponents", 1, 0, "Curve");
 }
 
 void MainWindow::showFindDialog()

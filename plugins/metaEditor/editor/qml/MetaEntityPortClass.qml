@@ -7,16 +7,16 @@ Rectangle {
 		x1: 0 * parent.width / 1
 		y1: 0 * parent.height / 1
 		x2: 0 * parent.width / 1
-		y2: 47 * parent.height / 50
+		y2: 1 * parent.height / 1
 		color: "#000000"
 		style: "solid"
 		width: 2
 	} 
 	Line { 
-		x1: 47 * parent.width / 50
+		x1: 1 * parent.width / 1
 		y1: 0 * parent.height / 1
 		x2: 1 * parent.width / 1
-		y2: 47 * parent.height / 50
+		y2: 1 * parent.height / 1
 		color: "#000000"
 		style: "solid"
 		width: 2
@@ -32,9 +32,9 @@ Rectangle {
 	} 
 	Line { 
 		x1: 0 * parent.width / 1
-		y1: 47 * parent.height / 50
+		y1: 1 * parent.height / 1
 		x2: 1 * parent.width / 1
-		y2: 47 * parent.height / 50
+		y2: 1 * parent.height / 1
 		color: "#000000"
 		style: "solid"
 		width: 2

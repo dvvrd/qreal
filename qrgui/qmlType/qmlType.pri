@@ -6,7 +6,7 @@ HEADERS += \
 	$$PWD/declarativePath.h \
 	$$PWD/declarativeImage.h \
 	$$PWD/declarativePolygon.h \
-        $$PWD/declarativeCurve.h \
+	$$PWD/declarativeCurve.h \
 
 SOURCES += \
 	$$PWD/declarativeLine.cpp \
@@ -16,4 +16,4 @@ SOURCES += \
 	$$PWD/declarativePath.cpp \
 	$$PWD/declarativeImage.cpp \
 	$$PWD/declarativePolygon.cpp \
-        $$PWD/declarativeCurve.cpp \
+	$$PWD/declarativeCurve.cpp \

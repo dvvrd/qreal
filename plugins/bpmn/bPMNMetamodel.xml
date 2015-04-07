@@ -156,7 +156,7 @@
                     </properties>
                 </logic>
             </node>
-			<node name="NonInterruptingStartEvent" displayedName="Non-Interrupting Start Event">
+	    <node name="NonInterruptingStartEvent" displayedName="Non-Interrupting Start Event">
                 <graphics>
                     <picture sizex="100" sizey="100">
                         <external file="qml/NonInterruptingStartEventClass.qml"/>

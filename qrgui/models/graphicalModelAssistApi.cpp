@@ -37,7 +37,6 @@ qrRepo::GraphicalRepoApi &GraphicalModelAssistApi::mutableGraphicalRepoApi() con
 
 Id GraphicalModelAssistApi::logicalId(Id const &elem) const
 {
-//	this->setId((mGraphicalModel.data(indexById(elem), roles::logicalIdRole).value<Id>()).toString());
 	return mGraphicalModel.data(indexById(elem), roles::logicalIdRole).value<Id>();
 }
 
@@ -98,7 +97,6 @@ QMap<QString, QVariant> GraphicalModelAssistApi::properties(Id const id)
 QString GraphicalModelAssistApi::getProperties(QString const ids, QString type)
 {
 	if (!ids.isEmpty()) {
-		qDebug() << "getProperties" << mGraphicalModel.mutableApi().properties(Id::loadFromString(ids)).take(type).toString();
 		return mGraphicalModel.mutableApi().properties(Id::loadFromString(ids)).take(type).toString();
 	} else {
 		return "";

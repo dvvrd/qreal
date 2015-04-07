@@ -15,11 +15,15 @@ DeclarativePath::DeclarativePath(QDeclarativeItem *parent)
 	setFlag(QGraphicsItem::ItemHasNoContents, false);
 }
 
-bool DeclarativePath::isNotLCMZ(QString str, int i)
+bool DeclarativePath::isNotLCMZ(QString const str, int i)
 {
 	return (i != str.length()) && (str[i] != 'L') && (str[i] != 'C') && (str[i] != 'M')
 		&& (str[i] != 'Z');
-}
+}/*
+bool DeclarativePath::isNotLCMZ(char str)
+{
+	return (str != 'L') && (str != 'C') && (str != 'M') && (str != 'Z');
+}*/
 
 void DeclarativePath::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
 {
