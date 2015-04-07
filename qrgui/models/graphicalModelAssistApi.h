@@ -22,7 +22,7 @@ class GraphicalModel;
 class GraphicalModelAssistApi : public QObject, public GraphicalModelAssistInterface
 {
 	Q_OBJECT
-
+//	Q_PROPERTY(QMap<QString, QVariant> properties READ properties)
 public:
 	GraphicalModelAssistApi(
 			details::GraphicalModel &graphicalModel
@@ -45,7 +45,8 @@ public:
 	void changeParent(Id const &element, Id const &parent, QPointF const &position) override;
 
 	void copyProperties(Id const &dest, Id const &src) override;
-	QMap<QString, QVariant> properties(Id const &id) override;
+	Q_INVOKABLE QMap<QString, QVariant> properties(Id const id) override;
+	Q_INVOKABLE QString getProperties(QString const ids, QString type) override;
 	void setProperties(Id const &id, QMap<QString, QVariant> const &properties);
 
 	void stackBefore(Id const &element, Id const &sibling);
@@ -89,7 +90,7 @@ public:
 	QPersistentModelIndex rootIndex() const override;
 	Id rootId() const override;
 
-	bool hasRootDiagrams() const override;
+	Q_INVOKABLE bool hasRootDiagrams() const override;
 	int childrenOfRootDiagram() const override;
 	int childrenOfDiagram(const Id &parent) const override;
 
@@ -132,6 +133,7 @@ public:
 
 signals:
 	void nameChanged(Id const &id);
+	void idsChanged();
 
 private:
 	GraphicalModelAssistApi(GraphicalModelAssistApi const &);
@@ -140,6 +142,7 @@ private:
 	details::GraphicalModel &mGraphicalModel;
 	details::ModelsAssistApi mModelsAssistApi;
 	details::GraphicalPartModel &mGraphicalPartModel;
+
 };
 
 }

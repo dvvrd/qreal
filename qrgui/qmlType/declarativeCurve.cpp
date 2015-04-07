@@ -28,11 +28,19 @@ void DeclarativeCurve::paint(QPainter *painter, const QStyleOptionGraphicsItem *
     if (mFirstSizey == 0) {
         mFirstSizey = mSizey;
     }
-    QPoint start(mStartx, mStarty);
-    QPoint end(mEndx, mEndy);
-    QPoint c1(mX, mY);
+    painter->fillRect(0, 0, mSizex, mSizey, Qt::transparent);
+    QPoint start;
+    start.setX(mStartx);
+    start.setY(mStarty);
+    QPoint end;
+    end.setX(mEndx);
+    end.setY(mEndy);
+    QPoint c1;
+    c1.setX(mX);
+    c1.setY(mY);
 
-    QPainterPath path(start);
+    QPainterPath path;
+    path.moveTo(start);
     path.quadTo(c1, end);
     painter->drawPath(path);
 }

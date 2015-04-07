@@ -2,6 +2,13 @@
 using namespace qmlTypes;
 DeclarativePolygon::DeclarativePolygon(QDeclarativeItem *parent)
 	:DeclarativePen(parent)
+    , mN(0)
+    , mSizex(0)
+    , mSizey(0)
+    , mX("")
+    , mY("")
+    , mFill(Qt::white)
+
 {
 	// Important, otherwise the paint method is never called
 	setFlag(QGraphicsItem::ItemHasNoContents, false);
@@ -15,8 +22,9 @@ void DeclarativePolygon::paint(QPainter *painter, const QStyleOptionGraphicsItem
 	if (mFirstSizey == 0) {
 		mFirstSizey = mSizey;
 	}
+    painter->fillRect(0, 0, mSizex, mSizey, Qt::transparent);
 	QPoint *points = NULL;
-	points = getpoints();
+    points = getpoints();
 	if (points != NULL)
 	{
 		painter->drawConvexPolygon(points, mN);
@@ -33,47 +41,35 @@ QPoint *DeclarativePolygon::getpoints()
 	float y = 0;
 	int mStartX = 0;
 	int mStartY = 0;
-
 	for (int i = 0; i < mN; i++)
 	{
-		QString str;
-		str.setNum(i + 1);
-		QString xnum = xStr.at(str.toInt());
+		QString xnum = xStr.at(i);
 		if (xnum.endsWith("%"))
 		{
 			xnum.chop(1);
 			x = mSizex * xnum.toFloat() / 100 + mStartX;
-		}
-		else if (xnum.endsWith("a") && mNeedScale)
-		{
+		} else if (xnum.endsWith("a") && mNeedScale) {
 			xnum.chop(1);
 			x = xnum.toFloat() + mStartX;
-		}
-		else if (xnum.endsWith("a") && !mNeedScale)
-		{
+		} else if (xnum.endsWith("a") && !mNeedScale) {
 			xnum.chop(1);
 			x = xnum.toFloat() * mSizex / mFirstSizex + mStartX;
-		}
-		else
+		} else {
 			x = xnum.toFloat() * mSizex / mFirstSizex + mStartX;
+		}
 
-		QString ynum = yStr.at(str.toInt());
+		QString ynum = yStr.at(i);
 		if (ynum.endsWith("%"))
 		{
 			ynum.chop(1);
 			y = mSizey * ynum.toFloat() / 100 + mStartY;
-		}
-		else if (ynum.endsWith("a") && mNeedScale)
-		{
+		} else if (ynum.endsWith("a") && mNeedScale) {
 			ynum.chop(1);
 			y = ynum.toFloat() + mStartY;
-		}
-		else if (ynum.endsWith("a") && !mNeedScale)
-		{
+		} else if (ynum.endsWith("a") && !mNeedScale) {
 			ynum.chop(1);
 			y = ynum.toFloat() * mSizey / mFirstSizey + mStartY;
-		}
-		else
+		} else
 			y = ynum.toFloat() * mSizey / mFirstSizey + mStartY;
 
 		array[i].setX(static_cast<int>(x));

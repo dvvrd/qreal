@@ -18,6 +18,7 @@
 #include <QtWidgets/QAction>
 #include <QtGui/QKeySequence>
 #include <QtDeclarative/QDeclarativeEngine>
+#include <QtDeclarative/QDeclarativeContext>
 
 #include <qrkernel/settingsManager.h>
 #include <qrutils/outFile.h>
@@ -62,6 +63,7 @@
 #include "qmlType/declarativePath.h"
 #include "qmlType/declarativeImage.h"
 #include "qmlType/declarativeCurve.h"
+#include "qmlType/declarativePolygon.h"
 
 using namespace qReal;
 using namespace qReal::commands;
@@ -118,6 +120,11 @@ MainWindow::MainWindow(QString const &fileToOpen)
 
 	initDocks();
 	mModels = new models::Models(mProjectManager->saveFilePath(), mEditorManagerProxy);
+
+	//
+	mQmlEngine->rootContext()->setContextProperty("models", &mModels->graphicalModelAssistApi());
+	//
+
 	mExploser.reset(new Exploser(mModels->logicalModelAssistApi()));
 
 	mErrorReporter = new gui::ErrorReporter(mUi->errorListWidget, mUi->errorDock);
@@ -128,10 +135,10 @@ MainWindow::MainWindow(QString const &fileToOpen)
 
 
 	splashScreen.setProgress(60);
-
+	qDebug() << "May be there";
 	loadPlugins();
 
-
+	qDebug() << "Test";
 	splashScreen.setProgress(70);
 
 	mDocksVisibility.clear();
@@ -295,6 +302,7 @@ void MainWindow::registerQmlTypes()
 	qmlRegisterType<qmlTypes::DeclarativePath>("CustomComponents", 1, 0, "Path");
 	qmlRegisterType<qmlTypes::DeclarativeImage>("CustomComponents", 1, 0, "Picture");
     qmlRegisterType<qmlTypes::DeclarativeCurve>("CustomComponents", 1, 0, "Curve");
+    qmlRegisterType<qmlTypes::DeclarativePolygon>("CustomComponents", 1, 0, "Polygon");
 }
 
 void MainWindow::showFindDialog()
@@ -474,6 +482,7 @@ void MainWindow::sceneSelectionChanged()
 
 	foreach (QGraphicsItem* item, items) {
 		Element* element = dynamic_cast<Element*>(item);
+
 		if (element) {
 			if (element->isSelected()) {
 				selected.append(element);
