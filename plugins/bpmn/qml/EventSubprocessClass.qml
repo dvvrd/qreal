@@ -4,6 +4,15 @@ Rectangle {
 	property string ids: ""
 	width: 210; height: 160
 	color: "transparent"
+	Rectangle { 
+		anchors.fill: parent
+		x: 19 * parent.width / 42
+		y: 23 * parent.height / 32
+		width: 2 * parent.width / 21
+		height: 1 * parent.height / 8
+		border.color: "#ffffff"
+		border.width: 0
+	} 
 	Line { 
 		x1: 3 * parent.width / 35
 		y1: 9 * parent.height / 32
@@ -96,15 +105,7 @@ Rectangle {
 		x: 15
 		y: 145
 	}
-	Rectangle { 
-		anchors.fill: parent
-		x: 19 * parent.width / 42
-		y: 23 * parent.height / 32
-		width: 2 * parent.width / 21
-		height: 1 * parent.height / 8
-		border.color: "#ffffff"
-		border.width: 0
-	} 
+
 	Line { 
 		x1: 1 * parent.width / 2
 		y1: 59 * parent.height / 80

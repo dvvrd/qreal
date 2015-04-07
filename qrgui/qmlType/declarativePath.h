@@ -18,22 +18,35 @@ class DeclarativePath : public DeclarativePen
 public:
 	explicit DeclarativePath(QDeclarativeItem *parent = 0);
 
+	/// Returns path
 	QString str() const;
+	/// Returns color of path
 	QColor fill() const;
+	/// Returns width of background
 	int sizex() const;
+	/// Returns height of background
 	int sizey() const;
-	bool isNotLCMZ(QString str, int i);
+	///
+	bool isNotLCMZ(QString const str, int i);
 
 signals:
+	/// Signal change of path
 	void strChanged();
+	/// Signal change path color
 	void fillChanged();
+	/// Signal change width of background
 	void sizexChanged();
+	/// Signal change height of background
 	void sizeyChanged();
 
 protected:
+	/// Set path
 	void setStr(QString str);
+	/// Set color of path
 	void setFill(QColor color);
+	/// Set width of background
 	void setSizex(int sizex);
+	/// Set height of background
 	void setSizey(int sizey);
 	void updateSize();
 

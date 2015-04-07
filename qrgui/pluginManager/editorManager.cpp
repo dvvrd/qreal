@@ -253,7 +253,6 @@ QString EditorManager::mouseGesture(const Id &id) const
 
 QIcon EditorManager::icon(Id const &id) const
 {
-    //qDebug() << "icon" << id.element();
 	if (QFile(":/generated/shapes/" + id.element() + "Class.qml").exists()) {
 		Q_ASSERT(mPluginsLoaded.contains(id.editor()));
 		return	!utils::InFile::readAll(":/generated/shapes/" + id.element() + "Class.qml").isEmpty()
@@ -267,7 +266,6 @@ QIcon EditorManager::icon(Id const &id) const
 
 QSize EditorManager::iconSize(Id const &id) const
 {
-    //qDebug() << "iconSize " << id.element();
 	if (QFile(":/generated/shapes/" + id.element() + "Class.qml").exists()) {
 		Q_ASSERT(mPluginsLoaded.contains(id.editor()));
 		return !utils::InFile::readAll(":/generated/shapes/" + id.element() + "Class.qml").isEmpty()
