@@ -18,6 +18,7 @@
 #include <QtWidgets/QAction>
 #include <QtGui/QKeySequence>
 #include <QtDeclarative/QDeclarativeEngine>
+#include <QtDeclarative/QDeclarativeContext>
 
 #include <qrkernel/settingsManager.h>
 #include <qrutils/outFile.h>
@@ -119,6 +120,11 @@ MainWindow::MainWindow(QString const &fileToOpen)
 
 	initDocks();
 	mModels = new models::Models(mProjectManager->saveFilePath(), mEditorManagerProxy);
+
+	//
+	mQmlEngine->rootContext()->setContextProperty("models", &mModels->graphicalModelAssistApi());
+	//
+
 	mExploser.reset(new Exploser(mModels->logicalModelAssistApi()));
 
 	mErrorReporter = new gui::ErrorReporter(mUi->errorListWidget, mUi->errorDock);
@@ -129,10 +135,10 @@ MainWindow::MainWindow(QString const &fileToOpen)
 
 
 	splashScreen.setProgress(60);
-
+	qDebug() << "May be there";
 	loadPlugins();
 
-
+	qDebug() << "Test";
 	splashScreen.setProgress(70);
 
 	mDocksVisibility.clear();
@@ -476,6 +482,7 @@ void MainWindow::sceneSelectionChanged()
 
 	foreach (QGraphicsItem* item, items) {
 		Element* element = dynamic_cast<Element*>(item);
+
 		if (element) {
 			if (element->isSelected()) {
 				selected.append(element);

@@ -10,6 +10,8 @@
 
 #include <QtDeclarative/QDeclarativeEngine>
 #include <QtDeclarative/QDeclarativeItem>
+#include <QtDeclarative/QDeclarativeContext>
+#include <QtDeclarative/QDeclarativeProperty>
 
 #include <math.h>
 #include <qrutils/inFile.h>
@@ -125,7 +127,11 @@ void NodeElement::initQml()
 	QDeclarativeComponent component(mQmlEngine);
 	component.setData(mElementImpl->qmlString().toLocal8Bit(), QUrl());
 	if (component.isReady()) {
-		mQmlItem = qobject_cast<QDeclarativeItem *>(component.create());
+		qDebug() << "May be here";
+		QObject  *object = component.create();
+		object->setProperty("ids", logicalId().toString());
+		qDebug() << mGraphicalAssistApi.properties(logicalId());
+		mQmlItem = qobject_cast<QDeclarativeItem *>(object);
 	} else {
 		qDebug() << "Qml parsing for" << id().toString() << "failed. Reason:" << component.errorString();
 		QDeclarativeComponent defaultComponent(mQmlEngine, QUrl("qrc:/default.qml"));
@@ -814,6 +820,9 @@ void NodeElement::updateData()
 		setGeometry(newRect.translated(newpos));
 	}
 	mElementImpl->updateData(this);
+	QDeclarativeProperty propertyIds(mQmlItem,"ids");
+	propertyIds.write("");
+	propertyIds.write(logicalId().toString());
 	updateLabels();
 	update();
 }
