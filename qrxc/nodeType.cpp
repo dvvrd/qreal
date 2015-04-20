@@ -211,7 +211,7 @@ void NodeType::generateCode(OutFile &out)
 	out() << "\t\t~" << className << "() {}\n\n";
 
 	out()
-	<< "\t\tQUrl qmlUrl() const { return QUrl(\"qrc:/generated/shapes/" + resourceName("Class") + "\"); }\n"
+	<< "\t\tQString qmlString() const { return utils::InFile::readAll(\":/generated/shapes/" + resourceName("Class") + "\"); }\n"
 	<< "\t\tQt::PenStyle getPenStyle() const { return Qt::SolidLine; }\n\n"
 	<< "\t\tint getPenWidth() const { return 0; }\n\n"
 	<< "\t\tQColor getPenColor() const { return QColor(); }\n\n"

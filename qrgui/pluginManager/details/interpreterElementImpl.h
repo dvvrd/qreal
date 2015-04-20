@@ -2,11 +2,15 @@
 
 #include <QtCore/QMap>
 #include <QtWidgets/QWidget>
+#include <QtWidgets/QGraphicsScene>
 #include <QtCore/QList>
 #include <QtCore/QMap>
 #include <QtCore/QRectF>
 #include <QtCore/QPointF>
 #include <QtGui/QPainter>
+
+#include <QtDeclarative/QDeclarativeEngine>
+#include <QtDeclarative/QDeclarativeItem>
 
 #include <qrkernel/ids.h>
 #include <qrrepo/repoApi.h>
@@ -45,12 +49,12 @@ struct NodeLabel {
 class InterpreterElementImpl : public ElementImpl
 {
 public:
-	InterpreterElementImpl(qrRepo::RepoApi *repo, Id const &metaId);
+	InterpreterElementImpl(qrRepo::RepoApi *repo, Id const &metaId, QDeclarativeEngine * const qmlEngine);
 	void init(QRectF &contents, PortFactoryInterface const &portFactory, QList<PortInterface *> &ports
 			, LabelFactoryInterface &labelFactory, QList<LabelInterface *> &labels) override;
 	void init(LabelFactoryInterface &labelFactory, QList<LabelInterface *> &labels) override;
 
-	QUrl qmlUrl() const override;
+	QString qmlString() const override;
 
 	void updateData(ElementRepoInterface *repo) const override;
 	bool isNode() const override;
@@ -103,6 +107,8 @@ private:
 
 	qrRepo::RepoApi *mEditorRepoApi;  // Doesn't have ownership.
 	Id mId;
+	QDeclarativeEngine *mQmlEngine;
+	QDeclarativeItem *mQmlItem;
 	QDomDocument mGraphics;
 	QList<NodeLabel> mNodeLabels;
 	QList<EdgeLabel> mEdgeLabels;

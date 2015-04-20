@@ -7,6 +7,7 @@
 #include <qrkernel/ids.h>
 #include <qrkernel/exception/exception.h>
 #include <qrrepo/repoApi.h>
+#include <qrutils/inFile.h>
 
 #include "umllib/nodeElement.h"
 #include "umllib/edgeElement.h"
@@ -252,14 +253,27 @@ QString EditorManager::mouseGesture(const Id &id) const
 
 QIcon EditorManager::icon(Id const &id) const
 {
-	Q_ASSERT(mPluginsLoaded.contains(id.editor()));
-	return QmlIconLoader::iconOf("qrc:/generated/shapes/" + id.element() + "Class.qml");
+	if (QFile(":/generated/shapes/" + id.element() + "Class.qml").exists()) {
+		Q_ASSERT(mPluginsLoaded.contains(id.editor()));
+		return	!utils::InFile::readAll(":/generated/shapes/" + id.element() + "Class.qml").isEmpty()
+				? QmlIconLoader::iconOf(utils::InFile::readAll(":/generated/shapes/" + id.element() + "Class.qml"))
+				: QIcon(":/icons/default.svg");
+	} else {
+		return QIcon(":/icons/default.svg");
+	}
+
 }
 
 QSize EditorManager::iconSize(Id const &id) const
 {
-	Q_ASSERT(mPluginsLoaded.contains(id.editor()));
-	return QmlIconLoader::preferedSizeOf("qrc:/generated/shapes/" + id.element() + "Class.qml");
+	if (QFile(":/generated/shapes/" + id.element() + "Class.qml").exists()) {
+		Q_ASSERT(mPluginsLoaded.contains(id.editor()));
+		return !utils::InFile::readAll(":/generated/shapes/" + id.element() + "Class.qml").isEmpty()
+				? QmlIconLoader::preferedSizeOf(utils::InFile::readAll(":/generated/shapes/" + id.element() + "Class.qml"))
+				: QSize(50, 50);
+	} else {
+		return QSize(50, 50);
+	}
 }
 
 ElementImpl *EditorManager::elementImpl(const Id &id) const

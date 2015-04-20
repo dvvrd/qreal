@@ -15,14 +15,14 @@ public:
 	static void setQmlEngine(QDeclarativeEngine * const engine);
 
 	/// Returns a pixmap of element in specified qml-file
-	static QIcon iconOf(QString const &fileName);
+	static QIcon iconOf(QString const &qmlString);
 
 	/// Returns a size of the pixmap of element in specified qml-file
-	static QSize preferedSizeOf(QString const &fileName);
+	static QSize preferedSizeOf(QString const &qmlString);
 
 private:
 	static QmlIconLoader *instance();
-	static QIcon loadPixmap(QString const &fileName);
+	static QIcon loadPixmap(QString const &qmlString);
 
 	QmlIconLoader();
 	~QmlIconLoader();

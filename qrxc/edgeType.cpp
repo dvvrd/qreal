@@ -3,6 +3,7 @@
 #include <QtCore/QDebug>
 
 #include <qrutils/outFile.h>
+#include <qrutils/inFile.h>
 
 #include "association.h"
 #include "xmlCompiler.h"
@@ -247,7 +248,7 @@ void EdgeType::generateCode(OutFile &out)
 	out() << "\t\t}\n\n"
 	<< "\t\tvirtual ~" << className << "() {}\n\n"
 	<< "\t\tvoid paint(QPainter *, QRectF &){}\n"
-	<< "\t\tQUrl qmlUrl() const { return QUrl(\"qrc:/generated/shapes/" + resourceName("Class") + "\"); }\n"
+	<< "\t\tQString qmlString() const { return utils::InFile::readAll(\":/generated/shapes/" + resourceName("Class") + "\"); }\n"
 	<< "\t\tbool isNode() const { return false; }\n"
 	<< "\t\tbool isResizeable() const { return true; }\n"
 	<< "\t\tbool isContainer() const { return false; }\n"

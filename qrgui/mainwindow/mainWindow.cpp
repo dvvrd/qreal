@@ -18,6 +18,7 @@
 #include <QtWidgets/QAction>
 #include <QtGui/QKeySequence>
 #include <QtDeclarative/QDeclarativeEngine>
+#include <QtDeclarative/QDeclarativeContext>
 
 #include <qrkernel/settingsManager.h>
 #include <qrutils/outFile.h>
@@ -58,6 +59,11 @@
 #include "qmlType/declarativeEllipse.h"
 #include "qmlType/declarativeLine.h"
 #include "qmlType/declarativePen.h"
+#include "qmlType/declarativeArc.h"
+#include "qmlType/declarativePath.h"
+#include "qmlType/declarativeImage.h"
+#include "qmlType/declarativeCurve.h"
+#include "qmlType/declarativePolygon.h"
 
 using namespace qReal;
 using namespace qReal::commands;
@@ -114,6 +120,11 @@ MainWindow::MainWindow(QString const &fileToOpen)
 
 	initDocks();
 	mModels = new models::Models(mProjectManager->saveFilePath(), mEditorManagerProxy);
+
+	//
+	mQmlEngine->rootContext()->setContextProperty("models", &mModels->graphicalModelAssistApi());
+	//
+
 	mExploser.reset(new Exploser(mModels->logicalModelAssistApi()));
 
 	mErrorReporter = new gui::ErrorReporter(mUi->errorListWidget, mUi->errorDock);
@@ -124,10 +135,10 @@ MainWindow::MainWindow(QString const &fileToOpen)
 
 
 	splashScreen.setProgress(60);
-
+	qDebug() << "May be there";
 	loadPlugins();
 
-
+	qDebug() << "Test";
 	splashScreen.setProgress(70);
 
 	mDocksVisibility.clear();
@@ -286,7 +297,12 @@ void MainWindow::registerQmlTypes()
 {
 	qmlRegisterType<qmlTypes::DeclarativeLine>("CustomComponents", 1, 0, "Line");
 	qmlRegisterType<qmlTypes::DeclarativeEllipse>("CustomComponents", 1, 0, "Ellipse");
-	qmlRegisterType<qmlTypes::DeclarativePen>("CustomComponents", 1, 0,"Border");
+	qmlRegisterType<qmlTypes::DeclarativeArc>("CustomComponents", 1, 0, "Arc");
+	qmlRegisterType<qmlTypes::DeclarativePen>("CustomComponents", 1, 0, "Border");
+	qmlRegisterType<qmlTypes::DeclarativePath>("CustomComponents", 1, 0, "Path");
+	qmlRegisterType<qmlTypes::DeclarativeImage>("CustomComponents", 1, 0, "Picture");
+	qmlRegisterType<qmlTypes::DeclarativePolygon>("CustomComponents", 1, 0, "Polygon");
+	qmlRegisterType<qmlTypes::DeclarativeCurve>("CustomComponents", 1, 0, "Curve");
 }
 
 void MainWindow::showFindDialog()
@@ -466,6 +482,7 @@ void MainWindow::sceneSelectionChanged()
 
 	foreach (QGraphicsItem* item, items) {
 		Element* element = dynamic_cast<Element*>(item);
+
 		if (element) {
 			if (element->isSelected()) {
 				selected.append(element);
@@ -2282,7 +2299,7 @@ void MainWindow::setVersion(QString const &version)
 
 void MainWindow::openStartTab()
 {
-	mStartWidget = new StartWidget(this, mProjectManager);
+	mStartWidget = new StartWidget(this, mProjectManager, mQmlEngine);
 	int const index = mUi->tabs->addTab(mStartWidget, tr("Getting Started"));
 	mUi->tabs->setTabUnclosable(index);
 	mStartWidget->setVisibleForInterpreterButton(mToolManager.customizer()->showInterpeterButton());

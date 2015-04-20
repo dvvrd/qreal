@@ -22,15 +22,8 @@
       <node displayedName="Requirements Diagram" path="10, 0 : 90, 0 : 90, 100 : 10, 100 : 0, 90 : 0, 10 : 100, 10 : 100, 90 : " name="RequirementsDiagramNode">
         <graphics>
           <picture sizex="200" sizey="200">
-            <line y1="0" x1="20" y2="0" x2="180"/>
-            <line y1="200" x1="20" y2="200" x2="180"/>
-            <line y1="20" x1="0" y2="180" x2="0"/>
-            <line y1="20" x1="200" y2="180" x2="200"/>
-            <arc spanAngle="1440" startAngle="1440" y1="0" x1="0" y2="40" x2="40"/>
-            <arc spanAngle="1440" startAngle="0" y1="0" x1="160" y2="40" x2="200"/>
-            <arc spanAngle="1440" startAngle="2880" y1="160" x1="0" y2="200" x2="40"/>
-            <arc spanAngle="-1440" startAngle="0" y1="160" x1="160" y2="200" x2="200"/>
-          </picture>
+				<external file="qml/RequirementsDiagramNodeClass.qml"/>
+		  </picture>
           <labels>
             <label x="40" y="10" textBinded="name"/>
           </labels>
@@ -63,7 +56,7 @@
 
           <!--<description>as leaf - for the possibility of future node extension</description>-->
           <picture sizex="30" sizey="30" >
-            <ellipse fill="#000000" stroke-style="solid" stroke="#000000" y1="5" x1="5" y2="25" stroke-width="2" x2="25" fill-style="solid" />
+            <external file="qml/reqnFeaturedClass.qml"/>
           </picture>
           <labels>
             <label x="5" y="10" textBinded="name"/>
@@ -107,7 +100,7 @@
 
           <!--<description>concept/leaf/feature graphical representation</description>-->
           <picture sizex="30" sizey="30" >
-            <ellipse fill="#000000" stroke-style="solid" stroke="#000000" y1="5" x1="5" y2="25" stroke-width="2" x2="25" fill-style="solid" />
+            <external file="qml/reqnConceptAlternativeClass.qml" />
           </picture>
           <labels>
             <label x="5" y="10" textBinded="name"/>
@@ -134,7 +127,7 @@
         <graphics>
 
           <picture sizex="30" sizey="30" >
-            <ellipse fill="#000000" stroke-style="solid" stroke="#000000" y1="5" x1="5" y2="25" stroke-width="2" x2="25" fill-style="solid" />
+            <external file="qml/reqnLeafClass.qml"/>
           </picture>
           <labels>
             <label x="5" y="10" textBinded="name"/>
@@ -161,8 +154,8 @@
 
           <!--<description>as leaf - for the possibility of future node extension</description>-->
           <picture sizex="30" sizey="30" >
-            <ellipse fill="#000000" stroke-style="solid" stroke="#000000" y1="5" x1="5" y2="25" stroke-width="2" x2="25" fill-style="solid" />
-          </picture>
+            <external file="qml/reqnParentClass.qml"/>
+	  </picture>
           <labels>
             <label x="5" y="10" textBinded="name"/>
           </labels>
@@ -191,7 +184,7 @@
 
           <!--<description>parent of mandatory features graphical representation</description>-->
           <picture sizex="30" sizey="30" >
-            <ellipse fill="#000000" stroke-style="solid" stroke="#000000" y1="5" x1="5" y2="25" stroke-width="2" x2="25" fill-style="solid" />
+            <external file="qml/reqnParentMandatoryClass.qml"/>
           </picture>
           <labels>
             <label x="5" y="10" textBinded="name"/>
@@ -217,8 +210,7 @@
         <graphics>
 
           <picture sizex="30" sizey="30" >
-            <path fill="#ffffff" stroke-style="solid" int="12" stroke="#000000" stroke-width="2" d=" M 15 15 L 5 15 C 5 20.5228 9.47715 25 15 25 C 20.5228 25 25 20.5228 25 15 C 25 9.47715 20.5228 5 15 5 L 15 15" fill-style="solid" />
-            <path fill="#000000" stroke-style="solid" int="6" stroke="#000000" stroke-width="2" d=" M 15 15 L 15 5 C 9.47715 5 5 9.47715 5 15 L 15 15" fill-style="solid" />
+				<external file="qml/reqnParentOrClass.qml"/>
           </picture>
           <labels>
             <label x="5" y="10" textBinded="name"/>
@@ -244,7 +236,7 @@
         <graphics>
 
           <picture sizex="30" sizey="30" >
-            <ellipse fill="#ffffff" stroke-style="solid" stroke="#000000" y1="5" x1="5" y2="25" stroke-width="2" x2="25" fill-style="solid" />
+            <external file="qml/reqnParentOptionalClass.qml"/>
           </picture>
           <labels>
             <label x="5" y="10" textBinded="name"/>
@@ -270,8 +262,7 @@
         <graphics>
 
           <picture sizex="30" sizey="30" >
-            <ellipse fill="#ffffff" stroke-style="solid" stroke="#000000" y1="5" x1="5" y2="25" stroke-width="2" x2="25" fill-style="solid" />
-            <ellipse fill="#000000" stroke-style="solid" stroke="#000000" y1="10" x1="10" y2="20" stroke-width="2" x2="20" fill-style="solid" />
+            <external file="qml/reqnParentAlternativeClass.qml"/>
           </picture>
           <labels>
             <label x="5" y="10" textBinded="name"/>
@@ -297,8 +288,7 @@
         <graphics>
 
           <picture sizex="30" sizey="30" >
-            <ellipse fill="#ffffff" stroke-style="solid" stroke="#000000" y1="5" x1="5" y2="25" stroke-width="2" x2="25" fill-style="solid" />
-            <ellipse fill="#000000" stroke-style="solid" stroke="#000000" y1="10" x1="10" y2="20" stroke-width="2" x2="20" fill-style="solid" />
+            <external file="qml/reqnParentOpAlternativeClass.qml"/>
           </picture>
           <labels>
             <label x="5" y="10" textBinded="name"/>

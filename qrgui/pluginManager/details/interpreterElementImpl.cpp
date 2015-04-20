@@ -1,15 +1,19 @@
 #include "interpreterElementImpl.h"
 
+#include <QtDeclarative/QDeclarativeEngine>
+#include <QtDeclarative/QDeclarativeItem>
+
 #include <qrutils/outFile.h>
 #include <qrutils/scalableItem.h>
+#include <qrutils/inFile.h>
 
 #include "pluginManager/details/interpreterPortImpl.h"
 
 using namespace qReal;
 using namespace utils;
 
-InterpreterElementImpl::InterpreterElementImpl(qrRepo::RepoApi *repo, Id const &metaId)
-		: mEditorRepoApi(repo), mId(metaId)
+InterpreterElementImpl::InterpreterElementImpl(qrRepo::RepoApi *repo, Id const &metaId, QDeclarativeEngine * const qmlEngine)
+		: mEditorRepoApi(repo), mId(metaId), mQmlEngine(qmlEngine)
 {
 }
 
@@ -186,10 +190,10 @@ void InterpreterElementImpl::init(LabelFactoryInterface &labelFactory, QList<Lab
 	}
 }
 
-QUrl InterpreterElementImpl::qmlUrl() const
+QString InterpreterElementImpl::qmlString() const
 {
 	/// @todo:
-	return QUrl("qrc:/default.qml");
+	return utils::InFile::readAll("qrc:/default.qml");
 }
 
 QStringList InterpreterElementImpl::getListOfStr(QString const &labelText) const
@@ -531,13 +535,9 @@ QList<double> InterpreterElementImpl::border() const
 
 void InterpreterElementImpl::updateRendererContent(QString const &shape)
 {
-	QDomDocument classDoc;
-	mGraphics.setContent(shape);
-	QDomElement qmlElement = mGraphics.firstChildElement("graphics").firstChildElement("picture");
-	classDoc.appendChild(classDoc.importNode(qmlElement, true));
-	if (!classDoc.childNodes().isEmpty()) {
-//		mRenderer->load(classDoc);
-	}
+	QDeclarativeComponent component(mQmlEngine);
+	component.setData(shape.toLocal8Bit(),QUrl());
+	mQmlItem = qobject_cast<QDeclarativeItem *>(component.create());
 }
 
 QStringList InterpreterElementImpl::bonusContextMenuFields() const

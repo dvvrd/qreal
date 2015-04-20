@@ -31,82 +31,84 @@
 			<port name="DataVertical"/>
 			<port name="DataRight"/>
             <enum name="StartEventType" displayedName="Start Event Type">
-                <value>None</value>
-                <value>Message</value>
-                <value>Timer</value>
-                <value>Conditional</value>
-				<value>Error</value>
-				<value>Escalation</value>
-				<value>Compensation</value>
-				<value>Signal</value>
-                <value>Multiple</value>
-                <value>Parallel Multiple</value>
+                <value name="None"/>
+                <value name="Message"/>
+                <value name="Timer"/>
+                <value name="Conditional"/>
+				<value name="Error"/>
+				<value name="Escalation"/>
+				<value name="Compensation"/>
+				<value name="Signal"/>
+                <value name="Multiple"/>
+                <value name="Parallel Multiple"/>
             </enum>
             <enum name="StartEventNonInterruptingType" displayedName="Non-Interrupting Start Event Type">
-                <value>None</value>
-                <value>Message</value>
-                <value>Timer</value>
-                <value>Conditional</value>
-				<value>Escalation</value>
-				<value>Signal</value>
-                <value>Parallel Multiple</value>
-                <value>Multiple</value>
+                <value name="None"/>
+                <value name="Message"/>
+                <value name="Timer"/>
+                <value name="Conditional"/>
+				<value name="Escalation"/>
+				<value name="Signal"/>
+                <value name="Parallel Multiple"/>
+                <value name="Multiple"/>
             </enum>
             <enum name="IntermediateEventType" displayedName="Intermediate Event Type">
-                <value>None</value>
-                <value>Receive Message</value>
-                <value>Send Message</value>
-                <value>Timer</value>
-                <value>Conditional</value>
-                <value>Multiple Catch</value>
-                <value>Multiple Throw</value>
-                <value>Catch Signal</value>
-                <value>Throw Signal</value>
-                <value>Catch Link</value>
-                <value>Throw Link</value>
-                <value>Compensation</value>
-                <value>Escalation</value>
-                <value>Parallel Multiple (Catch)</value>
+                <value name="None"/>
+                <value name="Receive Message"/>
+                <value name="Send Message"/>
+                <value name="Timer"/>
+                <value name="Conditional"/>
+                <value name="Multiple Catch"/>
+                <value name="Multiple Throw"/>
+                <value name="Catch Signal"/>
+                <value name="Throw Signal"/>
+                <value name="Catch Link"/>
+                <value name="Throw Link"/>
+                <value name="Compensation"/>
+                <value name="Escalation"/>
+                <value name="Parallel Multiple (Catch)"/>
             </enum>
             <enum name="EndEventType" displayedName="End Event Type">
-                <value>None</value>
-                <value>Message</value>
-                <value>Terminate</value>
-                <value>Error</value>
-                <value>Escalation</value>
-                <value>Cancel</value>
-                <value>Compensation</value>
-                <value>Multiple</value>
-                <value>Signal</value>
+                <value name="None"/>
+                <value name="Message"/>
+                <value name="Terminate"/>
+                <value name="Error"/>
+                <value name="Escalation"/>
+                <value name="Cancel"/>
+                <value name="Compensation"/>
+                <value name="Multiple"/>
+                <value name="Signal"/>
             </enum>
             <enum name="GatewayType" displayedName="Gateway Type">
-                <value>Exclusive (Data Based)</value>
-                <value>Exclusive (Event Based)</value>
-                <value>Inclusive</value>
-                <value>Parallel</value>
-				<value>Complex</value>
+                <value name="Exclusive (Data Based)"/>
+                <value name="Exclusive (Event Based)"/>
+                <value name="Inclusive"/>
+                <value name="Parallel"/>
+		<value name="Complex"/>
             </enum>
             <enum name="LoopType" displayedName="Loop Type">
-                <value>No Loop</value>
-                <value>Multiple Instances (Parallel)</value>
-                <value>Multiple Instances (Sequential)</value>
-				<value>Standard Loop</value>
+				<value name="No Loop"/>
+				<value name="Multiple Instances (Parallel)"/>
+				<value name="Multiple Instances (Sequential)"/>
+				<value name="Standard Loop"/>
             </enum>
             <enum name="TaskType" displayedName="Task Type">
-				<value>Abstract</value>
-				<value>Service</value>
-				<value>Send</value>
-				<value>Receive</value>
-				<value>User</value>
-				<value>Manual</value>
-				<value>Business Rule</value>
-				<value>Script</value>
+				<value name="Abstract"/>
+				<value name="Service"/>
+				<value name="Send"/>
+				<value name="Receive"/>
+				<value name="User"/>
+				<value name="Manual"/>
+				<value name="Business Rule"/>
+				<value name="Script"/>
 			</enum>
         </nonGraphicTypes>
         <graphicTypes>
             <node name="BPMNDiagramNode" displayedName="BPMN Diagram">
                 <graphics>
-                    <picture/>
+			<picture>
+				<external file="qml/BPMNDiagramNodeClass.qml"/>
+                        </picture>
                     <labels/>
                     <ports/>
                 </graphics>
@@ -132,58 +134,7 @@
             <node name="StartEvent" displayedName="Start Event">
                 <graphics>
                     <picture sizex="100" sizey="100">
-                        <ellipse fill="#ffffff" stroke="#000000" stroke-style="solid" stroke-width="0" y1="0" y2="100" fill-style="none" x1="0" x2="100"/>
-                        <rectangle fill="#ffffff" stroke="#000000" stroke-style="solid" stroke-width="0" y1="30" y2="70" fill-style="none" x1="15" x2="85">
-                            <showIf value="Message" property="Type" sign="="/>
-                        </rectangle>
-                        <line fill="#ffffff" stroke="#000000" stroke-style="solid" stroke-width="0" y1="30" y2="50" fill-style="none" x1="15" x2="50">
-                            <showIf value="Message" property="Type" sign="="/>
-                        </line>
-                        <line fill="#ffffff" stroke="#000000" stroke-style="solid" stroke-width="0" y1="50" y2="30" fill-style="none" x1="50" x2="85">
-                            <showIf value="Message" property="Type" sign="="/>
-                        </line>
-                        <polygon fill="#ffffff" stroke="#000000" stroke-style="solid" stroke-width="0" n="5" y1="25" y2="45" y3="75" y4="75" y5="45" fill-style="none" x1="50" x2="20" x3="35" x4="65" x5="80">
-                            <showIf value="Multiple" property="Type" sign="="/>
-                        </polygon>
-                        <ellipse fill="#ffffff" stroke="#000000" stroke-style="solid" stroke-width="0" y1="15" y2="85" fill-style="none" x1="15" x2="85">
-                            <showIf value="Timer" property="Type" sign="="/>
-                        </ellipse>
-                        <line fill="#ffffff" stroke="#000000" stroke-style="solid" stroke-width="0" y1="50" y2="20" fill-style="none" x1="50" x2="55">
-                            <showIf value="Timer" property="Type" sign="="/>
-                        </line>
-                        <line fill="#ffffff" stroke="#000000" stroke-style="solid" stroke-width="0" y1="50" y2="48" fill-style="none" x1="50" x2="75">
-                            <showIf value="Timer" property="Type" sign="="/>
-                        </line>
-                        <rectangle fill="#ffffff" stroke="#000000" stroke-style="solid" stroke-width="0" y1="20" y2="80" fill-style="none" x1="25" x2="75">
-                            <showIf value="Conditional" property="Type" sign="="/>
-                        </rectangle>
-                        <line fill="#ffffff" stroke="#000000" stroke-style="solid" stroke-width="0" y1="35" y2="35" fill-style="none" x1="25" x2="75">
-                            <showIf value="Conditional" property="Type" sign="="/>
-                        </line>
-                        <line fill="#ffffff" stroke="#000000" stroke-style="solid" stroke-width="0" y1="50" y2="50" fill-style="none" x1="25" x2="75">
-                            <showIf value="Conditional" property="Type" sign="="/>
-                        </line>
-                        <line fill="#ffffff" stroke="#000000" stroke-style="solid" stroke-width="0" y1="65" y2="65" fill-style="none" x1="25" x2="75">
-                            <showIf value="Conditional" property="Type" sign="="/>
-                        </line>
-                        <polygon fill="#000000" stroke="#000000" stroke-style="solid" stroke-width="1" n="6" x1="40" y1="50" x2="20" y2="75" x3="35" y3="20" x4="60" y4="50" x5="80" y5="25" x6="65" y6="80" fill-style="none">
-                            <showIf value="Error" property="Type" sign="="/>
-                        </polygon>
-                        <polygon fill="#000000" stroke="#000000" stroke-style="solid" stroke-width="1" n="4" x1="50" x2="30" x3="50" x4="70" fill-style="none" y1="50" y2="70" y3="20" y4="70">
-                            <showIf value="Escalation" property="Type" sign="="/>
-                        </polygon>
-                        <polygon fill="#000000" stroke="#000000" stroke-style="solid" stroke-width="1" n="3" y1="50" y2="30" y3="70" fill-style="none" x1="20" x2="45" x3="45">
-                            <showIf value="Compensation" property="Type" sign="="/>
-                        </polygon>
-                        <polygon fill="#000000" stroke="#000000" stroke-style="solid" stroke-width="1" n="3" x1="45" x2="70" x3="70" fill-style="none" y1="50" y2="30" y3="70">
-                            <showIf value="Compensation" property="Type" sign="="/>
-                        </polygon>
-                        <polygon fill="#000000" stroke="#000000" stroke-style="solid" stroke-width="1" n="3" y1="25" y2="70" y3="70" fill-style="none" x1="50" x2="25" x3="75">
-                            <showIf value="Signal" property="Type" sign="="/>
-                        </polygon>
-                        <polygon fill="#000000" stroke="#000000" stroke-style="solid" stroke-width="1" n="12" x1="15" y1="40" x2="40" y2="40" x3="40" y3="15" x4="60" y4="15" x5="60" y5="40" x6="85" y6="40" x7="85" y7="60" x8="60" y8="60" x9="60" y9="85" x10="40" y10="85" x11="40" y11="60" x12="15" y12="60" fill-style="none">
-                            <showIf value="Parallel Multiple" property="Type" sign="="/>
-                        </polygon>
+                        <external file="qml/StartEventClass.qml"/>
                     </picture>
                     <labels>
                         <label x="0a" y="100a" textBinded="text"/>
@@ -205,52 +156,10 @@
                     </properties>
                 </logic>
             </node>
-			<node name="NonInterruptingStartEvent" displayedName="Non-Interrupting Start Event">
+	    <node name="NonInterruptingStartEvent" displayedName="Non-Interrupting Start Event">
                 <graphics>
                     <picture sizex="100" sizey="100">
-                        <ellipse fill="#ffffff" stroke="#000000" stroke-style="dash" stroke-width="0" y1="0" y2="100" fill-style="none" x1="0" x2="100"/>
-                        <rectangle fill="#ffffff" stroke="#000000" stroke-style="solid" stroke-width="0" y1="30" y2="70" fill-style="none" x1="15" x2="85">
-                            <showIf value="Message" property="Type" sign="="/>
-                        </rectangle>
-                        <line fill="#ffffff" stroke="#000000" stroke-style="solid" stroke-width="0" y1="30" y2="50" fill-style="none" x1="15" x2="50">
-                            <showIf value="Message" property="Type" sign="="/>
-                        </line>
-                        <line fill="#ffffff" stroke="#000000" stroke-style="solid" stroke-width="0" y1="50" y2="30" fill-style="none" x1="50" x2="85">
-                            <showIf value="Message" property="Type" sign="="/>
-                        </line>
-                        <polygon fill="#ffffff" stroke="#000000" stroke-style="solid" stroke-width="0" n="5" y1="25" y2="45" y3="75" y4="75" y5="45" fill-style="none" x1="50" x2="20" x3="35" x4="65" x5="80">
-                            <showIf value="Multiple" property="Type" sign="="/>
-                        </polygon>
-                        <ellipse fill="#ffffff" stroke="#000000" stroke-style="solid" stroke-width="0" y1="15" y2="85" fill-style="none" x1="15" x2="85">
-                            <showIf value="Timer" property="Type" sign="="/>
-                        </ellipse>
-                        <line fill="#ffffff" stroke="#000000" stroke-style="solid" stroke-width="0" y1="50" y2="20" fill-style="none" x1="50" x2="55">
-                            <showIf value="Timer" property="Type" sign="="/>
-                        </line>
-                        <line fill="#ffffff" stroke="#000000" stroke-style="solid" stroke-width="0" y1="50" y2="48" fill-style="none" x1="50" x2="75">
-                            <showIf value="Timer" property="Type" sign="="/>
-                        </line>
-                        <rectangle fill="#ffffff" stroke="#000000" stroke-style="solid" stroke-width="0" y1="20" y2="80" fill-style="none" x1="25" x2="75">
-                            <showIf value="Conditional" property="Type" sign="="/>
-                        </rectangle>
-                        <line fill="#ffffff" stroke="#000000" stroke-style="solid" stroke-width="0" y1="35" y2="35" fill-style="none" x1="25" x2="75">
-                            <showIf value="Conditional" property="Type" sign="="/>
-                        </line>
-                        <line fill="#ffffff" stroke="#000000" stroke-style="solid" stroke-width="0" y1="50" y2="50" fill-style="none" x1="25" x2="75">
-                            <showIf value="Conditional" property="Type" sign="="/>
-                        </line>
-                        <line fill="#ffffff" stroke="#000000" stroke-style="solid" stroke-width="0" y1="65" y2="65" fill-style="none" x1="25" x2="75">
-                            <showIf value="Conditional" property="Type" sign="="/>
-                        </line>
-                        <polygon fill="#000000" stroke="#000000" stroke-style="solid" stroke-width="1" n="4" x1="50" x2="30" x3="50" x4="70" fill-style="none" y1="50" y2="70" y3="20" y4="70">
-                            <showIf value="Escalation" property="Type" sign="="/>
-                        </polygon>
-                        <polygon fill="#000000" stroke="#000000" stroke-style="solid" stroke-width="1" n="3" y1="25" y2="70" y3="70" fill-style="none" x1="50" x2="25" x3="75">
-                            <showIf value="Signal" property="Type" sign="="/>
-                        </polygon>
-                        <polygon fill="#000000" stroke="#000000" stroke-style="solid" stroke-width="1" n="12" x1="15" y1="40" x2="40" y2="40" x3="40" y3="15" x4="60" y4="15" x5="60" y5="40" x6="85" y6="40" x7="85" y7="60" x8="60" y8="60" x9="60" y9="85" x10="40" y10="85" x11="40" y11="60" x12="15" y12="60" fill-style="none">
-                            <showIf value="Parallel Multiple" property="Type" sign="="/>
-                        </polygon>
+                        <external file="qml/NonInterruptingStartEventClass.qml"/>
                     </picture>
                     <labels>
                         <label x="0a" y="100a" textBinded="text"/>
@@ -275,77 +184,7 @@
             <node name="IntermediateEvent" displayedName="Intermediate Event">
                 <graphics>
                     <picture sizex="100" sizey="100">
-                        <ellipse fill="#ffffff" stroke="#000000" stroke-style="solid" stroke-width="0" y1="0" y2="100" fill-style="none" x1="0" x2="100"/>
-                        <ellipse fill="#ffffff" stroke="#000000" stroke-style="solid" stroke-width="0" y1="7" y2="93" fill-style="none" x1="7" x2="93"/>
-                        <rectangle fill="#ffffff" stroke="#000000" stroke-style="solid" stroke-width="0" y1="30" y2="70" fill-style="none" x1="15" x2="85">
-                            <showIf value="Receive Message" property="Type" sign="="/>
-                        </rectangle>
-                        <line fill="#ffffff" stroke="#000000" stroke-style="solid" stroke-width="0" y1="30" y2="50" fill-style="none" x1="15" x2="50">
-                            <showIf value="Receive Message" property="Type" sign="="/>
-                        </line>
-                        <line fill="#ffffff" stroke="#000000" stroke-style="solid" stroke-width="0" y1="50" y2="30" fill-style="none" x1="50" x2="85">
-                            <showIf value="Receive Message" property="Type" sign="="/>
-                        </line>
-                        <rectangle fill="#000000" stroke="#000000" stroke-style="solid" stroke-width="2" y1="30" y2="70" fill-style="solid" x1="15" x2="85">
-                            <showIf value="Send Message" property="Type" sign="="/>
-                        </rectangle>
-                        <line fill="#ffffff" stroke="#ffffff" stroke-style="solid" stroke-width="2" y1="30" y2="50" fill-style="none" x1="15" x2="50">
-                            <showIf value="Send Message" property="Type" sign="="/>
-                        </line>
-                        <line fill="#ffffff" stroke="#ffffff" stroke-style="solid" stroke-width="2" y1="50" y2="30" fill-style="none" x1="50" x2="85">
-                            <showIf value="Send Message" property="Type" sign="="/>
-                        </line>
-                        <ellipse fill="#ffffff" stroke="#000000" stroke-style="solid" stroke-width="0" y1="15" y2="85" fill-style="none" x1="15" x2="85">
-                            <showIf value="Timer" property="Type" sign="="/>
-                        </ellipse>
-                        <line fill="#ffffff" stroke="#000000" stroke-style="solid" stroke-width="0" y1="50" y2="20" fill-style="none" x1="50" x2="55">
-                            <showIf value="Timer" property="Type" sign="="/>
-                        </line>
-                        <line fill="#ffffff" stroke="#000000" stroke-style="solid" stroke-width="0" y1="50" y2="48" fill-style="none" x1="50" x2="75">
-                            <showIf value="Timer" property="Type" sign="="/>
-                        </line>
-                        <rectangle fill="#ffffff" stroke="#000000" stroke-style="solid" stroke-width="0" y1="20" y2="80" fill-style="none" x1="25" x2="75">
-                            <showIf value="Conditional" property="Type" sign="="/>
-                        </rectangle>
-                        <line fill="#ffffff" stroke="#000000" stroke-style="solid" stroke-width="0" y1="35" y2="35" fill-style="none" x1="25" x2="75">
-                            <showIf value="Conditional" property="Type" sign="="/>
-                        </line>
-                        <line fill="#ffffff" stroke="#000000" stroke-style="solid" stroke-width="0" y1="50" y2="50" fill-style="none" x1="25" x2="75">
-                            <showIf value="Conditional" property="Type" sign="="/>
-                        </line>
-                        <line fill="#ffffff" stroke="#000000" stroke-style="solid" stroke-width="0" y1="65" y2="65" fill-style="none" x1="25" x2="75">
-                            <showIf value="Conditional" property="Type" sign="="/>
-                        </line>
-                        <polygon fill="#ffffff" stroke="#000000" stroke-style="solid" stroke-width="0" n="5" y1="25" y2="45" y3="75" y4="75" y5="45" fill-style="none" x1="50" x2="20" x3="35" x4="65" x5="80">
-                            <showIf value="Multiple Catch" property="Type" sign="="/>
-                        </polygon>
-                        <polygon fill="#000000" stroke="#000000" stroke-style="solid" stroke-width="0" n="5" y1="25" y2="45" y3="75" y4="75" y5="45" fill-style="solid" x1="50" x2="20" x3="35" x4="65" x5="80">
-                            <showIf value="Multiple Throw" property="Type" sign="="/>
-                        </polygon>
-                        <polygon fill="#000000" stroke="#000000" stroke-style="solid" stroke-width="1" n="4" x1="50" x2="30" x3="50" x4="70" fill-style="solid" y1="50" y2="70" y3="20" y4="70">
-                            <showIf value="Escalation" property="Type" sign="="/>
-                        </polygon>
-                        <polygon fill="#000000" stroke="#000000" stroke-style="solid" stroke-width="1" n="3" y1="50" y2="30" y3="70" fill-style="solid" x1="20" x2="45" x3="45">
-                            <showIf value="Compensation" property="Type" sign="="/>
-                        </polygon>
-                        <polygon fill="#000000" stroke="#000000" stroke-style="solid" stroke-width="1" n="3" x1="45" x2="70" x3="70" fill-style="solid" y1="50" y2="30" y3="70">
-                            <showIf value="Compensation" property="Type" sign="="/>
-                        </polygon>
-                        <polygon fill="#000000" stroke="#000000" stroke-style="solid" stroke-width="1" n="3" y1="25" y2="70" y3="70" fill-style="none" x1="50" x2="25" x3="75">
-                            <showIf value="Catch Signal" property="Type" sign="="/>
-                        </polygon>
-                        <polygon fill="#000000" stroke="#000000" stroke-style="solid" stroke-width="1" n="3" y1="25" y2="70" y3="70" fill-style="solid" x1="50" x2="25" x3="75">
-                            <showIf value="Throw Signal" property="Type" sign="="/>
-                        </polygon>
-                        <polygon fill="#000000" stroke="#000000" stroke-style="solid" stroke-width="1" n="7" x1="15" y1="30" x2="70" y2="30" x3="70" y3="20" x4="85" y4="50" x5="70" y5="80" x6="70" y6="70" x7="15" y7="70" fill-style="none">
-                            <showIf value="Catch Link" property="Type" sign="="/>
-                        </polygon>
-                        <polygon fill="#000000" stroke="#000000" stroke-style="solid" stroke-width="1" n="7" x1="15" y1="30" x2="70" y2="30" x3="70" y3="20" x4="85" y4="50" x5="70" y5="80" x6="70" y6="70" x7="15" y7="70" fill-style="solid">
-                            <showIf value="Throw Link" property="Type" sign="="/>
-                        </polygon>
-                        <polygon fill="#000000" stroke="#000000" stroke-style="solid" stroke-width="1" n="12" x1="15" y1="40" x2="40" y2="40" x3="40" y3="15" x4="60" y4="15" x5="60" y5="40" x6="85" y6="40" x7="85" y7="60" x8="60" y8="60" x9="60" y9="85" x10="40" y10="85" x11="40" y11="60" x12="15" y12="60" fill-style="none">
-                            <showIf value="Parallel Multiple (Catch)" property="Type" sign="="/>
-                        </polygon>
+                        <external file="qml/IntermediateEventClass.qml"/>
                     </picture>
                     <labels>
                         <label x="0a" y="100a" textBinded="text"/>
@@ -370,43 +209,7 @@
             <node name="EndEvent" displayedName="End Event">
                 <graphics>
                     <picture sizex="100" sizey="100">
-                        <ellipse fill="#ffffff" stroke="#000000" stroke-style="solid" stroke-width="10" y1="3" y2="97" fill-style="none" x1="3" x2="97"/>
-                        <rectangle fill="#000000" stroke="#000000" stroke-style="solid" stroke-width="2" y1="30" y2="70" fill-style="solid" x1="15" x2="85">
-                            <showIf value="Message" property="Type" sign="="/>
-                        </rectangle>
-                        <line fill="#000000" stroke="#ffffff" stroke-style="solid" stroke-width="2" y1="30" y2="50" fill-style="solid" x1="15" x2="50">
-                            <showIf value="Message" property="Type" sign="="/>
-                        </line>
-                        <line fill="#ffffff" stroke="#ffffff" stroke-style="solid" stroke-width="2" y1="50" y2="30" fill-style="none" x1="50" x2="85">
-                            <showIf value="Message" property="Type" sign="="/>
-                        </line>
-                        <ellipse fill="#000000" stroke="#000000" stroke-style="solid" stroke-width="1" y1="15" y2="85" fill-style="solid" x1="15" x2="85">
-                            <showIf value="Terminate" property="Type" sign="="/>
-                        </ellipse>
-                        <polygon fill="#000000" stroke="#000000" stroke-style="solid" stroke-width="1" n="3" y1="25" y2="70" y3="70" fill-style="solid" x1="50" x2="25" x3="75">
-                            <showIf value="Signal" property="Type" sign="="/>
-                        </polygon>
-                        <polygon fill="#000000" stroke="#000000" stroke-style="solid" stroke-width="0" n="5" y1="25" y2="45" y3="75" y4="75" y5="45" fill-style="solid" x1="50" x2="20" x3="35" x4="65" x5="80">
-                            <showIf value="Multiple" property="Type" sign="="/>
-                        </polygon>
-                        <polygon fill="#000000" stroke="#000000" stroke-style="solid" stroke-width="1" n="4" x1="50" x2="30" x3="50" x4="70" fill-style="solid" y1="50" y2="70" y3="20" y4="70">
-                            <showIf value="Escalation" property="Type" sign="="/>
-                        </polygon>
-                        <polygon fill="#000000" stroke="#000000" stroke-style="solid" stroke-width="1" n="3" y1="50" y2="30" y3="70" fill-style="solid" x1="20" x2="45" x3="45">
-                            <showIf value="Compensation" property="Type" sign="="/>
-                        </polygon>
-                        <polygon fill="#000000" stroke="#000000" stroke-style="solid" stroke-width="1" n="3" x1="45" x2="70" x3="70" fill-style="solid" y1="50" y2="30" y3="70">
-                            <showIf value="Compensation" property="Type" sign="="/>
-                        </polygon>
-                        <polygon fill="#000000" stroke="#000000" stroke-style="solid" stroke-width="1" n="6" x1="40" y1="50" x2="20" y2="75" x3="35" y3="20" x4="60" y4="50" x5="80" y5="25" x6="65" y6="80" fill-style="solid">
-                            <showIf value="Error" property="Type" sign="="/>
-                        </polygon>
-                        <line fill="#000000" stroke="#000000" stroke-style="solid" stroke-width="10" y1="25" y2="75" fill-style="solid" x1="25" x2="75">
-                            <showIf value="Cancel" property="Type" sign="="/>
-                        </line>
-                        <line fill="#000000" stroke="#000000" stroke-style="solid" stroke-width="10" y1="25" y2="75" fill-style="solid" x1="75" x2="25">
-                            <showIf value="Cancel" property="Type" sign="="/>
-                        </line>
+			<external file="qml/EndEventClass.qml"/>
                     </picture>
                     <labels>
                         <label x="0a" y="100a" textBinded="text"/>
@@ -431,52 +234,7 @@
             <node name="Gateway" displayedName="Gateway">
                 <graphics>
                     <picture sizex="110" sizey="110">
-                        <line fill="#ffffff" stroke="#000000" stroke-style="solid" stroke-width="0" y1="0" y2="55" fill-style="none" x1="55" x2="0"/>
-                        <line fill="#ffffff" stroke="#000000" stroke-style="solid" stroke-width="0" y1="55" y2="110" fill-style="none" x1="0" x2="55"/>
-                        <line fill="#ffffff" stroke="#000000" stroke-style="solid" stroke-width="0" y1="110" y2="55" fill-style="none" x1="55" x2="110"/>
-                        <line fill="#ffffff" stroke="#000000" stroke-style="solid" stroke-width="0" y1="0" y2="55" fill-style="none" x1="55" x2="110"/>
-                        <ellipse fill="#ffffff" stroke="#000000" stroke-style="solid" stroke-width="5" y1="22" y2="88" fill-style="none" x1="22" x2="88">
-                            <showIf value="Inclusive" property="Type" sign="="/>
-                        </ellipse>
-                        <ellipse fill="#ffffff" stroke="#000000" stroke-style="solid" stroke-width="0" y1="25" y2="85" fill-style="none" x1="25" x2="85">
-                            <showIf value="Exclusive (Event Based)" property="Type" sign="="/>
-                        </ellipse>
-                        <ellipse fill="#ffffff" stroke="#000000" stroke-style="solid" stroke-width="0" y1="20" y2="90" fill-style="none" x1="20" x2="90">
-                            <showIf value="Exclusive (Event Based)" property="Type" sign="="/>
-                        </ellipse>
-                        <line fill="#ffffff" stroke="#000000" stroke-style="solid" stroke-width="0" y1="33" y2="52" fill-style="none" x1="55" x2="35">
-                            <showIf value="Exclusive (Event Based)" property="Type" sign="="/>
-                        </line>
-                        <line fill="#ffffff" stroke="#000000" stroke-style="solid" stroke-width="0" y1="75" y2="52" fill-style="none" x1="42" x2="35">
-                            <showIf value="Exclusive (Event Based)" property="Type" sign="="/>
-                        </line>
-                        <line fill="#ffffff" stroke="#000000" stroke-style="solid" stroke-width="0" y1="75" y2="75" fill-style="none" x1="42" x2="68">
-                            <showIf value="Exclusive (Event Based)" property="Type" sign="="/>
-                        </line>
-                        <line fill="#ffffff" stroke="#000000" stroke-style="solid" stroke-width="0" y1="75" y2="52" fill-style="none" x1="68" x2="75">
-                            <showIf value="Exclusive (Event Based)" property="Type" sign="="/>
-                        </line>
-                        <line fill="#ffffff" stroke="#000000" stroke-style="solid" stroke-width="0" y1="33" y2="52" fill-style="none" x1="55" x2="75">
-                            <showIf value="Exclusive (Event Based)" property="Type" sign="="/>
-                        </line>
-                        <line fill="#ffffff" stroke="#000000" stroke-style="solid" stroke-width="6" y1="30" y2="80" fill-style="none" x1="55" x2="55">
-                            <showIf value="Parallel" property="Type" sign="="/>
-                        </line>
-                        <line fill="#ffffff" stroke="#000000" stroke-style="solid" stroke-width="6" y1="55" y2="55" fill-style="none" x1="30" x2="80">
-                            <showIf value="Parallel" property="Type" sign="="/>
-                        </line>
-                        <line fill="#ffffff" stroke="#000000" stroke-style="solid" stroke-width="6" y1="30" y2="80" fill-style="none" x1="55" x2="55">
-                            <showIf value="Complex" property="Type" sign="="/>
-                        </line>
-                        <line fill="#ffffff" stroke="#000000" stroke-style="solid" stroke-width="6" y1="55" y2="55" fill-style="none" x1="30" x2="80">
-                            <showIf value="Complex" property="Type" sign="="/>
-                        </line>
-                        <line fill="#ffffff" stroke="#000000" stroke-style="solid" stroke-width="6" y1="35" y2="75" fill-style="none" x1="35" x2="75">
-                            <showIf value="Complex" property="Type" sign="="/>
-                        </line>
-                        <line fill="#ffffff" stroke="#000000" stroke-style="solid" stroke-width="6" y1="35" y2="75" fill-style="none" x1="75" x2="35">
-                            <showIf value="Complex" property="Type" sign="="/>
-                        </line>
+                        <external file="qml/GatewayClass.qml"/>
                     </picture>
                     <labels>
                         <label x="0a" y="110a" textBinded="text"/>
@@ -501,63 +259,7 @@
             <node name="Task" displayedName="Task">
                 <graphics>
                     <picture sizex="210" sizey="160">
-                        <line fill="#ffffff" stroke="#000000" stroke-style="solid" stroke-width="0" y1="45" y2="115" fill-style="none" x1="18" x2="18"/>
-                        <line fill="#ffffff" stroke="#000000" stroke-style="solid" stroke-width="0" y1="18" y2="18" fill-style="none" x1="45" x2="165"/>
-                        <line fill="#ffffff" stroke="#000000" stroke-style="solid" stroke-width="0" y1="45" y2="115" fill-style="none" x1="192" x2="192"/>
-                        <line fill="#ffffff" stroke="#000000" stroke-style="solid" stroke-width="0" y1="142" y2="142" fill-style="none" x1="45" x2="165"/>
-                        <curve fill="#ffffff" stroke="#000000" stroke-style="solid" stroke-width="0" fill-style="none">
-                            <start startx="18" starty="45"/>
-                            <end endx="45" endy="18"/>
-                            <ctrl x="15" y="15"/>
-                        </curve>
-                        <curve fill="#ffffff" stroke="#000000" stroke-style="solid" stroke-width="0" fill-style="none">
-                            <start startx="192" starty="45"/>
-                            <end endx="165" endy="18"/>
-                            <ctrl x="195" y="15"/>
-                        </curve>
-                        <curve fill="#ffffff" stroke="#000000" stroke-style="solid" stroke-width="0" fill-style="none">
-                            <start startx="165" starty="142"/>
-                            <end endx="192" endy="115"/>
-                            <ctrl x="195" y="145"/>
-                        </curve>
-                        <curve fill="#ffffff" stroke="#000000" stroke-style="solid" stroke-width="0" fill-style="none">
-                            <start startx="18" starty="115"/>
-                            <end endx="45" endy="142"/>
-                            <ctrl x="15" y="145"/>
-                        </curve>
-                        <line stroke-style="solid" fill-style="none" stroke-width="3" y1="117" fill="#ffffff" y2="133" stroke="#000000" x1="80" x2="80">
-                            <showIf value="Multiple Instances (Parallel)" property="loopType" sign="="/>
-                        </line>
-                        <line stroke-style="solid" fill-style="none" stroke-width="3" y1="117" fill="#ffffff" y2="133" stroke="#000000" x1="90" x2="90">
-                            <showIf value="Multiple Instances (Parallel)" property="loopType" sign="="/>
-                        </line>
-                        <line stroke-style="solid" fill-style="none" stroke-width="3" y1="117" fill="#ffffff" y2="133" stroke="#000000" x1="100" x2="100">
-                            <showIf value="Multiple Instances (Parallel)" property="loopType" sign="="/>
-                        </line>
-                        <line stroke-style="solid" fill-style="none" stroke-width="3" y1="115" fill="#ffffff" y2="115" stroke="#000000" x1="82" x2="98">
-                            <showIf value="Multiple Instances (Sequential)" property="loopType" sign="="/>
-                        </line>
-                        <line stroke-style="solid" fill-style="none" stroke-width="3" y1="125" fill="#ffffff" y2="125" stroke="#000000" x1="82" x2="98">
-                            <showIf value="Multiple Instances (Sequential)" property="loopType" sign="="/>
-                        </line>
-                        <line stroke-style="solid" fill-style="none" stroke-width="3" y1="135" fill="#ffffff" y2="135" stroke="#000000" x1="82" x2="98">
-                            <showIf value="Multiple Instances (Sequential)" property="loopType" sign="="/>
-                        </line>
-                        <ellipse fill="#ffffff" stroke="#000000" stroke-style="solid" stroke-width="0" y1="115" y2="135" fill-style="none" x1="80" x2="100">
-							<showIf value="Standard Loop" property="loopType" sign="="/>
-						</ellipse>
-                        <line stroke-style="solid" fill-style="none" stroke-width="0" y1="135" fill="#ffffff" y2="136" stroke="#000000" x1="90" x2="86">
-                            <showIf value="Standard Loop" property="loopType" sign="="/>
-                        </line>
-                        <line stroke-style="solid" fill-style="none" stroke-width="0" y1="135" fill="#ffffff" y2="132" stroke="#000000" x1="90" x2="87">
-                            <showIf value="Standard Loop" property="loopType" sign="="/>
-                        </line>
-                        <polygon fill="#000000" stroke="#000000" stroke-style="solid" stroke-width="1" n="3" y1="125" y2="115" y3="135" fill-style="none" x1="110" x2="125" x3="125">
-                            <showIf value="true" property="isForCompensation" sign="="/>
-                        </polygon>
-                        <polygon fill="#000000" stroke="#000000" stroke-style="solid" stroke-width="1" n="3" x1="125" x2="140" x3="140" fill-style="none" y1="125" y2="115" y3="135">
-                            <showIf value="true" property="isForCompensation" sign="="/>
-                        </polygon>
+                        <external file="qml/TaskClass.qml"/>
                     </picture>
                     <labels>
                         <label x="46a" y="55a" textBinded="Text"/>
@@ -600,114 +302,7 @@
             <node name="Subprocess" displayedName="Subprocess">
                 <graphics>
                     <picture sizex="210" sizey="160">
-                        <line fill="#ffffff" stroke="#000000" stroke-style="solid" stroke-width="0" y1="45" y2="115" fill-style="none" x1="18" x2="18"/>
-                        <line fill="#ffffff" stroke="#000000" stroke-style="solid" stroke-width="0" y1="18" y2="18" fill-style="none" x1="45" x2="165"/>
-                        <line fill="#ffffff" stroke="#000000" stroke-style="solid" stroke-width="0" y1="45" y2="115" fill-style="none" x1="192" x2="192"/>
-                        <line fill="#ffffff" stroke="#000000" stroke-style="solid" stroke-width="0" y1="142" y2="142" fill-style="none" x1="45" x2="165"/>
-                        <curve fill="#ffffff" stroke="#000000" stroke-style="solid" stroke-width="0" fill-style="none">
-                            <start startx="18" starty="45"/>
-                            <end endx="45" endy="18"/>
-                            <ctrl x="15" y="15"/>
-                        </curve>
-                        <curve fill="#ffffff" stroke="#000000" stroke-style="solid" stroke-width="0" fill-style="none">
-                            <start startx="192" starty="45"/>
-                            <end endx="165" endy="18"/>
-                            <ctrl x="195" y="15"/>
-                        </curve>
-                        <curve fill="#ffffff" stroke="#000000" stroke-style="solid" stroke-width="0" fill-style="none">
-                            <start startx="165" starty="142"/>
-                            <end endx="192" endy="115"/>
-                            <ctrl x="195" y="145"/>
-                        </curve>
-                        <curve fill="#ffffff" stroke="#000000" stroke-style="solid" stroke-width="0" fill-style="none">
-                            <start startx="18" starty="115"/>
-                            <end endx="45" endy="142"/>
-                            <ctrl x="15" y="145"/>
-                        </curve>
-                        <line fill="#ffffff" stroke="#000000" stroke-style="solid" stroke-width="0" y1="42" y2="118" fill-style="none" x1="15" x2="15">
-							<showIf value="true" property="transaction" sign="="/>
-						</line>
-                        <line fill="#ffffff" stroke="#000000" stroke-style="solid" stroke-width="0" y1="15" y2="15" fill-style="none" x1="42" x2="168">
-							<showIf value="true" property="transaction" sign="="/>
-						</line>
-                        <line fill="#ffffff" stroke="#000000" stroke-style="solid" stroke-width="0" y1="42" y2="118" fill-style="none" x1="195" x2="195">
-							<showIf value="true" property="transaction" sign="="/>
-						</line>
-                        <line fill="#ffffff" stroke="#000000" stroke-style="solid" stroke-width="0" y1="145" y2="145" fill-style="none" x1="42" x2="168">
-							<showIf value="true" property="transaction" sign="="/>
-						</line>
-                        <curve fill="#ffffff" stroke="#000000" stroke-style="solid" stroke-width="0" fill-style="none">
-                            <start startx="15" starty="42"/>
-                            <end endx="42" endy="15"/>
-                            <ctrl x="13" y="13"/>
-							<showIf value="true" property="transaction" sign="="/>
-                        </curve>
-                        <curve fill="#ffffff" stroke="#000000" stroke-style="solid" stroke-width="0" fill-style="none">
-                            <start startx="195" starty="45"/>
-                            <end endx="168" endy="15"/>
-                            <ctrl x="197" y="13"/>
-							<showIf value="true" property="transaction" sign="="/>
-                        </curve>
-                        <curve fill="#ffffff" stroke="#000000" stroke-style="solid" stroke-width="0" fill-style="none">
-                            <start startx="168" starty="145"/>
-                            <end endx="195" endy="118"/>
-                            <ctrl x="197" y="147"/>
-							<showIf value="true" property="transaction" sign="="/>
-                        </curve>
-                        <curve fill="#ffffff" stroke="#000000" stroke-style="solid" stroke-width="0" fill-style="none">
-                            <start startx="15" starty="115"/>
-                            <end endx="42" endy="145"/>
-                            <ctrl x="13" y="147"/>
-							<showIf value="true" property="transaction" sign="="/>
-                        </curve>
-                        <rectangle fill="#ffffff" stroke="#000000" stroke-style="solid" stroke-width="0" y1="115" y2="135" fill-style="none" x1="95" x2="115"/>
-                        <line fill="#ffffff" stroke="#000000" stroke-style="solid" stroke-width="0" y1="118" y2="132" fill-style="none" x1="105" x2="105"/>
-                        <line fill="#ffffff" stroke="#000000" stroke-style="solid" stroke-width="0" y1="125" y2="125" fill-style="none" x1="98" x2="112"/>
-                        <line stroke-style="solid" fill-style="none" stroke-width="3" y1="117" fill="#ffffff" y2="133" stroke="#000000" x1="70" x2="70">
-                            <showIf value="Multiple Instances (Parallel)" property="loopType" sign="="/>
-                        </line>
-                        <line stroke-style="solid" fill-style="none" stroke-width="3" y1="117" fill="#ffffff" y2="133" stroke="#000000" x1="80" x2="80">
-                            <showIf value="Multiple Instances (Parallel)" property="loopType" sign="="/>
-                        </line>
-                        <line stroke-style="solid" fill-style="none" stroke-width="3" y1="117" fill="#ffffff" y2="133" stroke="#000000" x1="90" x2="90">
-                            <showIf value="Multiple Instances (Parallel)" property="loopType" sign="="/>
-                        </line>
-                        <line stroke-style="solid" fill-style="none" stroke-width="3" y1="115" fill="#ffffff" y2="115" stroke="#000000" x1="72" x2="88">
-                            <showIf value="Multiple Instances (Sequential)" property="loopType" sign="="/>
-                        </line>
-                        <line stroke-style="solid" fill-style="none" stroke-width="3" y1="125" fill="#ffffff" y2="125" stroke="#000000" x1="72" x2="88">
-                            <showIf value="Multiple Instances (Sequential)" property="loopType" sign="="/>
-                        </line>
-                        <line stroke-style="solid" fill-style="none" stroke-width="3" y1="135" fill="#ffffff" y2="135" stroke="#000000" x1="72" x2="88">
-                            <showIf value="Multiple Instances (Sequential)" property="loopType" sign="="/>
-                        </line>
-                        <ellipse fill="#ffffff" stroke="#000000" stroke-style="solid" stroke-width="0" y1="115" y2="135" fill-style="none" x1="70" x2="90">
-							<showIf value="Standard Loop" property="loopType" sign="="/>
-						</ellipse>
-                        <line stroke-style="solid" fill-style="none" stroke-width="0" y1="135" fill="#ffffff" y2="136" stroke="#000000" x1="80" x2="76">
-                            <showIf value="Standard Loop" property="loopType" sign="="/>
-                        </line>
-                        <line stroke-style="solid" fill-style="none" stroke-width="0" y1="135" fill="#ffffff" y2="132" stroke="#000000" x1="80" x2="77">
-                            <showIf value="Standard Loop" property="loopType" sign="="/>
-                        </line>
-                        <polygon fill="#000000" stroke="#000000" stroke-style="solid" stroke-width="1" n="3" y1="125" y2="115" y3="135" fill-style="none" x1="120" x2="135" x3="135">
-                            <showIf value="true" property="isForCompensation" sign="="/>
-                        </polygon>
-                        <polygon fill="#000000" stroke="#000000" stroke-style="solid" stroke-width="1" n="3" x1="135" x2="150" x3="150" fill-style="none" y1="125" y2="115" y3="135">
-                            <showIf value="true" property="isForCompensation" sign="="/>
-                        </polygon>
-                        <curve fill="#ffffff" stroke="#000000" stroke-style="solid" stroke-width="0" fill-style="none">
-                            <start startx="45" starty="125"/>
-                            <end endx="55" endy="125"/>
-                            <ctrl x="50" y="120"/>
-							<showIf value="true" property="adHoc" sign="="/>
-                        </curve>
-                        <curve fill="#ffffff" stroke="#000000" stroke-style="solid" stroke-width="0" fill-style="none">
-                            <start startx="55" starty="125"/>
-                            <end endx="65" endy="125"/>
-                            <ctrl x="60" y="130"/>
-							<showIf value="true" property="adHoc" sign="="/>
-                        </curve>
+                        <external file="qml/SubprocessClass.qml"/>
                     </picture>
                     <labels>
                         <label x="40a" y="145a" textBinded="Text"/>
@@ -755,66 +350,7 @@
             <node name="EventSubprocess" displayedName="Event Subprocess">
                 <graphics>
                     <picture sizex="210" sizey="160">
-                        <line fill="#ffffff" stroke="#000000" stroke-style="dash" stroke-width="0" y1="45" y2="115" fill-style="none" x1="18" x2="18"/>
-                        <line fill="#ffffff" stroke="#000000" stroke-style="dash" stroke-width="0" y1="18" y2="18" fill-style="none" x1="45" x2="165"/>
-                        <line fill="#ffffff" stroke="#000000" stroke-style="dash" stroke-width="0" y1="45" y2="115" fill-style="none" x1="192" x2="192"/>
-                        <line fill="#ffffff" stroke="#000000" stroke-style="dash" stroke-width="0" y1="142" y2="142" fill-style="none" x1="45" x2="165"/>
-                        <curve fill="#ffffff" stroke="#000000" stroke-style="dash" stroke-width="0" fill-style="none">
-                            <start startx="18" starty="45"/>
-                            <end endx="45" endy="18"/>
-                            <ctrl x="15" y="15"/>
-                        </curve>
-                        <curve fill="#ffffff" stroke="#000000" stroke-style="dash" stroke-width="0" fill-style="none">
-                            <start startx="192" starty="45"/>
-                            <end endx="165" endy="18"/>
-                            <ctrl x="195" y="15"/>
-                        </curve>
-                        <curve fill="#ffffff" stroke="#000000" stroke-style="dash" stroke-width="0" fill-style="none">
-                            <start startx="165" starty="142"/>
-                            <end endx="192" endy="115"/>
-                            <ctrl x="195" y="145"/>
-                        </curve>
-                        <curve fill="#ffffff" stroke="#000000" stroke-style="dash" stroke-width="0" fill-style="none">
-                            <start startx="18" starty="115"/>
-                            <end endx="45" endy="142"/>
-                            <ctrl x="15" y="145"/>
-                        </curve>
-                        <rectangle fill="#ffffff" stroke="#000000" stroke-style="solid" stroke-width="0" y1="115" y2="135" fill-style="none" x1="95" x2="115"/>
-                        <line fill="#ffffff" stroke="#000000" stroke-style="solid" stroke-width="0" y1="118" y2="132" fill-style="none" x1="105" x2="105"/>
-                        <line fill="#ffffff" stroke="#000000" stroke-style="solid" stroke-width="0" y1="125" y2="125" fill-style="none" x1="98" x2="112"/>
-                        <line stroke-style="solid" fill-style="none" stroke-width="3" y1="117" fill="#ffffff" y2="133" stroke="#000000" x1="70" x2="70">
-                            <showIf value="Multiple Instances (Parallel)" property="loopType" sign="="/>
-                        </line>
-                        <line stroke-style="solid" fill-style="none" stroke-width="3" y1="117" fill="#ffffff" y2="133" stroke="#000000" x1="80" x2="80">
-                            <showIf value="Multiple Instances (Parallel)" property="loopType" sign="="/>
-                        </line>
-                        <line stroke-style="solid" fill-style="none" stroke-width="3" y1="117" fill="#ffffff" y2="133" stroke="#000000" x1="90" x2="90">
-                            <showIf value="Multiple Instances (Parallel)" property="loopType" sign="="/>
-                        </line>
-                        <line stroke-style="solid" fill-style="none" stroke-width="3" y1="115" fill="#ffffff" y2="115" stroke="#000000" x1="72" x2="88">
-                            <showIf value="Multiple Instances (Sequential)" property="loopType" sign="="/>
-                        </line>
-                        <line stroke-style="solid" fill-style="none" stroke-width="3" y1="125" fill="#ffffff" y2="125" stroke="#000000" x1="72" x2="88">
-                            <showIf value="Multiple Instances (Sequential)" property="loopType" sign="="/>
-                        </line>
-                        <line stroke-style="solid" fill-style="none" stroke-width="3" y1="135" fill="#ffffff" y2="135" stroke="#000000" x1="72" x2="88">
-                            <showIf value="Multiple Instances (Sequential)" property="loopType" sign="="/>
-                        </line>
-                        <ellipse fill="#ffffff" stroke="#000000" stroke-style="solid" stroke-width="0" y1="115" y2="135" fill-style="none" x1="70" x2="90">
-							<showIf value="Standard Loop" property="loopType" sign="="/>
-						</ellipse>
-                        <line stroke-style="solid" fill-style="none" stroke-width="0" y1="135" fill="#ffffff" y2="136" stroke="#000000" x1="80" x2="76">
-                            <showIf value="Standard Loop" property="loopType" sign="="/>
-                        </line>
-                        <line stroke-style="solid" fill-style="none" stroke-width="0" y1="135" fill="#ffffff" y2="132" stroke="#000000" x1="80" x2="77">
-                            <showIf value="Standard Loop" property="loopType" sign="="/>
-                        </line>
-                        <polygon fill="#000000" stroke="#000000" stroke-style="solid" stroke-width="1" n="3" y1="125" y2="115" y3="135" fill-style="none" x1="120" x2="135" x3="135">
-                            <showIf value="true" property="isForCompensation" sign="="/>
-                        </polygon>
-                        <polygon fill="#000000" stroke="#000000" stroke-style="solid" stroke-width="1" n="3" x1="135" x2="150" x3="150" fill-style="none" y1="125" y2="115" y3="135">
-                            <showIf value="true" property="isForCompensation" sign="="/>
-                        </polygon>
+			<external file="qml/EventSubprocessClass.qml"/>
                     </picture>
                     <labels>
                         <label x="46a" y="55a" textBinded="Text"/>
@@ -857,9 +393,7 @@
 			<node name="DataObject" displayedName="Data Object">
 				<graphics>
 					<picture sizex="50" sizey="80">
-						<polygon fill="#000000" stroke="#000000" stroke-style="solid" fill-style="none" stroke-width="1" n="5" x1="0" y1="0" x2="40" y2="0" x3="50" y3="10" x4="50" y4="80" x5="0" y5="80"/>
-						<line fill="#000000" stroke="#000000" stroke-style="solid" fill-style="none" stroke-width="1" x1="40" y1="0" x2="40" y2="10"/>
-						<line fill="#000000" stroke="#000000" stroke-style="solid" fill-style="none" stroke-width="1" x1="40" y1="10" x2="50" y2="10"/>
+						<external file="qml/DataObjectClass.qml"/>
 					</picture>
 					<labels>
 						<label x="1a" y="81a" textBinded="Text"/>
@@ -1668,7 +1202,7 @@
           <node name="Lane" displayedName="Lane">
                 <graphics>
                     <picture sizex="450" sizey="150">
-                        <rectangle stroke-style="solid" fill-style="none" stroke-width="0" y1="0" y2="150" fill="#ffffff" x1="0" stroke="#000000" x2="450"/>
+                        <external file="qml/LaneClass.qml"/>
                     </picture>
                     <labels>
                         <label x="2a" y="145a" textBinded="text" rotation="-90"/>
@@ -1692,17 +1226,7 @@
             <node name="Pool" displayedName="Pool">
                 <graphics>
                     <picture sizex="450" sizey="150">
-                        <rectangle stroke-style="solid" fill-style="none" stroke-width="0" y1="0" fill="#ffffff" y2="150" stroke="#000000" x1="0" x2="450"/>
-                        <line stroke-style="solid" fill-style="none" stroke-width="0" y1="0" fill="#ffffff" y2="150" stroke="#000000" x1="30a" x2="30a"/>
-                        <line stroke-style="solid" fill-style="none" stroke-width="2" y1="125" fill="#ffffff" y2="145" stroke="#000000" x1="215" x2="215">
-                            <showIf value="true" property="multiple" sign="="/>
-                        </line>
-                        <line stroke-style="solid" fill-style="none" stroke-width="2" y1="125" fill="#ffffff" y2="145" stroke="#000000" x1="225" x2="225">
-                            <showIf value="true" property="multiple" sign="="/>
-                        </line>
-                        <line stroke-style="solid" fill-style="none" stroke-width="2" y1="125" fill="#ffffff" y2="145" stroke="#000000" x1="235" x2="235">
-                            <showIf value="true" property="multiple" sign="="/>
-                        </line>
+			<external file="qml/PoolClass.qml"/>
                     </picture>
                     <labels>
                         <label x="2a" y="145a" textBinded="text" rotation="-90"/>

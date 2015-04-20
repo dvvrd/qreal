@@ -8,6 +8,7 @@
 #include <QtGui/QPainter>
 
 #include <qrkernel/ids.h>
+#include <qrutils/inFile.h>
 
 #include "editorPluginInterface/labelInterface.h"
 #include "editorPluginInterface/labelFactoryInterface.h"
@@ -49,7 +50,7 @@ public:
 	virtual void init(LabelFactoryInterface &factory
 			, QList<LabelInterface*> &titles) = 0;
 
-	virtual QUrl qmlUrl() const = 0;
+	virtual QString qmlString() const = 0;
 
 	virtual void updateData(ElementRepoInterface *repo) const = 0;
 	virtual bool isNode() const = 0;

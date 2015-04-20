@@ -16,7 +16,7 @@ win32 {
 	QRXC = $$ROOT/bin/qrxc
 }
 
-LIBS += -L$$ROOT/bin -lqrkernel
+LIBS += -L$$ROOT/bin -lqrkernel -lqrutils
 
 !macx {
 	#QMAKE_LFLAGS += "-Wl,-O1,-rpath,$(PWD)/../../../bin/"

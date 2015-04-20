@@ -448,7 +448,6 @@ void Repository::saveDiagramsById(QHash<QString, IdList> const &diagramIds)
 void Repository::remove(IdList const &list) const
 {
 	foreach(Id const &id, list) {
-		qDebug() << id.toString();
 		mSerializer.removeFromDisk(id);
 	}
 }
