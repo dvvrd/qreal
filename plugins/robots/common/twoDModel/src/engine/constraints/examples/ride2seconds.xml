@@ -1,0 +1,97 @@
+<?xml version='1.0' encoding='utf-8'?>
+<root>
+	<world>
+		<trace/>
+		<walls/>
+		<colorFields/>
+		<regions/>
+	</world>
+	<robots>
+		<robot id="trikKitRobot" direction="0" position="0:0">
+			<sensors>
+				<sensor type="kitBase::robotModel::robotParts::Motor" direction="0" port="M4###output###JM4$$$D$$$4###" position="75:25"/>
+				<sensor type="kitBase::robotModel::robotParts::Motor" direction="0" port="M3###output###JM3$$$C$$$3###" position="75:25"/>
+				<sensor type="kitBase::robotModel::robotParts::Motor" direction="0" port="M2###output###JM2$$$B$$$2###" position="75:25"/>
+				<sensor type="kitBase::robotModel::robotParts::Motor" direction="0" port="M1###output###JM1$$$A$$$1###" position="75:25"/>
+			</sensors>
+			<startPosition direction="0" x="25" y="25"/>
+		</robot>
+	</robots>
+	<constraints>
+		<timelimit value="5000"/> <!-- 5 sec -->
+		<constraint checkOnce="true" failMessage="У робота не должно быть датчиков">
+			<conditions glue="and">
+				<equals>
+					<typeOf objectId="robot1.A1_in"/>
+					<string value="undefined"/>
+				</equals>
+				<equals>
+					<typeOf objectId="robot1.A2_in"/>
+					<string value="undefined"/>
+				</equals>
+				<equals>
+					<typeOf objectId="robot1.A3_in"/>
+					<string value="undefined"/>
+				</equals>
+				<equals>
+					<typeOf objectId="robot1.A4_in"/>
+					<string value="undefined"/>
+				</equals>
+				<equals>
+					<typeOf objectId="robot1.A5_in"/>
+					<string value="undefined"/>
+				</equals>
+				<equals>
+					<typeOf objectId="robot1.A6_in"/>
+					<string value="undefined"/>
+				</equals>
+				<equals>
+					<typeOf objectId="robot1.D1_in"/>
+					<string value="undefined"/>
+				</equals>
+				<equals>
+					<typeOf objectId="robot1.D2_in"/>
+					<string value="undefined"/>
+				</equals>
+				<equals>
+					<typeOf objectId="robot1.F1_in"/>
+					<string value="undefined"/>
+				</equals>
+			</conditions>
+		</constraint>
+
+		<event settedUpInitially="true">
+			<condition>
+				<timer timeout="2000" forceDropOnTimeout="true"/>
+			</condition>
+			<trigger>
+				<success/>
+			</trigger>
+		</event>
+
+		<event settedUpInitially="true">
+			<condition>
+				<timer timeout="100" forceDropOnTimeout="true"/>
+			</condition>
+			<trigger>
+				<setUp id="fail checker"/>
+			</trigger>
+		</event>
+
+		<event id="fail checker" settedUpInitially="false">
+			<conditions glue="or">
+				<notEqual>
+					<objectState objectId="robot1.M3_out" property="power"/>
+					<int value="100"/>
+				</notEqual>
+				<notEqual>
+					<objectState objectId="robot1.M4_out" property="power"/>
+					<int value="100"/>
+				</notEqual>
+			</conditions>
+			<trigger>
+				<fail message="Робот снизил скорость или остановился раньше времени. Он должен двигаться на скорости 100 в течение 2 секунд. Порты: M3 и M4."/>
+			</trigger>
+		</event>
+	</constraints>
+</root>
