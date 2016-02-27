@@ -18,8 +18,6 @@
 #include <QtGui/QColor>
 
 namespace qReal {
-namespace gui {
-namespace editor {
 
 /// A container for scene label properties (view and behavioural).
 /// Defines properties via Qt reflection so they can be used in property editor for dynamic Label
@@ -39,7 +37,7 @@ class LabelProperties : public QObject
 	Q_PROPERTY(bool scalingY READ scalingY WRITE setScalingY NOTIFY scalingYChanged)
 	Q_PROPERTY(bool isHard READ isHard WRITE setHard NOTIFY isHardChanged)
 	Q_PROPERTY(QString prefix READ prefix WRITE setPrefix NOTIFY prefixChanged)
-	Q_PROPERTY(QString siffix READ siffix WRITE setSuffix NOTIFY suffixChanged)
+	Q_PROPERTY(QString suffix READ suffix WRITE setSuffix NOTIFY suffixChanged)
 
 public:
 	LabelProperties();
@@ -124,7 +122,7 @@ public:
 	void setPrefix(const QString &text);
 
 	/// Returns text drawn just after label contents.
-	QString siffix() const;
+	QString suffix() const;
 
 	/// Sets text drawn just after label contents.
 	void setSuffix(const QString &text);
@@ -185,6 +183,4 @@ private:
 	QString mSuffix;
 };
 
-}
-}
 }

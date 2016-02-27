@@ -29,10 +29,9 @@
 #include <qrgui/models/models.h>
 #include <qrgui/models/commands/changeParentCommand.h>
 #include <qrgui/models/commands/renameCommand.h>
-#include <qrgui/plugins/editorPluginInterface/editorInterface.h>
+#include <metaMetaModel/nodeElementType.h>
 
 #include "editor/labels/label.h"
-#include "editor/labels/labelFactory.h"
 #include "editor/editorViewScene.h"
 #include "editor/ports/portFactory.h"
 
@@ -47,10 +46,12 @@ using namespace qReal::commands;
 using namespace qReal::gui::editor;
 using namespace qReal::gui::editor::commands;
 
-NodeElement::NodeElement(ElementImpl *impl, const Id &id, const models::Models &models)
-	: Element(impl, id, models)
+NodeElement::NodeElement(const NodeElementType &type, const Id &id, const models::Models &models)
+	: Element(type, id, models)
+	, mType(type)
 	, mExploser(models.exploser())
 	, mSwitchGridAction(tr("Switch on grid"), this)
+	, mContents(QPointF(), type.size())
 	, mDragState(None)
 	, mResizeCommand(nullptr)
 	, mIsExpanded(false)
@@ -67,20 +68,17 @@ NodeElement::NodeElement(ElementImpl *impl, const Id &id, const models::Models &
 	setFlag(ItemClipsChildrenToShape, false);
 	setFlag(QGraphicsItem::ItemDoesntPropagateOpacityToChildren);
 
-	LabelFactory labelFactory(models.graphicalModelAssistApi(), mId);
-	QList<LabelInterface*> titles;
+	mRenderer.load(mType.sdfFile());
+	mRenderer.setElementRepo(this);
 
-	QList<PortInterface *> ports;
 	PortFactory portFactory;
-	mElementImpl->init(mContents, portFactory, ports, labelFactory, titles, &mRenderer, this);
-	mPortHandler = new PortHandler(this, mGraphicalAssistApi, ports);
+	mPortHandler = new PortHandler(this, mGraphicalAssistApi
+			, portFactory.createPorts(mType.pointPorts())
+			, portFactory.createPorts(mType.linePorts()));
 
-	for (LabelInterface * const labelInterface : titles) {
-		Label * const label = dynamic_cast<Label *>(labelInterface);
-		if (!label) {
-			continue;
-		}
-
+	const QList<LabelProperties> labelInfos = mType.labels();
+	for (const LabelProperties &labelInfo : labelInfos) {
+		Label * const label = new Label(mGraphicalAssistApi, mId, labelInfo);
 		label->init(mContents);
 		label->setParentItem(this);
 		mLabels.append(label);
@@ -107,7 +105,6 @@ NodeElement::~NodeElement()
 
 	deleteGuides();
 	qDeleteAll(mLabels);
-	delete mElementImpl;
 	delete mGrid;
 	delete mPortHandler;
 }
@@ -295,23 +292,23 @@ void NodeElement::mousePressEvent(QGraphicsSceneMouseEvent *event)
 	if (isSelected()) {
 		int dragArea = SettingsManager::instance()->value("DragArea").toInt();
 		if (QRectF(mContents.topLeft(), QSizeF(dragArea, dragArea)).contains(event->pos())
-				&& mElementImpl->isResizeable())
+				&& mType.isResizeable())
 		{
 			mDragState = TopLeft;
 		} else if (QRectF(mContents.topRight(), QSizeF(-dragArea, dragArea)).contains(event->pos())
-				&& mElementImpl->isResizeable())
+				&& mType.isResizeable())
 		{
 			mDragState = TopRight;
 		} else if (QRectF(mContents.bottomRight(), QSizeF(-dragArea, -dragArea)).contains(event->pos())
-				&& mElementImpl->isResizeable())
+				&& mType.isResizeable())
 		{
 			mDragState = BottomRight;
 		} else if (QRectF(mContents.bottomLeft(), QSizeF(dragArea, -dragArea)).contains(event->pos())
-				&& mElementImpl->isResizeable())
+				&& mType.isResizeable())
 		{
 			mDragState = BottomLeft;
 		} else if (QRectF(QPointF(-20, 0), QPointF(0, 20)).contains(event->pos())
-				&& mElementImpl->isContainer())
+				&& mType.isContainer())
 		{
 			changeFoldState();
 		} else {
@@ -335,7 +332,7 @@ void NodeElement::alignToGrid()
 {
 	if (SettingsManager::value("ActivateGrid").toBool()) {
 		NodeElement *parent = dynamic_cast<NodeElement *>(parentItem());
-		if (!parent || !parent->mElementImpl->isSortingContainer()) {
+		if (!parent || !parent->mType.isSortingContainer()) {
 			mGrid->alignToGrid();
 		}
 	}
@@ -429,7 +426,7 @@ void NodeElement::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
 		mGrid->mouseMoveEvent(event);
 		alignToGrid();
 		newPos = pos();
-	} else if (mElementImpl->isResizeable()) {
+	} else if (mType.isResizeable()) {
 		setVisibleEmbeddedLinkers(false);
 
 		needResizeParent = true;
@@ -581,7 +578,7 @@ void NodeElement::mouseDoubleClickEvent(QGraphicsSceneMouseEvent *event)
 {
 	Q_UNUSED(event);
 
-	if (mElementImpl->isContainer()) {
+	if (mType.isContainer()) {
 		mController->execute(new FoldCommand(this));
 	}
 }
@@ -645,8 +642,9 @@ bool NodeElement::initPossibleEdges()
 			, id().diagram())) {
 		int ne = mGraphicalAssistApi.editorManagerInterface().isNodeOrEdge(id().editor(), elementName);
 		if (ne == -1) {
-			const QList<StringPossibleEdge> list = mGraphicalAssistApi.editorManagerInterface()
-					.possibleEdges(id().editor(), elementName);
+			int FIX_IT_BITCH = 0;
+			const QList<StringPossibleEdge> list = {};/*mGraphicalAssistApi.editorManagerInterface()
+					.possibleEdges(id().editor(), elementName);*/
 			for (const StringPossibleEdge &pEdge : list) {
 				if (portTypes.contains(pEdge.first.first)
 						|| (portTypes.contains(pEdge.first.second) && !pEdge.second.first))
@@ -814,7 +812,9 @@ void NodeElement::updateData()
 
 		setGeometry(newRect.translated(newpos));
 	}
-	mElementImpl->updateData(this);
+
+	int FIX_IT_BITCH = 0;
+//	mType->updateData(this);
 	updateLabels();
 	update();
 }
@@ -826,7 +826,7 @@ const QPointF NodeElement::portPos(qreal id) const
 
 bool NodeElement::isContainer() const
 {
-	return mElementImpl->isContainer();
+	return mType.isContainer();
 }
 
 int NodeElement::numberOfPorts() const
@@ -855,7 +855,7 @@ void NodeElement::setPortsVisible(const QStringList &types)
 
 void NodeElement::paint(QPainter *painter, const QStyleOptionGraphicsItem *style, QWidget *)
 {
-	mElementImpl->paint(painter, mContents);
+	mRenderer.render(painter, mContents);
 	paint(painter, style);
 
 	if (mSelectionNeeded) {
@@ -879,7 +879,7 @@ void NodeElement::paint(QPainter *painter, const QStyleOptionGraphicsItem *optio
 
 			QBrush b;
 
-			if (mElementImpl->isContainer()) {
+			if (mType.isContainer()) {
 				b.setStyle(Qt::NoBrush);
 				painter->setBrush(b);
 
@@ -896,7 +896,7 @@ void NodeElement::paint(QPainter *painter, const QStyleOptionGraphicsItem *optio
 			painter->setBrush(b);
 			painter->setPen(Qt::blue);
 
-			if (mElementImpl->isResizeable()) {
+			if (mType.isResizeable()) {
 				drawLinesForResize(painter);
 			} else {
 				painter->drawRect(QRectF(mContents.bottomRight(), QSizeF(-4, -4)));
@@ -944,6 +944,11 @@ void NodeElement::delEdge(EdgeElement *edge)
 {
 	mEdgeList.removeAll(edge);
 	arrangeLinearPorts();
+}
+
+const NodeElementType &NodeElement::nodeType() const
+{
+	return mType;
 }
 
 void NodeElement::changeExpanded()
@@ -1012,7 +1017,7 @@ void NodeElement::setLinksVisible(bool isVisible)
 void NodeElement::drawPlaceholder(QGraphicsRectItem *placeholder, QPointF pos)
 {
 	// for non-sorting containers no need for drawing placeholder so just make them marked
-	if (!mElementImpl->isSortingContainer()) {
+	if (!mType.isSortingContainer()) {
 		setOpacity(0.2);
 		return;
 	}
@@ -1083,7 +1088,7 @@ void NodeElement::updateByChild(NodeElement* item, bool isItemAddedOrDeleted)
 		changeFoldState();
 	}
 
-	if (mElementImpl->isSortingContainer()) {
+	if (mType.isSortingContainer()) {
 		updateChildrenOrder();
 	}
 
@@ -1093,7 +1098,7 @@ void NodeElement::updateByChild(NodeElement* item, bool isItemAddedOrDeleted)
 void NodeElement::updateByNewParent()
 {
 	NodeElement* parent = dynamic_cast<NodeElement*>(parentItem());
-	if (!parent || parent->mElementImpl->hasMovableChildren()) {
+	if (!parent || parent->mType.hasMovableChildren()) {
 		setFlag(ItemIsMovable, true);
 	} else {
 		setFlag(ItemIsMovable, false);
@@ -1149,7 +1154,7 @@ void NodeElement::updateChildrenOrder()
 
 QList<qreal> NodeElement::borderValues() const
 {
-	return mElementImpl->border();
+	return mType.border();
 }
 
 QSet<ElementPair> NodeElement::elementsForPossibleEdge(const StringPossibleEdge &edge)
@@ -1216,7 +1221,7 @@ void NodeElement::resize(const QRectF &newContents)
 
 void NodeElement::resize(const QRectF &newContents, const QPointF &newPos, bool needResizeParent)
 {
-	ResizeHandler handler(this);
+	ResizeHandler handler(*this);
 	handler.resize(newContents, newPos, needResizeParent);
 }
 
@@ -1324,7 +1329,8 @@ AbstractCommand *NodeElement::changeParentCommand(const Id &newParent, const QPo
 
 void NodeElement::updateShape(const QString &shape) const
 {
-	mElementImpl->updateRendererContent(shape);
+	int FIX_IT_BACK_BITCH = 100500;
+//	mType.updateRendererContent(shape);
 }
 
 IdList NodeElement::sortedChildren() const
@@ -1383,7 +1389,7 @@ void NodeElement::initRenderedDiagram()
 QRectF NodeElement::diagramRenderingRect() const
 {
 	const NodeElement *initial = new NodeElement(
-			mLogicalAssistApi.editorManagerInterface().elementImpl(id())
+			mLogicalAssistApi.editorManagerInterface().elementType(id()).toNode()
 			, id().sameTypeId()
 			, mModels
 			);

@@ -1,4 +1,4 @@
-/* Copyright 2015 QReal Research Group, Dmitry Mordvinov
+/* Copyright 2015-2016 QReal Research Group, Dmitry Mordvinov
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -12,10 +12,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License. */
 
-#include "labelProperties.h"
+#include "metaMetaModel/labelProperties.h"
 
 using namespace qReal;
-using namespace qReal::gui::editor;
 
 LabelProperties::LabelProperties()
 	: mIndex(0)
@@ -247,7 +246,7 @@ void LabelProperties::setPrefix(const QString &text)
 	}
 }
 
-QString LabelProperties::siffix() const
+QString LabelProperties::suffix() const
 {
 	return mSuffix;
 }

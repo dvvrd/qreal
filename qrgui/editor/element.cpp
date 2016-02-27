@@ -28,15 +28,15 @@ using namespace qReal::gui::editor;
 
 const qreal disabledEffectStrength = 0.9;
 
-Element::Element(ElementImpl *elementImpl, const Id &id, const models::Models &models)
+Element::Element(const ElementType &elementType, const Id &id, const models::Models &models)
 	: mMoving(false)
 	, mEnabled(true)
 	, mId(id)
-	, mElementImpl(elementImpl)
 	, mModels(models)
 	, mLogicalAssistApi(models.logicalModelAssistApi())
 	, mGraphicalAssistApi(models.graphicalModelAssistApi())
 	, mController(nullptr)
+	, mType(elementType)
 {
 	setFlags(ItemIsSelectable | ItemIsMovable | ItemIsFocusable | ItemClipsChildrenToShape |
 			ItemClipsToShape | ItemSendsGeometryChanges);
@@ -98,16 +98,6 @@ Controller * Element::controller() const
 
 void Element::initTitles()
 {
-}
-
-ElementImpl* Element::elementImpl() const
-{
-	return mElementImpl;
-}
-
-bool Element::createChildrenFromMenu() const
-{
-	return mElementImpl->createChildrenFromMenu();
 }
 
 void Element::updateEnabledState()

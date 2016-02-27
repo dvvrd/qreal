@@ -256,7 +256,7 @@ void EdgeType::generateCode(OutFile &out)
 
 	const QString className = NameNormalizer::normalize(qualifiedName());
 
-	out() << "\tclass " << className << " : public qReal::ElementImpl {\n"
+	out() << "\tclass " << className << " : public qReal::ElementType {\n"
 	<< "\tpublic:\n";
 
 	if (!mBonusContextMenuFields.empty()) {
@@ -282,7 +282,7 @@ void EdgeType::generateCode(OutFile &out)
 
 	out() << "\t\t}\n\n"
 	<< "\t\tvirtual ~" << className << "() {}\n\n"
-	<< "\t\tqReal::ElementImpl *clone() { return nullptr; }\n"
+	<< "\t\tqReal::ElementType *clone() { return nullptr; }\n"
 	<< "\t\tvoid paint(QPainter *, QRectF &){}\n"
 	<< "\t\tbool isNode() const { return false; }\n"
 	<< "\t\tbool isResizeable() const { return true; }\n"
