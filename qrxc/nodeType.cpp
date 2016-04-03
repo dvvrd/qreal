@@ -67,7 +67,7 @@ Type* NodeType::clone() const
 
 bool NodeType::copyPictures(GraphicType *parent)
 {
-	if (const NodeType * const nodeParent = dynamic_cast<NodeType*>(parent)) {
+	if (dynamic_cast<NodeType*>(parent)) {
 		qWarning() << name() << "Inheriting QML is currently not supported";
 		return true;
 	}

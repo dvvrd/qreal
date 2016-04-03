@@ -336,16 +336,17 @@ void ShapeEdit::save()
 	if (mIndex.isValid()) {
 		emit shapeSaved(mDocument.toString(4), mIndex, mRole);
 	} else {
-		mEditorManager->updateShape(mId, mDocument.documentElement());
-		foreach (const Id graphicalElement, mGraphicalElements) {
-			mEditorManager->updateShape(graphicalElement, mDocument.documentElement());
-			for (QGraphicsItem * const item : mEditorView->editorViewScene().items()) {
-				qReal::gui::editor::NodeElement * const element = dynamic_cast<qReal::gui::editor::NodeElement *>(item);
-				if (element && element->id().type() == mId.type()) {
-					element->updateShape(mDocument.documentElement());
-				}
-			}
-		}
+		/// @todo: Qml should be passed and this class will die soon.
+//		mEditorManager->updateShape(mId, mDocument.documentElement());
+//		foreach (const Id graphicalElement, mGraphicalElements) {
+//			mEditorManager->updateShape(graphicalElement, mDocument.documentElement());
+//			for (QGraphicsItem * const item : mEditorView->editorViewScene().items()) {
+//				qReal::gui::editor::NodeElement * const element = dynamic_cast<qReal::gui::editor::NodeElement *>(item);
+//				if (element && element->id().type() == mId.type()) {
+//					element->updateShape(mDocument.documentElement());
+//				}
+//			}
+//		}
 
 		mMainWindow->loadEditorPlugins();
 	}

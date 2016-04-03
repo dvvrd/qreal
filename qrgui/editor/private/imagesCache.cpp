@@ -21,6 +21,11 @@
 
 using namespace qReal;
 
+inline uint qHash(const QRect &rect)
+{
+	return qHash(rect.width()) ^ qHash(rect.height()) ^ qHash(rect.top()) ^ qHash(rect.left());
+}
+
 ImagesCache::ImagesCache()
 {
 }

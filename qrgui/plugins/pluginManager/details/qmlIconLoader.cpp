@@ -14,9 +14,8 @@
 
 #include "qmlIconLoader.h"
 
-#include <QtDeclarative/QDeclarativeEngine>
-#include <QtDeclarative/QDeclarativeComponent>
-#include <QtDeclarative/QDeclarativeItem>
+#include <QtQml/QQmlEngine>
+#include <QtQml/QQmlComponent>
 
 #include <qrutils/graphicsUtils/itemRenderer.h>
 
@@ -30,9 +29,9 @@ QmlIconLoader::~QmlIconLoader()
 {
 }
 
-void QmlIconLoader::setQmlEngine(QDeclarativeEngine * const engine)
+void QmlIconLoader::setQmlEngine(QQmlEngine &engine)
 {
-	instance()->mQmlEngine = engine;
+	instance()->mQmlEngine = &engine;
 }
 
 QIcon QmlIconLoader::iconOf(const QString &qmlString)
@@ -54,14 +53,15 @@ QmlIconLoader *QmlIconLoader::instance()
 
 QIcon QmlIconLoader::loadPixmap(const QString &qmlString)
 {
-	QDeclarativeComponent component(instance()->mQmlEngine);
-	component.setData(qmlString.toLocal8Bit(), QUrl());
-	QDeclarativeItem * const item = qobject_cast<QDeclarativeItem *>(component.create());
-	const QIcon icon = graphicsUtils::ItemRenderer::renderRecursively(item
-		, item->width(), item->height(), QColor(Qt::white));
+	int FIX_IT_BACK_BITCH = 100500;
+//	QQmlComponent component(instance()->mQmlEngine);
+//	component.setData(qmlString.toLocal8Bit(), QUrl());
+//	QQmlItem * const item = qobject_cast<QDeclarativeItem *>(component.create());
+//	const QIcon icon = graphicsUtils::ItemRenderer::renderRecursively(item
+//		, item->width(), item->height(), QColor(Qt::white));
 
-	instance()->mLoadedIcons[qmlString] = icon;
-	instance()->mPreferedSizes[qmlString] = QSize(item->width(), item->height());
+//	instance()->mLoadedIcons[qmlString] = icon;
+//	instance()->mPreferedSizes[qmlString] = QSize(item->width(), item->height());
 
 	return instance()->mLoadedIcons[qmlString];
 }

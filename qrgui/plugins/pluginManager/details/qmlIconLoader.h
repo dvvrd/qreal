@@ -17,7 +17,7 @@
 #include <QtCore/QMap>
 #include <QtGui/QIcon>
 
-class QDeclarativeEngine;
+class QQmlEngine;
 
 namespace qReal {
 
@@ -26,7 +26,7 @@ class QmlIconLoader
 {
 public:
 	/// Configures the only qml icon loader instance to use the given qml engine for rendering icons.
-	static void setQmlEngine(QDeclarativeEngine * const engine);
+	static void setQmlEngine(QQmlEngine &engine);
 
 	/// Returns a pixmap of element in specified qml-file
 	static QIcon iconOf(const QString &qmlString);
@@ -41,7 +41,7 @@ private:
 	QmlIconLoader();
 	~QmlIconLoader();
 
-	QDeclarativeEngine *mQmlEngine;
+	QQmlEngine *mQmlEngine;
 	QMap<QString, QIcon> mLoadedIcons;
 	QMap<QString, QSize> mPreferedSizes;
 };

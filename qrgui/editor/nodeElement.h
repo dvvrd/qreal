@@ -36,8 +36,7 @@
 #include "qrgui/editor/private/umlPortHandler.h"
 #include "qrgui/editor/private/portHandler.h"
 
-class QDeclarativeEngine;
-class QDeclarativeItem;
+class QQmlEngine;
 
 namespace qReal {
 
@@ -58,8 +57,8 @@ class QRGUI_EDITOR_EXPORT NodeElement : public Element
 	Q_OBJECT
 
 public:
-	NodeElement(QDeclarativeEngine &qmlEngine
-			, const NodeElementType &type
+	NodeElement(QQmlEngine &qmlEngine
+			, NodeElementType &type
 			, const Id &id
 			, const models::Models &models);
 
@@ -271,10 +270,10 @@ private:
 
 	qReal::commands::AbstractCommand *changeParentCommand(const Id &newParent, const QPointF &position) const;
 
-	QDeclarativeEngine &mQmlEngine;
-	QDeclarativeItem *mQmlItem;  // Has ownership
+	QQmlEngine &mQmlEngine;
+//	QDeclarativeItem *mQmlItem;  // Has ownership
 
-	const NodeElementType &mType;
+	NodeElementType &mType;
 	ContextMenuAction mSwitchGridAction;
 
 	QMap<QString, bool> mPortsVisibility;

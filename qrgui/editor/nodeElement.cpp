@@ -22,10 +22,9 @@
 #include <QtGui/QTextCursor>
 #include <QtWidgets/QToolTip>
 #include <QtWidgets/QGraphicsDropShadowEffect>
-#include <QtDeclarative/QDeclarativeEngine>
-#include <QtDeclarative/QDeclarativeItem>
-#include <QtDeclarative/QDeclarativeContext>
-#include <QtDeclarative/QDeclarativeProperty>
+#include <QtQml/QQmlEngine>
+#include <QtQml/QQmlContext>
+#include <QtQml/QQmlProperty>
 
 #include <math.h>
 #include <qrkernel/logging.h>
@@ -51,13 +50,13 @@ using namespace qReal::commands;
 using namespace qReal::gui::editor;
 using namespace qReal::gui::editor::commands;
 
-NodeElement::NodeElement(QDeclarativeEngine &qmlEngine
-		, const NodeElementType &type
+NodeElement::NodeElement(QQmlEngine &qmlEngine
+		, NodeElementType &type
 		, const Id &id
 		, const models::Models &models)
 	: Element(type, id, models)
 	, mQmlEngine(qmlEngine)
-	, mQmlItem(nullptr)
+//	, mQmlItem(nullptr)
 	, mType(type)
 	, mSwitchGridAction(tr("Switch on grid"), this)
 	, mContents(QPointF(), type.size())
@@ -120,19 +119,19 @@ NodeElement::~NodeElement()
 
 void NodeElement::initQml()
 {
-	QDeclarativeComponent component(mQmlEngine);
-	component.setData(mType.qml().toLocal8Bit(), QUrl());
-	if (component.isReady()) {
-		QObject *object = component.create();
-		object->setProperty("ids", logicalId().toString());
-		mQmlItem = qobject_cast<QDeclarativeItem *>(object);
-	} else {
-		QDeclarativeComponent defaultComponent(mQmlEngine, QUrl("qrc:/default.qml"));
-		mQmlItem = qobject_cast<QDeclarativeItem *>(defaultComponent.create());
-	}
+//	QDeclarativeComponent component(mQmlEngine);
+//	component.setData(mType.qml().toLocal8Bit(), QUrl());
+//	if (component.isReady()) {
+//		QObject *object = component.create();
+//		object->setProperty("ids", logicalId().toString());
+//		mQmlItem = qobject_cast<QDeclarativeItem *>(object);
+//	} else {
+//		QDeclarativeComponent defaultComponent(mQmlEngine, QUrl("qrc:/default.qml"));
+//		mQmlItem = qobject_cast<QDeclarativeItem *>(defaultComponent.create());
+//	}
 
-	qobject_cast<QGraphicsObject *>(mQmlItem)->setParentItem(this);
-	mQmlItem->setFlag(QGraphicsItem::ItemStacksBehindParent);
+//	qobject_cast<QGraphicsObject *>(mQmlItem)->setParentItem(this);
+//	mQmlItem->setFlag(QGraphicsItem::ItemStacksBehindParent);
 }
 
 void NodeElement::initPortsVisibility()
@@ -189,7 +188,7 @@ void NodeElement::setGeometry(const QRectF &geom)
 
 void NodeElement::syncQmlItemSize()
 {
-	mQmlItem->setSize(mContents.size());
+//	mQmlItem->setSize(mContents.size());
 }
 
 void NodeElement::setPos(const QPointF &pos)
@@ -801,9 +800,9 @@ void NodeElement::updateData()
 		setGeometry(newRect.translated(newpos));
 	}
 
-	QDeclarativeProperty propertyIds(mQmlItem, "ids");
-	propertyIds.write(QString());
-	propertyIds.write(logicalId().toString());
+//	QDeclarativeProperty propertyIds(mQmlItem, "ids");
+//	propertyIds.write(QString());
+//	propertyIds.write(logicalId().toString());
 	updateLabels();
 	update();
 }
@@ -844,7 +843,6 @@ void NodeElement::setPortsVisible(const QStringList &types)
 
 void NodeElement::paint(QPainter *painter, const QStyleOptionGraphicsItem *style, QWidget *)
 {
-	mRenderer.render(painter, mContents);
 	paint(painter, style);
 
 	if (mSelectionNeeded) {

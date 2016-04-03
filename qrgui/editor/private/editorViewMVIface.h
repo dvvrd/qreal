@@ -21,6 +21,8 @@
 /// @todo: Make editor view mviface fully private.
 #include "qrgui/editor/editorDeclSpec.h"
 
+class QQmlEngine;
+
 namespace qReal {
 
 namespace models {
@@ -42,7 +44,7 @@ class QRGUI_EDITOR_EXPORT EditorViewMViface : public QAbstractItemView
 	Q_OBJECT
 
 public:
-	EditorViewMViface(QDeclarativeEngine &qmlEngine, EditorView *view, EditorViewScene *scene);
+	EditorViewMViface(QQmlEngine &qmlEngine, EditorView *view, EditorViewScene *scene);
 	~EditorViewMViface();
 
 	QModelIndex indexAt(const QPoint &point) const;
@@ -81,7 +83,7 @@ private slots:
 private:
 	typedef QPair<QPersistentModelIndex, Element*> IndexElementPair;
 
-	QDeclarativeEngine &mQmlEngine;
+	QQmlEngine &mQmlEngine;
 	EditorViewScene *mScene;
 	EditorView *mView;
 	models::GraphicalModelAssistApi *mGraphicalAssistApi;

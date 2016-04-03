@@ -29,7 +29,7 @@ class QRGUI_EDITOR_EXPORT EditorView : public QGraphicsView
 	Q_OBJECT
 
 public:
-	EditorView(QDeclarativeEngine &qmlEngine
+	EditorView(QQmlEngine &qmlEngine
 			, const models::Models &models
 			, Controller &controller
 			, const SceneCustomizer &customizer

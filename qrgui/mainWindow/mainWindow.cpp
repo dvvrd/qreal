@@ -34,7 +34,8 @@
 #include <QtPrintSupport/QPrinter>
 #include <QtPrintSupport/QPrintDialog>
 #include <QtSvg/QSvgGenerator>
-#include <QtDeclarative/QDeclarativeEngine>
+#include <QtQml/QQmlEngine>
+#include <QtQml/QQmlContext>
 
 #include <qrkernel/settingsManager.h>
 #include <qrkernel/settingsListener.h>
@@ -49,11 +50,11 @@
 
 #include <qrgui/controller/controller.h>
 #include <qrgui/dialogs/findReplaceDialog.h>
-#include <qrgui/editor/qmlIconLoader.h>
 #include <qrgui/editor/propertyEditorView.h>
 #include <qrgui/models/propertyEditorModel.h>
 #include <qrgui/plugins/pluginManager/toolPluginManager.h>
 #include <qrgui/plugins/pluginManager/editorManagerInterface.h>
+#include <qrgui/plugins/pluginManager/details/qmlIconLoader.h>
 #include <qrgui/plugins/toolPluginInterface/systemEvents.h>
 #include <qrgui/systemFacade/systemFacade.h>
 
@@ -99,7 +100,7 @@ MainWindow::MainWindow(const QString &fileToOpen)
 	: mUi(new Ui::MainWindowUi)
 	, mSplashScreen(new SplashScreen(SettingsManager::value("Splashscreen").toBool()))
 	, mController(new Controller)
-	, mQmlEngine(new QDeclarativeEngine(this))
+	, mQmlEngine(new QQmlEngine(this))
 	, mRootIndex(QModelIndex())
 	, mErrorReporter(nullptr)
 	, mIsFullscreen(false)
@@ -133,8 +134,8 @@ MainWindow::MainWindow(const QString &fileToOpen)
 	initMiniMap();
 	initGridProperties();
 
-	QmlIconLoader::setQmlEngine(mQmlEngine);
-	mQmlEngine->rootContext()->setContextProperty("models", &mModels->graphicalModelAssistApi());
+	QmlIconLoader::setQmlEngine(*mQmlEngine);
+	mQmlEngine->rootContext()->setContextProperty("models", &models().graphicalModelAssistApi());
 
 	mSplashScreen->setProgress(40);
 
@@ -1019,7 +1020,7 @@ void MainWindow::openNewTab(const QModelIndex &arg)
 		mUi->tabs->setCurrentIndex(tabNumber);
 	} else {
 		const Id diagramId = models().graphicalModelAssistApi().idByIndex(index);
-		EditorView * const view = new EditorView(mQmlEngine, models()
+		EditorView * const view = new EditorView(*mQmlEngine, models()
 				, *controller(), *mSceneCustomizer, diagramId, this);
 		view->mutableScene().enableMouseGestures(qReal::SettingsManager::value("gesturesEnabled").toBool());
 		SettingsListener::listen("gesturesEnabled", &(view->mutableScene()), &EditorViewScene::enableMouseGestures);

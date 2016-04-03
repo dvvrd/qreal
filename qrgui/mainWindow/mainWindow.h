@@ -27,7 +27,7 @@ class QGraphicsView;
 class QSignalMapper;
 class QListWidget;
 class QTreeView;
-class QDeclarativeEngine;
+class QQmlEngine;
 
 class PropertyEditorModel;
 class FindManager;
@@ -369,7 +369,7 @@ private:
 	QScopedPointer<PropertyEditorModel> mPropertyModel;
 	text::TextManager *mTextManager;
 
-	QDeclarativeEngine *mEngine;  // Has ownership
+	QQmlEngine *mQmlEngine;  // Has ownership
 
 	QVector<bool> mSaveListChecked;
 

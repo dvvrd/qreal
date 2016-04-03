@@ -28,6 +28,7 @@ usabilityFiles/*
 **/generated/pluginInterface.h
 **/generated/pluginInterface.cpp
 **/generated/ports.h
+**/generated/shapes/*.qml
 plugin.qrc
 
 # Doxygen

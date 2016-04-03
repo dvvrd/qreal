@@ -293,7 +293,7 @@ QIcon EditorManager::icon(const Id &id) const
 {
 	const QString qml = elementType(id).qml();
 	return qml.isEmpty()
-			? QIcon(":/icons/default.svg")
+			? QIcon(":/pluginManager/images/default.svg")
 			: QmlIconLoader::iconOf(qml);
 }
 

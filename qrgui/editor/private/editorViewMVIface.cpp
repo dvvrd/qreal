@@ -25,7 +25,7 @@
 using namespace qReal;
 using namespace qReal::gui::editor;
 
-EditorViewMViface::EditorViewMViface(QDeclarativeEngine &qmlEngine, EditorView *view, EditorViewScene *scene)
+EditorViewMViface::EditorViewMViface(QQmlEngine &qmlEngine, EditorView *view, EditorViewScene *scene)
 	: QAbstractItemView(0)
 	, mQmlEngine(qmlEngine)
 	, mScene(scene)
@@ -162,7 +162,7 @@ void EditorViewMViface::rowsInserted(const QModelIndex &parent, int start, int e
 			continue;
 		}
 
-		const ElementType &elementType = mLogicalAssistApi->editorManagerInterface().elementType(currentId);
+		ElementType &elementType = mLogicalAssistApi->editorManagerInterface().elementType(currentId);
 		Element *elem = elementType.type() == ElementType::Type::node
 				? static_cast<Element *>(new NodeElement(mQmlEngine, elementType.toNode(), currentId, mScene->models()))
 				: static_cast<Element *>(new EdgeElement(elementType.toEdge(), currentId, mScene->models()));
