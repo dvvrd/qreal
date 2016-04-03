@@ -79,7 +79,7 @@ private:
 	void parsePort(const qrRepo::RepoApi &repo, Metamodel &metamodel, const Id &id);
 	void parseGroup(const qrRepo::RepoApi &repo, Metamodel &metamodel, const Id &diagram, const Id &id);
 	void parseProperties(const qrRepo::RepoApi &repo, ElementType &element, const Id &id);
-	void parseSdfGraphics(const qrRepo::RepoApi &repo, NodeElementType &node, const Id &id);
+	void parseQmlGraphics(const qrRepo::RepoApi &repo, NodeElementType &node, const Id &id);
 	void parseLabels(NodeElementType &node, const QDomElement &labelsTag, int width, int height);
 	void parseNodePorts(NodeElementType &node, const QDomElement &portsTag, int width, int height);
 	void parseContainerProperties(const qrRepo::RepoApi &repo, NodeElementType &node, const Id &id);

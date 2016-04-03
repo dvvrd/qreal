@@ -8,14 +8,7 @@
 			<node displayedName="Diagram" name="DiagramNode">
 				<graphics>
 					<picture sizex="200" sizey="200">
-						<line y1="0" x1="20" y2="0" x2="180"/>
-						<line y1="200" x1="20" y2="200" x2="180"/>
-						<line y1="20" x1="0" y2="180" x2="0"/>
-						<line y1="20" x1="200" y2="180" x2="200"/>
-						<arc spanAngle="1440" startAngle="1440" y1="0" x1="0" y2="40" x2="40"/>
-						<arc spanAngle="1440" startAngle="0" y1="0" x1="160" y2="40" x2="200"/>
-						<arc spanAngle="1440" startAngle="2880" y1="160" x1="0" y2="200" x2="40"/>
-						<arc spanAngle="-1440" startAngle="0" y1="160" x1="160" y2="200" x2="200"/>
+						<external filr="qml/DiagramNodeClass.qml"/>
 					</picture>
 					<labels>
 						<label x="40" y="10" textBinded="name"/>
@@ -45,7 +38,7 @@
 			<node name="CommonFeature" displayedName="Общая фича" description="Обобщающая фича">
 				<graphics>
 					<picture sizex="149" sizey="95">
-						<rectangle stroke-width="0" y1="2" y2="91a" x1="2" x2="144a" fill="#ffffff" stroke="#0000ff" fill-style="none" stroke-style="solid"/>
+						<external file="qml/CommonFeatureClass.qml"/>
 					</picture>
 					<labels>
 						<label x="20" y="14" textBinded="name"/>
@@ -65,7 +58,7 @@
 			<node name="DetailedFeature" displayedName="Детальная фича" description="Детализированная фича">
 				<graphics>
 					<picture sizex="144" sizey="88">
-						<rectangle stroke-width="0" y1="2" y2="82" x1="2" x2="138a" fill="#ffffff" stroke="#008000" fill-style="none" stroke-style="solid"/>
+						<external file="qml/DetailedFeatureClass.qml"/>
 					</picture>
 					<labels>
 						<label x="25" y="20" textBinded="name"/>

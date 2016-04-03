@@ -1,4 +1,4 @@
-# Copyright 2007-2015 QReal Research Group
+# Copyright 2007-2016 QReal Research Group
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -31,12 +31,12 @@ HEADERS += association.h \
 	pointPort.h \
 	port.h \
 	property.h \
-	sdftocpp.h \
 	stringType.h \
 	type.h \
 	xmlCompiler.h \
 	portType.h \
 	circularPort.h \
+	documentLoader.h \
 
 SOURCES += association.cpp \
 	diagram.cpp \
@@ -55,12 +55,12 @@ SOURCES += association.cpp \
 	pointPort.cpp \
 	port.cpp \
 	property.cpp \
-	sdftocpp.cpp \
 	stringType.cpp \
 	type.cpp \
 	xmlCompiler.cpp \
 	portType.cpp \
 	circularPort.cpp \
+	documentLoader.cpp \
 
 TEMPLATE = app
 QT += xml gui

@@ -36,19 +36,19 @@ HEADERS += \
 	$$PWD/toolPluginManager.h \
 	$$PWD/editorManagerInterface.h \
 	$$PWD/pattern.h \
-	$$PWD/sdfRenderer.h \
 	$$PWD/qrsMetamodelLoader.h \
 	$$PWD/qrsMetamodelSaver.h \
 	$$PWD/details/patternParser.h \
+	$$PWD/details/qmlIconLoader.h \
 
 SOURCES += \
 	$$PWD/editorManager.cpp \
 	$$PWD/toolPluginManager.cpp \
 	$$PWD/pattern.cpp \
-	$$PWD/sdfRenderer.cpp \
 	$$PWD/qrsMetamodelLoader.cpp \
 	$$PWD/qrsMetamodelSaver.cpp \
 	$$PWD/details/patternParser.cpp \
+	$$PWD/details/qmlIconLoader.cpp \
 
 RESOURCES += \
 	$$PWD/pluginManager.qrc \

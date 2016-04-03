@@ -28,8 +28,8 @@
 #include <metaMetaModel/edgeElementType.h>
 #include <metaMetaModel/patternType.h>
 
-#include "qrgui/plugins/pluginManager/sdfRenderer.h"
-#include "qrgui/plugins/pluginManager/qrsMetamodelSaver.h"
+#include "qrsMetamodelSaver.h"
+#include "details/qmlIconLoader.h"
 
 using namespace qReal;
 
@@ -291,18 +291,18 @@ QString EditorManager::mouseGesture(const Id &id) const
 
 QIcon EditorManager::icon(const Id &id) const
 {
-	if (!mMetamodels.contains(id.editor())) {
-		return QIcon();
-	}
-
-	return SdfIconLoader::iconOf(id, elementType(id).sdf());
+	const QString qml = elementType(id).qml();
+	return qml.isEmpty()
+			? QIcon(":/icons/default.svg")
+			: QmlIconLoader::iconOf(qml);
 }
 
 QSize EditorManager::iconSize(const Id &id) const
 {
-	Q_ASSERT(mMetamodels.contains(id.editor()));
-
-	return SdfIconLoader::preferedSizeOf(id, elementType(id).sdf());
+	const QString qml = elementType(id).qml();
+	return qml.isEmpty()
+			? QSize(50, 50)
+			: QmlIconLoader::preferedSizeOf(qml);
 }
 
 ElementType &EditorManager::elementType(const Id &id) const
@@ -569,19 +569,14 @@ IdList EditorManager::children(const Id &parent) const
 
 QString EditorManager::shape(const Id &id) const
 {
-	const ElementType &element = elementType(id);
-	QString result;
-	QTextStream stream(&result);
-	element.sdf().save(stream, 4);
-	return result;
+	return elementType(id).qml();
 }
 
-void EditorManager::updateShape(const Id &id, const QDomElement &graphicsSdf) const
+void EditorManager::updateShape(const Id &id, const QString &qml) const
 {
 	/// @todo: support ports and labels.
 	ElementType &element = elementType(id);
-	/// @todo: picture will be appended to existing. Make it overwriting it.
-	element.loadSdf(graphicsSdf.firstChildElement("picture"));
+	element.loadQml(qml);
 }
 
 void EditorManager::resetIsHidden(const Id &id) const
@@ -602,23 +597,29 @@ void EditorManager::deleteElement(const Id &id) const
 void EditorManager::addNodeElement(const Id &diagram, const QString &name, const QString &displayedName
 		, bool isRootDiagramNode) const
 {
-	const QString shape =
-			"<picture sizex=\"50\" sizey=\"50\">\n"
-			"    <image y1=\"0\" name=\"\" x1=\"0\" y2=\"50\" x2=\"50\"/>\n"
-			"</picture>\n";
-	QDomDocument document;
-	document.setContent(shape);
-
 	Metamodel *metamodel = this->metamodel(diagram.editor());
 	if (!metamodel) {
 		return;
 	}
 
+	const QString qml =
+			"import QtQuick 1.0\n"
+			"Rectangle {\n"
+			"	width: 50; height: 50\n"
+			"	color: \"transparent\"\n"
+			"	Picture {"
+			"		x1: 0\n"
+			"		y1: 0\n"
+			"		x2: parent.width\n"
+			"		y2: parent.height\n"
+			"	}\n"
+			"}\n";
+
 	NodeElementType *node = new NodeElementType(*metamodel);
 	node->setDiagram(diagram.diagram());
 	node->setName(name);
 	node->setFriendlyName(displayedName);
-	node->loadSdf(document.documentElement());
+	node->loadQml(qml);
 	node->setResizable(true);
 	node->setCreateChildrenFromMenu(false);
 	node->setHidden(false);

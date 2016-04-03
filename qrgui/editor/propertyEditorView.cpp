@@ -121,7 +121,7 @@ void PropertyEditorView::setRootIndex(const QModelIndex &index)
 			type = QtVariantPropertyManager::enumTypeId();
 		}
 
-		/// @todo: Not property name should be hard-coded, new type must be introduced (like 'sdf' or 'qml')!
+		/// @todo: This should be removed when qml will be edited by QReal engine in explosed diagram!
 		if ((name == "shape" && typeName == "string") || mModel->isReference(valueCell, name)) { // hack
 			isButton = true;
 		}

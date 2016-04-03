@@ -25,6 +25,7 @@ HEADERS += \
 	$$PWD/itemPopup.h \
 	$$PWD/gridDrawer.h \
 	$$PWD/animatedEffects.h \
+	$$PWD/itemRenderer.h \
 
 SOURCES += \
 	$$PWD/abstractItem.cpp \
@@ -39,3 +40,4 @@ SOURCES += \
 	$$PWD/rotater.cpp \
 	$$PWD/gridDrawer.cpp \
 	$$PWD/animatedEffects.cpp \
+	$$PWD/itemRenderer.cpp \

@@ -52,7 +52,7 @@
             <node displayedName="Диаграмма баз данных" description="Корневой элемент создания диаграммы описания схемы базы данных. Для её создания перенесите этот элемент в обозреватель" name="DatabaseDiagram">
                 <graphics>
                     <picture sizex="48" sizey="48">
-                        <image y1="0" name="images/table.png" x1="0" y2="47" x2="47"/>
+                        <external file="qml/DatabaseDiagramClass.qml"/>
                     </picture>
                     <labels>
                         <label x="0" y="0" textBinded="name"/>
@@ -69,7 +69,7 @@
             <node displayedName="Таблица" description="Новая таблица" name="Table">
                 <graphics>
                     <picture sizex="150" sizey="180">
-                        <rectangle fill="#f5f5f5" stroke-style="solid" stroke="#000000" y1="0" stroke-width="0" x1="0" y2="180" fill-style="solid" x2="150"/>
+                        <external file="qml/TableClass.qml"/>
                     </picture>
                     <labels>
                         <label x="0" y="-30" textBinded="name"/>
@@ -115,7 +115,7 @@
             <node displayedName="Столбец строкового типа" name="ColumnString">
                 <graphics>
                     <picture sizex="200" sizey="20">
-                        <rectangle fill="#f5f5f5" stroke-style="solid" stroke="#6495ed" y1="0" stroke-width="1" x1="0" y2="20" fill-style="solid" x2="200"/>
+                        <external file="qml/ColumnStringStringClass.qml"/>
                     </picture>
                     <labels>
                         <label x="5" y="1" textBinded="name"/>
@@ -158,7 +158,7 @@
             <node displayedName="Столбец числового типа" name="ColumnNumber">
                 <graphics>
                     <picture sizex="200" sizey="20">
-                        <rectangle fill="#f5f5f5" stroke-style="solid" stroke="#f08080" y1="0" stroke-width="1" x1="0" y2="20" fill-style="solid" x2="200"/>
+                        <external file="qml/ColumnNumberClass.qml"/>
                     </picture>
                     <labels>
                         <label x="5" y="1" textBinded="name"/>
@@ -207,7 +207,7 @@
             <node displayedName="Столбец типа дата-время" name="ColumnDate">
                 <graphics>
                     <picture sizex="200" sizey="20">
-                        <rectangle fill="#f5f5f5" stroke-style="solid" stroke="#483d8b" y1="0" stroke-width="1" x1="0" y2="20" fill-style="solid" x2="200"/>
+                        <external file="qml/ColumnDateClass.qml"/>
                     </picture>
                     <labels>
                         <label x="5" y="1" textBinded="name"/>
@@ -249,7 +249,7 @@
             <node displayedName="Столбец другого типа" name="ColumnOther">
                 <graphics>
                     <picture sizex="200" sizey="20">
-                        <rectangle fill="#f5f5f5" stroke-style="solid" stroke="#00ff00" y1="0" stroke-width="1" x1="0" y2="20" fill-style="solid" x2="200"/>
+                        <external file="qml/ColumnOtherClass.qml"/>
                     </picture>
                     <labels>
                         <label x="5" y="1" textBinded="name"/>

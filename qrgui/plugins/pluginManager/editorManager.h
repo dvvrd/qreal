@@ -119,7 +119,7 @@ public:
 	QString propertyNameByDisplayedName(const Id &id, const QString &displayedPropertyName) const override;
 	IdList children(const Id &parent) const override;
 	QString shape(const Id &id) const override;
-	void updateShape(const Id &id, const QDomElement &graphicsSdf) const override;
+	void updateShape(const Id &id, const QString &qml) const override;
 	void resetIsHidden(const Id &id) const override;
 	bool isHidden(const Id &id) const override;
 	void deleteElement(const Id &id) const override;

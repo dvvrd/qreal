@@ -37,7 +37,6 @@ class GraphicalModel;
 class QRGUI_MODELS_EXPORT GraphicalModelAssistApi : public QObject, public GraphicalModelAssistInterface
 {
 	Q_OBJECT
-
 public:
 	GraphicalModelAssistApi(
 			details::GraphicalModel &graphicalModel
@@ -62,8 +61,11 @@ public:
 	void changeParent(const Id &element, const Id &parent, const QPointF &position) override;
 
 	void copyProperties(const Id &dest, const Id &src) override;
-	QMap<QString, QVariant> properties(const Id &id) override;
+	QMap<QString, QVariant> properties(const Id &id) const override;
 	void setProperties(const Id &id, QMap<QString, QVariant> const &properties);
+
+	/// Returns the value of \a id's property called \a name. Id is passed as string to allow its usage in QML.
+	Q_INVOKABLE QVariant property(const QString &id, const QString &name) const;
 
 	void stackBefore(const Id &element, const Id &sibling);
 
@@ -106,7 +108,7 @@ public:
 	QPersistentModelIndex rootIndex() const override;
 	Id rootId() const override;
 
-	bool hasRootDiagrams() const override;
+	Q_INVOKABLE bool hasRootDiagrams() const override;
 	int childrenOfRootDiagram() const override;
 	int childrenOfDiagram(const Id &parent) const override;
 
@@ -160,6 +162,7 @@ private:
 	details::GraphicalModel &mGraphicalModel;
 	details::ModelsAssistApi mModelsAssistApi;
 	details::GraphicalPartModel &mGraphicalPartModel;
+
 };
 
 }

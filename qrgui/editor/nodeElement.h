@@ -26,7 +26,6 @@
 #include <QtCore/QList>
 #include <QtCore/QTimer>
 
-#include <qrgui/plugins/pluginManager/sdfRenderer.h>
 #include <qrgui/models/nodeInfo.h>
 
 #include "qrgui/editor/element.h"
@@ -37,6 +36,8 @@
 #include "qrgui/editor/private/umlPortHandler.h"
 #include "qrgui/editor/private/portHandler.h"
 
+class QDeclarativeEngine;
+class QDeclarativeItem;
 
 namespace qReal {
 
@@ -57,7 +58,8 @@ class QRGUI_EDITOR_EXPORT NodeElement : public Element
 	Q_OBJECT
 
 public:
-	explicit NodeElement(const NodeElementType &type
+	NodeElement(QDeclarativeEngine &qmlEngine
+			, const NodeElementType &type
 			, const Id &id
 			, const models::Models &models);
 
@@ -162,7 +164,7 @@ public:
 	QList<NodeElement *> const childNodes() const;
 
 	void setVisibleEmbeddedLinkers(const bool show);
-	void updateShape(const QDomElement &graphicsSdf);
+	void updateShape(const QString &qml);
 
 	void changeFoldState();
 
@@ -193,6 +195,7 @@ public slots:
 private slots:
 	void updateNodeEdges();
 	void initRenderedDiagram();
+	void syncQmlItemSize();
 
 private:
 	enum DragState {
@@ -206,6 +209,8 @@ private:
 		, Bottom
 		, BottomRight
 	};
+
+	void initQml();
 
 	/**
 	 * Resizes node trying to use newContents as new shape
@@ -266,8 +271,10 @@ private:
 
 	qReal::commands::AbstractCommand *changeParentCommand(const Id &newParent, const QPointF &position) const;
 
-	const NodeElementType &mType;
+	QDeclarativeEngine &mQmlEngine;
+	QDeclarativeItem *mQmlItem;  // Has ownership
 
+	const NodeElementType &mType;
 	ContextMenuAction mSwitchGridAction;
 
 	QMap<QString, bool> mPortsVisibility;
@@ -282,8 +289,6 @@ private:
 	QList<EmbeddedLinker *> mEmbeddedLinkers;
 
 	QTransform mTransform;
-
-	SdfRenderer mRenderer;
 
 	bool mIsExpanded;
 

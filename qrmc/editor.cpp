@@ -307,13 +307,13 @@ bool Editor::generateResourceFile(const QString &resourceTemplate)
 	}
 
 	QString resourceBody = "";
-	const QString line = mUtilsTemplate[sdfFileTag];
+	const QString line = mUtilsTemplate[qmlFileTag];
 	for (const Diagram * const diagram : mDiagrams) {
 		resourceBody += diagram->generateResourceFile(line);
 	}
 
 	QString resourceGenerated = resourceTemplate;
-	resourceGenerated.replace(sdfFileTag, resourceBody);
+	resourceGenerated.replace(qmlFileTag, resourceBody);
 
 	// template is ready, writing it into a file
 	QTextStream out(&file);

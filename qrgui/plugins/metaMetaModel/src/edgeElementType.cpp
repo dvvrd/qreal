@@ -42,7 +42,7 @@ Qt::PenStyle EdgeElementType::penStyle() const
 void EdgeElementType::setPenStyle(Qt::PenStyle style)
 {
 	mPenStyle = style;
-	updateSdf();
+	updateQml();
 }
 
 int EdgeElementType::penWidth() const
@@ -63,7 +63,7 @@ QColor EdgeElementType::penColor() const
 void EdgeElementType::setPenColor(const QColor &color)
 {
 	mPenColor = color;
-	updateSdf();
+	updateQml();
 }
 
 bool EdgeElementType::isDividable() const
@@ -116,35 +116,39 @@ void EdgeElementType::drawEndArrow(QPainter *painter) const
 	Q_UNUSED(painter)
 }
 
-void EdgeElementType::updateSdf()
+void EdgeElementType::updateQml()
 {
-	QString sdfType;
+	QString qmlType;
 	switch (mPenStyle) {
 	case Qt::SolidLine:
-		sdfType = "solid";
+		qmlType = "solid";
 		break;
 	case Qt::DashLine:
-		sdfType = "dash";
+		qmlType = "dash";
 		break;
 	case Qt::DotLine:
-		sdfType = "dot";
+		qmlType = "dot";
 		break;
 	case Qt::DashDotLine:
-		sdfType = "dashdot";
+		qmlType = "dashdot";
 		break;
 	case Qt::DashDotDotLine:
-		sdfType = "dashdotdot";
+		qmlType = "dashdotdot";
 		break;
 	default:
 		break;
 	}
 
-	const QString sdf = "<picture sizex=\"100\" sizey=\"60\" >\n"\
-			"\t<line fill=\"" + mPenColor.name() + "\" stroke-style=\"" + sdfType + "\" stroke=\"" + mPenColor.name() +
-			"\" y1=\"0\" x1=\"0\" y2=\"60\" stroke-width=\"2\" x2=\"100\" fill-style=\"solid\" />\n"
-			 "</picture>";
-
-	QDomDocument sdfDocument;
-	sdfDocument.setContent(sdf);
-	loadSdf(sdfDocument.documentElement());
+	loadQml(QString("import QtQuick 1.1\n"
+			"import CustomComponents 1.0 \n"
+			"Rectangle { \n"
+			"\t width : 100; height : 60 \n"
+			"\t Line{ \n"
+			"\t\t x1: 0; y1: 0\n"
+			"\t\t x2: 100; y2: 60\n"
+			"\t\t width: 2\n"
+			"\t\t style:\"%1\"\n"
+			"\t\t color: \"%2\"\n"
+			"\t} \n"
+			"}\n").arg(qmlType, mPenColor.name()));
 }

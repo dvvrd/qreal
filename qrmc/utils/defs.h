@@ -64,7 +64,7 @@ const QString getUsagesLineTag = "@@GetUsedTypesLine@@";
 const QString getIsNodeOrEdgeLineTag = "@@IsNodeOrEdgeLine@@";
 const QString getEnumsLineTag = "@@GetEnumValuesLine@@";
 const QString getPossibleEdgesLineTag = "@@GetPossibleEdgesLine@@";
-const QString sdfPortsTag = "@@PortsSdf@@";
+const QString qmlPortsTag = "@@PortsQml@@";
 const QString linePortTag = "@@LinePort@@";
 const QString pointPortTag = "@@PointPort@@";
 const QString portsTag = "@@Ports@@";
@@ -140,7 +140,7 @@ const QString maximizeChildrenTag = "@@MaximizesChildren@@";
 const QString hasMovableChildrenTag = "@@HasMovableChildren@@";
 const QString forestallingSizeTag = "@@SizeOfForestalling@@";
 const QString childrenForestallingSizeTag = "@@SizeOfChildrenForestalling@@";
-const QString lineSdfTag = "@@LineSdf@@";
+const QString lineQmlTag = "@@LineQml@@";
 const QString lineTypeTag = "@@LineType@@";
 const QString isResizeable = "@@IsResizeable@@";
 const QString xCoordIsScalable = "@@XCoordIsScalable@@";
@@ -148,7 +148,7 @@ const QString yCoordIsScalable = "@@YCoordIsScalable@@";
 
 const QString nodesListTag = "@@NodesList@@";
 const QString edgesListTag = "@@EdgesList@@";
-const QString sdfFileTag = "@@SdfFile@@";
+const QString qmlFileTag = "@@QmlFile@@";
 const QString fileNameTag = "@@Filename@@";
 
 const QString arrowTemplateTag = "@@Arrow@@";

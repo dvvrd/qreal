@@ -27,7 +27,6 @@ using namespace qReal;
 
 ElementType::ElementType(Metamodel &metamodel)
 	: qrgraph::Node(metamodel)
-	, mSdf(new QDomDocument)
 	, mIsHidden(false)
 {
 }
@@ -168,22 +167,14 @@ void ElementType::setDiagram(const QString &diagramName)
 	mDiagram = diagramName;
 }
 
-QDomElement ElementType::sdf() const
+QString ElementType::qml() const
 {
-	return mSdf.isNull() ? QDomElement() : mSdf->documentElement();
+	return mQml;
 }
 
-void ElementType::loadSdf(const QDomElement &picture)
+void ElementType::loadQml(const QString &qml)
 {
-	if (mSdf->isNull()) {
-		mSdf->appendChild(mSdf->importNode(picture, true));
-		return;
-	}
-
-	QDomElement currentPicture = mSdf->documentElement();
-	for (QDomElement child = picture.firstChildElement(); !child.isNull(); child = child.nextSiblingElement()) {
-		currentPicture.insertBefore(mSdf->importNode(child, true), currentPicture.firstChildElement());
-	}
+	mQml = qml;
 }
 
 const QList<LabelProperties> &ElementType::labels() const

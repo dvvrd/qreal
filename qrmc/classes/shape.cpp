@@ -160,7 +160,7 @@ void Shape::generate(QString &classTemplate) const
 	if (!mNode)
 		return;
 
-	generateSdf();
+	generateQml();
 
 	MetaCompiler &compiler = mNode->diagram().editor()->metaCompiler();
 	QString unused;
@@ -214,7 +214,7 @@ QList<Port*> Shape::getPorts() const
 	return mPorts;
 }
 
-void Shape::generateSdf() const
+void Shape::generateQml() const
 {
 	if (!hasPicture()) {
 		return;
@@ -223,7 +223,7 @@ void Shape::generateSdf() const
 	QDir dir;
 	changeDir(dir);
 
-	const QString fileName = dir.absoluteFilePath(mNode->name() + "Class.sdf");
+	const QString fileName = dir.absoluteFilePath(mNode->name() + "Class.qml");
 	QFile file(fileName);
 	if (!file.open(QIODevice::WriteOnly | QIODevice::Text)) {
 		qDebug() << "cannot open \"" << fileName << "\"";
@@ -274,7 +274,7 @@ QString Shape::generateResourceLine(const QString &resourceTemplate) const
 	}
 
 	QString line = resourceTemplate;
-	result += line.replace(fileNameTag, mNode->name() + "Class.sdf") + endline;
+	result += line.replace(fileNameTag, mNode->name() + "Class.qml") + endline;
 
 	return result;
 }

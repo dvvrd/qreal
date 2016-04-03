@@ -48,7 +48,7 @@ public:
 
 private:
 	void initLabels();
-	void generateSdf() const;
+	void generateQml() const;
 	void generateArrows(QString &edgeClass) const;
 	void generateArrowEnd(QString &edgeClass, const QString &arrowEnd,
 			const QString &customTag, const QString &brushTag) const;

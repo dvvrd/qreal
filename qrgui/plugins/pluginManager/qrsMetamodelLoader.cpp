@@ -137,7 +137,7 @@ void QrsMetamodelLoader::parseNode(const qrRepo::RepoApi &repo
 	node->setResizable(boolProperty(repo, id, "isResizeable", true));
 	node->setCreateChildrenFromMenu(boolProperty(repo, id, "createChildrenFromMenu"));
 
-	parseSdfGraphics(repo, *node, id);
+	parseQmlGraphics(repo, *node, id);
 	parseContainerProperties(repo, *node, id);
 	parseProperties(repo, *node, id);
 
@@ -289,14 +289,14 @@ void QrsMetamodelLoader::parseAssociations(const qrRepo::RepoApi &repo, EdgeElem
 	/// Drawind code should be migrated from qrxc to engine and then here we simply set generate types as-is.
 }
 
-void QrsMetamodelLoader::parseSdfGraphics(const qrRepo::RepoApi &repo, NodeElementType &node, const Id &id)
+void QrsMetamodelLoader::parseQmlGraphics(const qrRepo::RepoApi &repo, NodeElementType &node, const Id &id)
 {
-	const QString sdfString = stringProperty(repo, id, "shape");
-	QDomDocument sdfDocument;
-	sdfDocument.setContent(sdfString);
-	const QDomElement graphicsElement = sdfDocument.documentElement();
+	const QString shapeString = stringProperty(repo, id, "shape");
+	QDomDocument qmlDocument;
+	qmlDocument.setContent(shapeString);
+	const QDomElement graphicsElement = qmlDocument.documentElement();
 	const QDomElement picture = graphicsElement.firstChildElement("picture");
-	node.loadSdf(picture);
+	node.loadQml(picture.text());
 
 	const QDomElement labels = graphicsElement.firstChildElement("labels");
 	const QDomElement ports = graphicsElement.firstChildElement("ports");
@@ -577,7 +577,7 @@ void QrsMetamodelLoader::inherit(ElementType &child, const ElementType &parent
 	}
 
 	if (!overridePictures) {
-		childNode.loadSdf(parentNode.sdf());
+		/// @todo: Qml picture inheritance is not supported for a moment.
 	}
 }
 

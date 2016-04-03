@@ -46,6 +46,7 @@ HEADERS += \
 	$$PWD/private/exploserView.h \
 	$$PWD/private/clipboardHandler.h \
 	$$PWD/private/touchSupportManager.h \
+	$$PWD/private/imagesCache.h \
 	$$PWD/edgeElement.h \
 	$$PWD/element.h \
 	$$PWD/nodeElement.h \
@@ -93,6 +94,7 @@ SOURCES += \
 	$$PWD/private/exploserView.cpp \
 	$$PWD/private/clipboardHandler.cpp \
 	$$PWD/private/touchSupportManager.cpp \
+	$$PWD/private/imagesCache.cpp \
 	$$PWD/edgeElement.cpp \
 	$$PWD/element.cpp \
 	$$PWD/nodeElement.cpp \
@@ -128,6 +130,3 @@ SOURCES += \
 	$$PWD/commands/foldCommand.cpp \
 	$$PWD/commands/reshapeEdgeCommand.cpp \
 	$$PWD/commands/expandCommand.cpp \
-
-RESOURCES += \
-	$$PWD/contextIcons.qrc \

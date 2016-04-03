@@ -42,7 +42,7 @@ class QRGUI_EDITOR_EXPORT EditorViewMViface : public QAbstractItemView
 	Q_OBJECT
 
 public:
-	EditorViewMViface(EditorView *view, EditorViewScene *scene);
+	EditorViewMViface(QDeclarativeEngine &qmlEngine, EditorView *view, EditorViewScene *scene);
 	~EditorViewMViface();
 
 	QModelIndex indexAt(const QPoint &point) const;
@@ -81,6 +81,7 @@ private slots:
 private:
 	typedef QPair<QPersistentModelIndex, Element*> IndexElementPair;
 
+	QDeclarativeEngine &mQmlEngine;
 	EditorViewScene *mScene;
 	EditorView *mView;
 	models::GraphicalModelAssistApi *mGraphicalAssistApi;

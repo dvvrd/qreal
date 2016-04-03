@@ -6,7 +6,7 @@
             <node displayedName="Центр обработки данных" name="dataCenter">
                 <graphics>
                     <picture sizex="100" sizey="100">
-                        <image y1="6" name="images/database.png" x1="1" y2="90" x2="90"/>
+                        <external file="qml/dataCenterClass.qml"/>
                     </picture>
                     <labels>
                         <label x="5" y="95" textBinded="name"/>
@@ -37,7 +37,7 @@
             <node displayedName="Обзорная диаграмма" name="diagram">
                 <graphics>
                     <picture sizex="32" sizey="32">
-                        <image y1="0" name="images/circle_blue.png" x1="0" y2="31" x2="31"/>
+                        <external file="qml/diagramClass.qml"/>
                     </picture>
                     <labels>
                         <label x="-1" y="40" textBinded="name"/>
@@ -51,7 +51,7 @@
             <node displayedName="АРМ" description="автоматизированое рабочее место" name="computer">
                 <graphics>
                     <picture sizex="80" sizey="90">
-                        <image y1="10" name="images/laptop.png" x1="8" y2="80" x2="80"/>
+                        <external file="qml/computerClass.qml"/>
                     </picture>
                     <labels>
                         <label x="0" y="85" textBinded="name"/>
@@ -82,7 +82,7 @@
             <node displayedName="Средство транспортировки" name="transport">
                 <graphics>
                     <picture sizex="70" sizey="80">
-                        <image y1="8" name="images/transport.png" x1="5" y2="70" x2="70"/>
+                        <external file="qml/transportClass.qml"/>
                     </picture>
                     <labels>
                         <label x="0" y="75" textBinded="name"/>
@@ -113,7 +113,7 @@
             <node displayedName="Спутник" name="satellite">
                 <graphics>
                     <picture sizex="80" sizey="90">
-                        <image y1="8" name="images/satellite.png" x1="7" y2="80" x2="80"/>
+                        <external file="qml/satelliteClass.qml"/>
                     </picture>
                     <labels>
                         <label x="0" y="85" textBinded="name"/>
@@ -144,7 +144,7 @@
             <node displayedName="Коммуникационный узел" name="communication">
                 <graphics>
                     <picture sizex="80" sizey="90">
-                        <image y1="6" name="images/network-wireless.png" x1="7" y2="80" x2="80"/>
+                        <external file="qml/communicationClass.qml"/>
                     </picture>
                     <labels>
                         <label x="0" y="85" textBinded="name"/>
@@ -175,7 +175,7 @@
             <node displayedName="Карточка" name="card">
                 <graphics>
                     <picture sizex="50" sizey="50">
-                        <image y1="3" name="images/controlpanel.png" x1="3" y2="40" x2="40"/>
+                        <external file="qml/cardClass.qml"/>
                     </picture>
                     <labels>
                         <label x="0" y="45" textBinded="name"/>
@@ -206,7 +206,7 @@
             <node displayedName="Пост проверки" name="control">
                 <graphics>
                     <picture sizex="80" sizey="90">
-                        <image y1="5" name="images/ktalkd.png" x1="5" y2="85" x2="75"/>
+                        <external file="qml/controlClass.qml"/>
                     </picture>
                     <labels>
                         <label x="0" y="85" textBinded="name"/>
@@ -237,7 +237,7 @@
             <node displayedName="Промежуточный буфер" name="buffer">
                 <graphics>
                     <picture sizex="160" sizey="160">
-                        <image y1="17" name="images/server.png" x1="21" y2="144" x2="148"/>
+                        <external file="qml/bufferClass.qml"/>
                     </picture>
                     <labels>
                         <label x="0" y="166" textBinded="name"/>
@@ -268,7 +268,7 @@
             <node displayedName="Описание" description="Блок для описания обязанностей и характера взаимодействия рассматриваемого узла" name="DescriptionBlock">
                 <graphics>
                     <picture sizex="150" sizey="180">
-                        <rectangle fill="#f0f8ff" stroke-style="solid" stroke="#000000" y1="0" stroke-width="0" x1="0" y2="180" fill-style="solid" x2="150"/>
+                        <external file="qml/DescriptionBlockClass.qml"/>
                     </picture>
 					<labels>
                         <label x="5" y="5" textBinded="text"/>

@@ -27,6 +27,7 @@ class QGraphicsView;
 class QSignalMapper;
 class QListWidget;
 class QTreeView;
+class QDeclarativeEngine;
 
 class PropertyEditorModel;
 class FindManager;
@@ -367,6 +368,8 @@ private:
 	QScopedPointer<ToolPluginManager> mToolManager;
 	QScopedPointer<PropertyEditorModel> mPropertyModel;
 	text::TextManager *mTextManager;
+
+	QDeclarativeEngine *mEngine;  // Has ownership
 
 	QVector<bool> mSaveListChecked;
 

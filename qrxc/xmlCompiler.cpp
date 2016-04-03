@@ -31,6 +31,7 @@
 #include "nodeType.h"
 #include "portType.h"
 #include "enumType.h"
+#include "documentLoader.h"
 
 using namespace utils;
 
@@ -89,15 +90,8 @@ Editor* XmlCompiler::loadXmlFile(const QDir &currentDir, const QString &inputXml
 			return nullptr;
 		}
 	} else {
-		QString errorMessage;
-		int errorLine = 0;
-		int errorColumn = 0;
-		QDomDocument inputXmlDomDocument = xmlUtils::loadDocument(fullFileName
-			, &errorMessage, &errorLine, &errorColumn);
-		if (!errorMessage.isEmpty()) {
-			qCritical() << QString("(%1, %2):").arg(errorLine).arg(errorColumn)
-					<< "Could not parse XML. Error:" << errorMessage;
-		}
+		DocumentLoader loader;
+		const QDomDocument inputXmlDomDocument = loader.load(fullFileName);
 
 		Editor *editor = new Editor(inputXmlDomDocument, this);
 		if (!editor->load(currentDir)) {
@@ -150,7 +144,7 @@ void XmlCompiler::generateElementClasses()
 		<< "#include <QBrush>\n"
 		<< "#include <QPainter>\n\n"
 		<< "#include <qrgraph/queries.h>\n"
-		<< "#include <qrutils/xmlUtils.h>\n"
+		<< "#include <qrutils/inFile.h>\n"
 		<< "#include <metaMetaModel/nodeElementType.h>\n"
 		<< "#include <metaMetaModel/edgeElementType.h>\n"
 		<< "#include <metaMetaModel/patternType.h>\n"

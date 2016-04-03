@@ -1,4 +1,4 @@
-/* Copyright 2007-2015 QReal Research Group
+/* Copyright 2007-2016 QReal Research Group
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -40,7 +40,7 @@ private:
 	QList<Port *> mPointPorts;
 	QList<Port *> mLinePorts;
 	QList<Port *> mCircularPorts;
-	QDomElement mSdfDomElement;
+	QDomElement mQmlDomElement;
 	QDomElement mPortsDomElement;
 	bool mIsResizeable;
 
@@ -49,8 +49,8 @@ private:
 	virtual bool initDividability();
 	virtual bool initPortTypes();
 
-	bool initSdf();
-	void generateSdf() const;
+	bool initQml();
+	void generateQml() const;
 
 	bool initPorts();
 	bool initPointPorts(const QDomElement &portsElement);

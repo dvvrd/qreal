@@ -256,7 +256,7 @@ void Repository::copyProperties(const Id &dest, const Id &src)
 	mObjects[dest]->copyPropertiesFrom(*mObjects[src]);
 }
 
-QMap<QString, QVariant> Repository::properties(const Id &id)
+QMap<QString, QVariant> Repository::properties(const Id &id) const
 {
 	return mObjects[id]->properties();
 }
@@ -467,8 +467,7 @@ void Repository::saveDiagramsById(QHash<QString, IdList> const &diagramIds)
 
 void Repository::remove(const IdList &list) const
 {
-	foreach(const Id &id, list) {
-		qDebug() << id.toString();
+	for (const Id &id : list) {
 		mSerializer.removeFromDisk(id);
 	}
 }

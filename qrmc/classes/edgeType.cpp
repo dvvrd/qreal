@@ -77,7 +77,7 @@ QString EdgeType::generateEdgeClass(const QString &classTemplate) const
 	QString labelsUpdateLine;
 	QString labelsDefinitionLine;
 
-	generateSdf();
+	generateQml();
 	generateArrows(edgeClass);
 
 	for (const Label * const label : mLabels) {
@@ -171,7 +171,7 @@ void EdgeType::generateArrowEnd(QString &edgeClass, const QString &arrowEnd,
 	}
 }
 
-void EdgeType::generateSdf() const
+void EdgeType::generateQml() const
 {
 	QDir dir;
 	if (!dir.exists(targetDirectory())) {
@@ -196,7 +196,7 @@ void EdgeType::generateSdf() const
 
 	dir.cd(shapesDir);
 
-	const QString fileName = dir.absoluteFilePath(name() + "Class.sdf");
+	const QString fileName = dir.absoluteFilePath(name() + "Class.qml");
 	QFile file(fileName);
 	if (!file.open(QIODevice::WriteOnly | QIODevice::Text)) {
 		qDebug() << "cannot open \"" << fileName << "\"";
@@ -205,7 +205,7 @@ void EdgeType::generateSdf() const
 
 	const MetaCompiler &compiler = diagram().editor()->metaCompiler();
 
-	QString result = compiler.getTemplateUtils(lineSdfTag);
+	QString result = compiler.getTemplateUtils(lineQmlTag);
 	result.replace(lineTypeTag, mApi.stringProperty(mId, "lineType"))
 			.replace("\\n", "\n");
 
@@ -244,7 +244,7 @@ void EdgeType::initLabels()
 QString EdgeType::generateResourceLine(const QString &resourceTemplate) const
 {
 	QString line = resourceTemplate;
-	return line.replace(fileNameTag, name() + "Class.sdf") + endline;
+	return line.replace(fileNameTag, name() + "Class.qml") + endline;
 }
 
 QString EdgeType::generatePorts(const QStringList &portTypes) const

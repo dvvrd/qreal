@@ -122,7 +122,7 @@ public:
 	virtual QString propertyNameByDisplayedName(const Id &id, const QString &displayedPropertyName) const = 0;
 	virtual IdList children(const Id &parent) const = 0;
 	virtual QString shape(const Id &id) const = 0;
-	virtual void updateShape(const Id &id, const QDomElement &graphicsSdf) const = 0;
+	virtual void updateShape(const Id &id, const QString &qml) const = 0;
 	virtual void resetIsHidden(const Id &id) const = 0;
 	virtual bool isHidden(const Id &id) const = 0;
 	virtual void deleteElement(const Id &id) const = 0;

@@ -1,4 +1,4 @@
-/* Copyright 2007-2015 QReal Research Group
+/* Copyright 2007-2016 QReal Research Group
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -59,7 +59,7 @@ Type* NodeType::clone() const
 		result->mCircularPorts << port->clone();
 	}
 
-	result->mSdfDomElement = mSdfDomElement;
+	result->mQmlDomElement = mQmlDomElement;
 	result->mPortsDomElement = mPortsDomElement;
 	result->mIsResizeable = mIsResizeable;
 	return result;
@@ -67,28 +67,8 @@ Type* NodeType::clone() const
 
 bool NodeType::copyPictures(GraphicType *parent)
 {
-	const NodeType * const nodeParent = dynamic_cast<NodeType*>(parent);
-	if (nodeParent != nullptr) {
-		if (mSdfDomElement.isNull()) {
-			/// @todo Support this.
-			if (!nodeParent->mSdfDomElement.isNull()) {
-				qDebug() << name()
-						<< ": Inheriting pictures for an element without <picture> tag is not currently supported";
-			}
-		} else {
-			mWidth = qMax(mWidth, nodeParent->mWidth);
-			mHeight = qMax(mHeight, nodeParent->mHeight);
-
-			for (QDomNode sdfPrimitive = nodeParent->mSdfDomElement.firstChild();
-					!sdfPrimitive.isNull();
-					sdfPrimitive = sdfPrimitive.nextSibling())
-			{
-				mSdfDomElement.appendChild(sdfPrimitive.cloneNode());
-			}
-
-			mVisible = mVisible || nodeParent->mVisible;
-		}
-
+	if (const NodeType * const nodeParent = dynamic_cast<NodeType*>(parent)) {
+		qWarning() << name() << "Inheriting QML is currently not supported";
 		return true;
 	}
 
@@ -112,16 +92,16 @@ bool NodeType::initPortTypes()
 
 bool NodeType::initGraphics()
 {
-	return initSdf() && initPorts() && initBooleanProperties();
+	return initQml() && initPorts() && initBooleanProperties();
 }
 
-bool NodeType::initSdf()
+bool NodeType::initQml()
 {
-	QDomElement sdfElement = mGraphics.firstChildElement("picture");
-	if (!sdfElement.isNull()) {
-		mWidth = sdfElement.attribute("sizex").toInt();
-		mHeight = sdfElement.attribute("sizey").toInt();
-		mSdfDomElement = sdfElement;
+	QDomElement qmlElement = mGraphics.firstChildElement("picture");
+	if (!qmlElement.isNull()) {
+		mWidth = qmlElement.attribute("sizex").toInt();
+		mHeight = qmlElement.attribute("sizey").toInt();
+		mQmlDomElement = qmlElement;
 		mVisible = true;
 	} else {
 		mVisible = false;
@@ -130,12 +110,12 @@ bool NodeType::initSdf()
 	return true;
 }
 
-void NodeType::generateSdf() const
+void NodeType::generateQml() const
 {
 	mDiagram->editor()->xmlCompiler()->addResource("\t<file>generated/shapes/" + resourceName("Class") + "</file>\n");
 
 	OutFile out("generated/shapes/" + resourceName("Class"));
-	mSdfDomElement.save(out(), 1);
+	out() << mQmlDomElement.text();
 }
 
 bool NodeType::initPorts()
@@ -227,7 +207,7 @@ bool NodeType::initBooleanProperties()
 
 void NodeType::generateCode(OutFile &out)
 {
-	generateSdf();
+	generateQml();
 
 	const QString className = NameNormalizer::normalize(qualifiedName());
 
@@ -240,8 +220,7 @@ void NodeType::generateCode(OutFile &out)
 
 	generateCommonData(out);
 
-	out() << "\t\t\tloadSdf(utils::xmlUtils::loadDocument(\":/generated/shapes/"
-			+ className + "Class.sdf\").documentElement());\n"
+	out() << "\t\t\tloadQml(utils::InFile::readAll(\":/generated/shapes/"+ className + "Class.qml\"));\n"
 			<< "\t\t\tsetSize(QSizeF(" + QString::number(mWidth) + ", " + QString::number(mHeight) + "));\n"
 			<< "\t\t\tinitProperties();\n";
 

@@ -73,4 +73,4 @@ new_rcc.variable_out = SOURCES
 
 QMAKE_EXTRA_COMPILERS += new_rcc
 
-include(extraCompilersSdf.pri)
+include(extraCompilersQml.pri)

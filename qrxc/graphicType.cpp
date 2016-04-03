@@ -543,7 +543,7 @@ void GraphicType::generatePropertyData(OutFile &out) const
 QString GraphicType::resourceName(const QString &resourceType) const
 {
 	QString name = NameNormalizer::normalize(qualifiedName());
-	return name + resourceType + ".sdf";
+	return name + resourceType + ".qml";
 }
 
 QStringList GraphicType::containedTypes() const

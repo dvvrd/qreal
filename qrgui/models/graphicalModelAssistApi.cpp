@@ -118,14 +118,23 @@ void GraphicalModelAssistApi::copyProperties(const Id &dest, const Id &src)
 	mGraphicalModel.mutableApi().copyProperties(dest, src);
 }
 
-QMap<QString, QVariant> GraphicalModelAssistApi::properties(const Id &id)
+QMap<QString, QVariant> GraphicalModelAssistApi::properties(const Id &id) const
 {
-	return mGraphicalModel.mutableApi().properties(id);
+	return mGraphicalModel.api().properties(id);
 }
 
 void GraphicalModelAssistApi::setProperties(const Id &id, QMap<QString, QVariant> const &properties)
 {
 	mGraphicalModel.mutableApi().setProperties(id, properties);
+}
+
+QVariant GraphicalModelAssistApi::property(const QString &id, const QString &name) const
+{
+	if (id.isEmpty()) {
+		return QString();
+	}
+
+	return mGraphicalModel.mutableApi().property(Id::loadFromString(id), name);
 }
 
 void GraphicalModelAssistApi::stackBefore(const Id &element, const Id &sibling)

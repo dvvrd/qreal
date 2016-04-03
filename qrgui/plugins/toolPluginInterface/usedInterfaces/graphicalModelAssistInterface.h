@@ -34,7 +34,7 @@ public:
 	virtual IdList children(const Id &element) const = 0;
 	virtual void changeParent(const Id &element, const Id &parent, const QPointF &position) = 0;
 	virtual void copyProperties(const Id &dest, const Id &src) = 0;
-	virtual QMap<QString, QVariant> properties(const Id &id) = 0;
+	virtual QMap<QString, QVariant> properties(const Id &id) const = 0;
 	virtual IdList temporaryRemovedLinksFrom(const Id &elem) const = 0;
 	virtual IdList temporaryRemovedLinksTo(const Id &elem) const = 0;
 	virtual IdList temporaryRemovedLinksNone(const Id &elem) const = 0;

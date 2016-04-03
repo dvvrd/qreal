@@ -130,11 +130,11 @@ public:
 	/// This name will be used for diagram() part of qReal::Id and should not be shown to user.
 	void setDiagram(const QString &diagramName);
 
-	/// Returns XML element containing SDF description of element's appearance.
-	QDomElement sdf() const;
+	/// Returns string containing QML description of element's appearance.
+	QString qml() const;
 
-	/// Loads SDF description of element's appearance.
-	void loadSdf(const QDomElement &picture);
+	/// Sets the given QML code as element's appearance.
+	void loadQml(const QString &qml);
 
 	/// Returns a list of all labels on instances of this type.
 	const QList<LabelProperties> &labels() const;
@@ -189,7 +189,7 @@ private:
 	QString mFriendlyName;
 	QString mDescription;
 	QString mDiagram;
-	QScopedPointer<QDomDocument> mSdf;
+	QString mQml;
 	QList<LabelProperties> mLabels;
 	QStringList mPropertyNames;
 	QStringList mReferenceProperties;

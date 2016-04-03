@@ -47,7 +47,7 @@ namespace qrmc {
 
 		void changeDir(QDir &dir) const;
 
-		void generateSdf() const;
+		void generateQml() const;
 
 		bool hasLabels() const;
 		bool hasPointPorts() const;

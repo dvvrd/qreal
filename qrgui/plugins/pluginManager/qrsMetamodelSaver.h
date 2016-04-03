@@ -67,7 +67,7 @@ private:
 	Id saveGroup(qrRepo::RepoApi &repo, const PatternType &pattern, const Id &diagram);
 	void saveEnum(qrRepo::RepoApi &repo, const Metamodel &metamodel, const QString &enumName, const Id &diagram);
 	void saveProperties(qrRepo::RepoApi &repo, const ElementType &element, const Id &id);
-	void saveSdfGraphics(qrRepo::RepoApi &repo, const NodeElementType &node, const Id &id);
+	void saveQmlGraphics(qrRepo::RepoApi &repo, const NodeElementType &node, const Id &id);
 	void saveLabels(const NodeElementType &node, QDomElement &labelsTag, int width, int height);
 	void saveNodePorts(const NodeElementType &node, QDomElement &portsTag);
 	void saveContainerProperties(qrRepo::RepoApi &repo, const NodeElementType &node, const Id &id);
