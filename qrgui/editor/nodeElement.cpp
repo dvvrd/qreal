@@ -16,15 +16,19 @@
 
 #include <QtCore/QUuid>
 #include <QtCore/QtMath>
+#include <QtGui/QTextCursor>
 #include <QtWidgets/QStyle>
 #include <QtWidgets/QStyleOptionGraphicsItem>
 #include <QtWidgets/QMessageBox>
-#include <QtGui/QTextCursor>
 #include <QtWidgets/QToolTip>
 #include <QtWidgets/QGraphicsDropShadowEffect>
+#include <QtWidgets/QGraphicsProxyWidget>
 #include <QtQml/QQmlEngine>
+#include <QtQml/QQmlComponent>
 #include <QtQml/QQmlContext>
 #include <QtQml/QQmlProperty>
+#include <QtQuick/QQuickItem>
+#include <QtQuickWidgets/QQuickWidget>
 
 #include <math.h>
 #include <qrkernel/logging.h>
@@ -119,19 +123,25 @@ NodeElement::~NodeElement()
 
 void NodeElement::initQml()
 {
-//	QDeclarativeComponent component(mQmlEngine);
-//	component.setData(mType.qml().toLocal8Bit(), QUrl());
-//	if (component.isReady()) {
-//		QObject *object = component.create();
-//		object->setProperty("ids", logicalId().toString());
-//		mQmlItem = qobject_cast<QDeclarativeItem *>(object);
-//	} else {
-//		QDeclarativeComponent defaultComponent(mQmlEngine, QUrl("qrc:/default.qml"));
-//		mQmlItem = qobject_cast<QDeclarativeItem *>(defaultComponent.create());
-//	}
+	QQmlComponent component(&mQmlEngine);
+	component.setData(mType.qml().toLocal8Bit(), QUrl());
+	QQuickWidget * const widget = new QQuickWidget(&mQmlEngine, nullptr);
+	if (component.isReady()) {
+		QObject *object = component.create();
+		object->setProperty("ids", logicalId().toString());
+		QQuickItem * const item = qobject_cast<QQuickItem *>(object);
+		widget->setSource(QUrl("qrc:/dummy.qml"));
+		QQmlEngine::setObjectOwnership(object, QQmlEngine::CppOwnership);
+		item->setParentItem(widget->rootObject());
+		item->setParent(widget);
+	} else {
+		widget->setSource(QUrl("qrc:/default.qml"));
+		qWarning() << "Qml for" << id() << "could not be parsed. Error message:" << component.errorString();
+	}
 
-//	qobject_cast<QGraphicsObject *>(mQmlItem)->setParentItem(this);
-//	mQmlItem->setFlag(QGraphicsItem::ItemStacksBehindParent);
+	mQmlItem = new QGraphicsProxyWidget(this);
+	mQmlItem->setWidget(widget);
+	mQmlItem->setFlag(QGraphicsItem::ItemStacksBehindParent);
 }
 
 void NodeElement::initPortsVisibility()
@@ -188,7 +198,7 @@ void NodeElement::setGeometry(const QRectF &geom)
 
 void NodeElement::syncQmlItemSize()
 {
-//	mQmlItem->setSize(mContents.size());
+	mQmlItem->resize(mContents.size());
 }
 
 void NodeElement::setPos(const QPointF &pos)
@@ -333,10 +343,12 @@ void NodeElement::mousePressEvent(QGraphicsSceneMouseEvent *event)
 		{
 			changeFoldState();
 		} else {
-			Element::mousePressEvent(event);
+			scene()->sendEvent(mQmlItem, event);
+//			Element::mousePressEvent(event);
 		}
 	} else {
-		Element::mousePressEvent(event);
+		scene()->sendEvent(mQmlItem, event);
+//		Element::mousePressEvent(event);
 	}
 
 	mDragPosition = event->scenePos() - scenePos();
@@ -442,7 +454,8 @@ void NodeElement::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
 		// it is needed for sendEvent() to every isSelected element thro scene
 		event->setPos(event->lastPos());
 
-		Element::mouseMoveEvent(event);
+		scene()->sendEvent(mQmlItem, event);
+//		Element::mouseMoveEvent(event);
 
 		mGrid->mouseMoveEvent(event);
 		newPos = pos();
@@ -531,7 +544,7 @@ void NodeElement::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
 	}
 
 	if (mDragState == None) {
-		Element::mouseReleaseEvent(event);
+		scene()->sendEvent(mQmlItem, event);
 	}
 
 	EditorViewScene *evScene = dynamic_cast<EditorViewScene *>(scene());
@@ -800,9 +813,11 @@ void NodeElement::updateData()
 		setGeometry(newRect.translated(newpos));
 	}
 
-//	QDeclarativeProperty propertyIds(mQmlItem, "ids");
-//	propertyIds.write(QString());
-//	propertyIds.write(logicalId().toString());
+	// Updating all bindings to repository in QML item
+	QQmlProperty propertyIds(mQmlItem->widget(), "ids");
+	propertyIds.write(QString());
+	propertyIds.write(logicalId().toString());
+
 	updateLabels();
 	update();
 }

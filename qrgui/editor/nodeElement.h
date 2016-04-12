@@ -271,7 +271,7 @@ private:
 	qReal::commands::AbstractCommand *changeParentCommand(const Id &newParent, const QPointF &position) const;
 
 	QQmlEngine &mQmlEngine;
-//	QDeclarativeItem *mQmlItem;  // Has ownership
+	QGraphicsProxyWidget *mQmlItem;  // Has ownership
 
 	NodeElementType &mType;
 	ContextMenuAction mSwitchGridAction;

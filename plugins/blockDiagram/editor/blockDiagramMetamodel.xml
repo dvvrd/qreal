@@ -7,9 +7,7 @@
 	  <graphicTypes>
 		<node displayedName="Block Diagram" name="BlockDiagramNode">
 		  <graphics>
-			<picture sizex="200" sizey="200">
-			  <external file="qml/blockDiagramNode.qml"/>
-			</picture>
+			<external file="qml/blockDiagramNode.qml"/>
 			<labels>
 			  <label x="40" y="10" textBinded="name"/>
 			</labels>
@@ -35,9 +33,7 @@
 		</node>
 		<node displayedName="Action" name="ActionElement">
 		  <graphics>
-			<picture sizex="80" sizey="60">
-			  <external file="qml/actionElement.qml"/>
-			</picture>
+			<external file="qml/actionElement.qml"/>
 			<ports>
 			  <linePort>
 				<start startx="79" starty="10"/>
@@ -68,9 +64,7 @@
 		</node>
 		<node displayedName="Final Node" name="BlockFinalNode">
 		  <graphics>
-			<picture sizex="30" sizey="30">
-			  <external file="qml/blockFinalNode.qml"/>
-			</picture>
+			<external file="qml/blockFinalNode.qml"/>
 			<ports>
 			  <pointPort x="0" y="15"/>
 			  <pointPort x="15" y="0"/>
@@ -122,9 +116,7 @@
 		</edge>
 		<node displayedName="Initial Node" name="InitialNode">
 		  <graphics>
-			<picture sizex="30" sizey="30">
-			  <external file="qml/initialNode.qml"/>
-			</picture>
+			<external file="qml/initialNode.qml"/>
 			<ports>
 			  <pointPort x="0" y="15"/>
 			  <pointPort x="30" y="15"/>
@@ -138,9 +130,7 @@
 		</node>
 		<node displayedName="Condition Node" name="ConditionNode">
 		  <graphics>
-			<picture sizex="60" sizey="60">
-			  <external file="qml/conditionNode.qml"/>
-			</picture>
+			<external file="qml/conditionNode.qml"/>
 			<ports>
 			  <pointPort x="1" y="30"/>
 			  <pointPort x="30" y="59"/>

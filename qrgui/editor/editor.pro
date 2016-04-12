@@ -26,7 +26,7 @@ links(qrkernel qslog qrutils \
 
 includes(qrgraph qrgui qrgui/plugins/metaMetaModel)
 
-QT += widgets
+QT += widgets qml quick quickwidgets
 
 DEFINES += QRGUI_EDITOR_LIBRARY
 
@@ -130,3 +130,5 @@ SOURCES += \
 	$$PWD/commands/foldCommand.cpp \
 	$$PWD/commands/reshapeEdgeCommand.cpp \
 	$$PWD/commands/expandCommand.cpp \
+
+RESOURCES += editor.qrc \
