@@ -131,6 +131,7 @@ void NodeElement::initQml()
 		object->setProperty("ids", logicalId().toString());
 		QQuickItem * const item = qobject_cast<QQuickItem *>(object);
 		widget->setSource(QUrl("qrc:/dummy.qml"));
+		widget->setResizeMode(QQuickWidget::SizeRootObjectToView);
 		QQmlEngine::setObjectOwnership(object, QQmlEngine::CppOwnership);
 		item->setParentItem(widget->rootObject());
 		item->setParent(widget);
@@ -343,12 +344,12 @@ void NodeElement::mousePressEvent(QGraphicsSceneMouseEvent *event)
 		{
 			changeFoldState();
 		} else {
+			Element::mousePressEvent(event);
 			scene()->sendEvent(mQmlItem, event);
-//			Element::mousePressEvent(event);
 		}
 	} else {
+		Element::mousePressEvent(event);
 		scene()->sendEvent(mQmlItem, event);
-//		Element::mousePressEvent(event);
 	}
 
 	mDragPosition = event->scenePos() - scenePos();
@@ -454,8 +455,8 @@ void NodeElement::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
 		// it is needed for sendEvent() to every isSelected element thro scene
 		event->setPos(event->lastPos());
 
+		Element::mouseMoveEvent(event);
 		scene()->sendEvent(mQmlItem, event);
-//		Element::mouseMoveEvent(event);
 
 		mGrid->mouseMoveEvent(event);
 		newPos = pos();
@@ -545,6 +546,7 @@ void NodeElement::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
 
 	if (mDragState == None) {
 		scene()->sendEvent(mQmlItem, event);
+		Element::mouseReleaseEvent(event);
 	}
 
 	EditorViewScene *evScene = dynamic_cast<EditorViewScene *>(scene());
